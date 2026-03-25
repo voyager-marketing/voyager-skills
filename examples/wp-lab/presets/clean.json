@@ -1,0 +1,15 @@
+{
+  "name": "clean",
+  "description": "Vanilla WordPress with no plugins or customizations",
+  "mode": "ephemeral",
+  "wp_version": "latest",
+  "php_version": "8.2",
+  "plugins": [],
+  "themes": [],
+  "config": {
+    "WP_DEBUG": true,
+    "WP_DEBUG_LOG": true,
+    "SCRIPT_DEBUG": true
+  },
+  "env_vars": {}
+}

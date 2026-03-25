@@ -1,0 +1,43 @@
+{
+  "name": "gutenberg-dev",
+  "description": "Gutenberg block development environment with Voyager Blocks",
+  "mode": "continuous",
+  "wp_version": "latest",
+  "php_version": "8.2",
+  "plugins": [
+    {
+      "source": "gutenberg",
+      "type": "github",
+      "url": "https://github.com/WordPress/gutenberg",
+      "note": "Clones Gutenberg trunk. First start builds from source -- takes a few minutes."
+    },
+    {
+      "source": "acf-pro",
+      "type": "url",
+      "url": "https://connect.advancedcustomfields.com/v2/plugins/download?p=pro&k=${ACF_PRO_KEY}",
+      "requires_env": "ACF_PRO_KEY"
+    },
+    {
+      "source": "voyager-blocks",
+      "type": "local",
+      "path": "",
+      "note": "Set path to your local voyager-blocks plugin directory"
+    }
+  ],
+  "themes": [
+    {
+      "source": "twentytwentyfive",
+      "type": "slug"
+    }
+  ],
+  "config": {
+    "WP_DEBUG": true,
+    "WP_DEBUG_LOG": true,
+    "SCRIPT_DEBUG": true,
+    "GUTENBERG_DEVELOPMENT_MODE": true,
+    "WP_ENVIRONMENT_TYPE": "development"
+  },
+  "env_vars": {
+    "ACF_PRO_KEY": "${ACF_PRO_KEY}"
+  }
+}

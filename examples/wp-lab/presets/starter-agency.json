@@ -1,0 +1,23 @@
+{
+  "name": "starter-agency",
+  "description": "Example agency starter stack. Customize with your own plugins and themes.",
+  "mode": "continuous",
+  "wp_version": "latest",
+  "php_version": "8.2",
+  "plugins": [
+    { "source": "advanced-custom-fields", "type": "slug" },
+    { "source": "wordpress-seo", "type": "slug" },
+    { "source": "safe-svg", "type": "slug" },
+    { "source": "redirection", "type": "slug" }
+  ],
+  "themes": [
+    { "source": "twentytwentyfive", "type": "slug" }
+  ],
+  "config": {
+    "WP_DEBUG": true,
+    "WP_DEBUG_LOG": true,
+    "SCRIPT_DEBUG": true,
+    "WP_ENVIRONMENT_TYPE": "development"
+  },
+  "env_vars": {}
+}

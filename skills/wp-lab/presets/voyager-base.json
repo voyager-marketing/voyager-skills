@@ -1,0 +1,59 @@
+{
+  "name": "voyager-base",
+  "description": "Standard Voyager agency client stack",
+  "mode": "continuous",
+  "wp_version": "latest",
+  "php_version": "8.2",
+  "plugins": [
+    {
+      "source": "acf-pro",
+      "type": "url",
+      "url": "https://connect.advancedcustomfields.com/v2/plugins/download?p=pro&k=${ACF_PRO_KEY}",
+      "requires_env": "ACF_PRO_KEY",
+      "note": "ACF Pro requires a license key in ACF_PRO_KEY env var"
+    },
+    {
+      "source": "wordpress-seo",
+      "type": "slug",
+      "note": "Rank Math alternative: use 'seo-by-rank-math' slug instead"
+    },
+    {
+      "source": "seo-by-rank-math",
+      "type": "slug"
+    },
+    {
+      "source": "wp-rocket",
+      "type": "local",
+      "path": "",
+      "requires_env": "WP_ROCKET_KEY",
+      "note": "WP Rocket cannot be downloaded via API. Place the zip manually or skip."
+    },
+    {
+      "source": "safe-svg",
+      "type": "slug"
+    },
+    {
+      "source": "redirection",
+      "type": "slug"
+    }
+  ],
+  "themes": [
+    {
+      "source": "voyager-starter",
+      "type": "local",
+      "path": "",
+      "note": "Set path to your local voyager-starter theme directory"
+    }
+  ],
+  "config": {
+    "WP_DEBUG": true,
+    "WP_DEBUG_LOG": true,
+    "SCRIPT_DEBUG": true,
+    "WP_ENVIRONMENT_TYPE": "development",
+    "DISALLOW_FILE_EDIT": true
+  },
+  "env_vars": {
+    "ACF_PRO_KEY": "${ACF_PRO_KEY}",
+    "WP_ROCKET_KEY": "${WP_ROCKET_KEY}"
+  }
+}
