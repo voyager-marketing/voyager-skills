@@ -14,7 +14,7 @@ for skill_dir in "$SCRIPT_DIR"/skills/*/commands; do
         filename=$(basename "$cmd_file")
         ln -sf "$cmd_file" "$TARGET_DIR/$filename"
         echo "  Linked: $filename"
-        ((count++))
+        count=$((count + 1))
       fi
     done
   fi
