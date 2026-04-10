@@ -8,9 +8,13 @@ A skill is a packaged set of instructions, scripts, and presets that Claude Code
 
 ## Available Skills
 
-| Skill | Description |
-|-------|-------------|
-| [wp-lab](skills/wp-lab/) | Spin up ephemeral or continuous WordPress dev environments instantly |
+| Skill | Command | Description |
+|-------|---------|-------------|
+| [wp-lab](skills/wp-lab/) | `/wp-lab`, `/wp-ephemeral`, `/wp-dev`, `/wp-clean` | Spin up ephemeral or continuous WordPress dev environments instantly |
+| [content-strategy](skills/content-strategy/) | `/content-strategy` | Plan data-driven content strategy with Ahrefs keyword research |
+| [editorial-qa](skills/editorial-qa/) | `/editorial-qa` | Review and improve marketing content quality |
+| [client-prep](skills/client-prep/) | `/client-prep` | Build a briefing before any client call or meeting |
+| [seo-research](skills/seo-research/) | `/seo-research` | Research SEO data via Ahrefs MCP -- keywords, backlinks, competitors |
 
 ## Installation
 
@@ -32,6 +36,21 @@ If you only want skills available in a specific project, symlink the commands di
 ```bash
 ln -s /path/to/voyager-skills/skills/wp-lab/commands/*.md /your/project/.claude/commands/
 ```
+
+## MCP Integrations
+
+Some skills are enhanced by MCP server connections:
+
+| MCP Server | Used By | What It Provides |
+|------------|---------|------------------|
+| Ahrefs | content-strategy, seo-research | Keyword data, backlinks, rankings, site audits |
+| Notion | client-prep, content-strategy | CRM records, projects, content database |
+| Google Calendar | client-prep | Meeting details, attendees |
+| Gmail | client-prep | Recent email threads |
+| Slack | client-prep | Channel mentions, team discussions |
+| Stripe | client-prep | Invoice status, subscription details |
+
+Skills work without MCP connections but produce richer output when connected.
 
 ## Creating a new skill
 
