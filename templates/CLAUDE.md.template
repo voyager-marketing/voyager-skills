@@ -1,0 +1,77 @@
+# {{CLIENT_NAME}} — WordPress Site
+
+## Environment
+
+| Key | Value |
+|-----|-------|
+| **WordPress** | {{WP_VERSION}} |
+| **PHP** | {{PHP_VERSION}} |
+| **DB Prefix** | `{{DB_PREFIX}}` |
+| **WP Root** | `{{WP_ROOT}}` |
+| **Debug** | `WP_DEBUG` on, display off, log on |
+| **Site** | {{CLIENT_DOMAIN}} |
+
+## Active Plugins
+
+| Plugin | Purpose |
+|--------|---------|
+| Voyager Orbit | Lead tracking, analytics, 40 AI abilities, Portal bridge |
+| Voyager Blocks | Blocks, patterns, 9 binding sources, AI sidebar |
+| Voyager Core | CPTs, animations, mega menu |
+| Rank Math SEO | SEO, sitemaps, schema |
+| Abilities API | Registers plugin abilities as machine-readable |
+| MCP Adapter | Bridges Abilities API → MCP for Claude Code |
+
+## Active Theme
+
+**Voyager Block Theme** — design system theme. theme.json tokens, FSE templates, CSS, block styles. Patterns live in Voyager Blocks.
+
+## WordPress Context
+
+- **Table prefix:** `{{DB_PREFIX}}`
+- **WP Cron:** Disabled (`DISABLE_WP_CRON`), use system cron
+- **File editing:** Disabled in admin (`DISALLOW_FILE_EDIT`)
+- **Debug log:** `{{WP_ROOT}}wp-content/debug.log`
+
+## Key Paths
+
+```
+WP Root:     {{WP_ROOT}}
+Plugins:     {{WP_ROOT}}wp-content/plugins/
+Themes:      {{WP_ROOT}}wp-content/themes/
+Debug log:   {{WP_ROOT}}wp-content/debug.log
+```
+
+## WP-CLI
+
+All WP-CLI commands use `--path={{WP_ROOT}}`:
+
+```bash
+wp --path={{WP_ROOT}} plugin list
+wp --path={{WP_ROOT}} eval 'echo site_url();'
+```
+
+## AI Building Blocks
+
+40+ abilities registered and exposed via MCP:
+- **Orbit:** Lead data, analytics, site health, users, client reports
+- **Orbit ContentGeneration:** AI content for blocks
+- **Blocks:** Block analytics, pattern sync
+- **Core/AI/MCP:** Core abilities, AI client, MCP adapter
+
+**Portal Site ID:** `{{PORTAL_SITE_ID}}`
+
+## Brand System
+
+**Voyager Brand System:** https://www.notion.so/8ec0c2b2f55b43bcbdfdbd877dd7a659
+
+Client-specific overrides (logo, colors, fonts) live in theme.json `settings.custom`.
+
+## Code Standards
+
+- PHP **8.1+** — typed properties, return types, union types
+- WordPress Coding Standards for PHP, JS, CSS
+- All DB queries use `$wpdb->prepare()` — no exceptions
+- Sanitize all input, escape all output
+- Prefix everything with `voyager_`
+- Conventional commits: `feat:`, `fix:`, `chore:`, `docs:`
