@@ -1,8 +1,8 @@
 ---
 name: pseo
-description: "Use this skill when the user asks to create pSEO pages, batch create service area pages, generate city landing pages, or manage programmatic SEO content."
+description: "Use when asked to create pSEO pages, batch create service area pages, generate city landing pages, or set up programmatic SEO content for a client site."
 argument-hint: "[cities...] [--layout bold|showcase|landing|random] [--service 'Web Design'] [--region 'Southwest'] [--dry-run] [--status]"
-allowed-tools: [Bash, Read, Grep, Glob, Agent, TodoWrite, mcp__wordpress__mcp-adapter-execute-ability]
+allowed-tools: [Bash, Read, Grep, Glob, Agent]
 user-invocable: true
 ---
 
@@ -20,31 +20,25 @@ Create AI-powered, data-bound service area landing pages in batch. Each page get
 
 ## WP Root
 
-The WP root path is defined in the project's CLAUDE.md. Use `WP_ROOT` from that file. All WP-CLI commands should be run with `wp --path=$WP_ROOT`.
+Resolved from the project's CLAUDE.md. Use `WP_ROOT` from that file. All WP-CLI commands: `wp --path=$WP_ROOT`.
 
 ## Modes
 
-### `--status` (check existing pages)
-List all existing service area pages with their city, state, layout, and status.
-
+### `--status`
+List all existing service area pages with city, state, layout, and status.
 ```bash
 wp --path=$WP_ROOT post list --post_type=service_area --fields=ID,post_title,post_status,post_name --format=table
 ```
 
-### `--dry-run` (preview)
-Show what WOULD be created without making any changes. List each city, state, slug, layout, and whether a page already exists.
+### `--dry-run`
+Preview what WOULD be created — no changes made. Show each city, state, slug, layout, and whether a page already exists.
 
 ### Default: Batch Create
 
-For each city provided, execute the full pipeline:
-
-1. **Check for duplicates** — skip if slug already exists
-2. **Call ability** — `voyager-content/create-service-area` via WP-CLI
-3. **Report results** — post ID, permalink, ai_generated status, meta field count
-
-## Execution
-
-Use WP-CLI to invoke the ability:
+For each city:
+1. Check for duplicates — skip if slug exists
+2. Call ability via WP-CLI
+3. Report results
 
 ```bash
 wp --path=$WP_ROOT eval "
@@ -67,17 +61,12 @@ echo json_encode(\$result);
 
 ## Input Formats
 
-Accept cities in these formats:
+Accept cities as:
 - Comma-separated: `Denver CO, Austin TX, Seattle WA`
-- As arguments: `Denver, Colorado`
-- As a list: the user may provide a multi-line list
+- Multi-line list
+- Arguments: `Denver, Colorado`
 
-Parse city/state from input. If state is abbreviated (TX, CO, WA), expand to full name.
-
-## State Abbreviation Map
-
-Use standard US state abbreviations. Common ones:
-AL=Alabama, AK=Alaska, AZ=Arizona, AR=Arkansas, CA=California, CO=Colorado, CT=Connecticut, DE=Delaware, FL=Florida, GA=Georgia, HI=Hawaii, ID=Idaho, IL=Illinois, IN=Indiana, IA=Iowa, KS=Kansas, KY=Kentucky, LA=Louisiana, ME=Maine, MD=Maryland, MA=Massachusetts, MI=Michigan, MN=Minnesota, MS=Mississippi, MO=Missouri, MT=Montana, NE=Nebraska, NV=Nevada, NH=New Hampshire, NJ=New Jersey, NM=New Mexico, NY=New York, NC=North Carolina, ND=North Dakota, OH=Ohio, OK=Oklahoma, OR=Oregon, PA=Pennsylvania, RI=Rhode Island, SC=South Carolina, SD=South Dakota, TN=Tennessee, TX=Texas, UT=Utah, VT=Vermont, VA=Virginia, WA=Washington, WV=West Virginia, WI=Wisconsin, WY=Wyoming
+Parse city/state from input. Expand state abbreviations to full name (TX=Texas, CO=Colorado, CA=California, etc.)
 
 ## Default Values
 
@@ -88,24 +77,19 @@ AL=Alabama, AK=Alaska, AZ=Arizona, AR=Arkansas, CA=California, CO=Colorado, CT=C
 | tone | professional |
 | layout | random |
 | status | draft |
-| phone | (empty) |
-| region | (empty) |
-
-## Guardrails
-
-1. **Always create as draft** unless user explicitly says publish
-2. **Skip duplicates** — check slug before creating
-3. **Report failures** — if AI generation fails, report which city and the error
-4. **Confirm before large batches** — if more than 10 cities, confirm with user first
-5. **Rate limit** — pause 2 seconds between AI calls to avoid overwhelming the API
 
 ## Output
 
-After batch creation, show a summary table:
-
+After batch creation:
 | City | State | Layout | Post ID | Status | AI Generated |
 |------|-------|--------|---------|--------|--------------|
 | Denver | Colorado | bold | 97 | draft | ✓ |
-| Austin | Texas | showcase | 100 | draft | ✓ |
 
-And a final count: "Created X pages, skipped Y duplicates, Z failures."
+Final count: "Created X pages, skipped Y duplicates, Z failures."
+
+## Guardrails
+- Always create as draft unless user explicitly says publish
+- Skip duplicates — check slug before creating
+- Confirm with user before batches > 10 cities
+- Rate limit — pause 2 seconds between AI calls
+- Report each failure with city name and error
