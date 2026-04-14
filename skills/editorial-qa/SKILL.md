@@ -73,14 +73,20 @@ Quality-check and improve any marketing content for Voyager Marketing clients.
 
 ### SEO Check
 - Focus keyword: [present/missing] in title, H1, body, meta
-- Meta description: [good/needs work] -- suggested: "..."
+- Meta description: [good/needs work] — suggested: "..."
 - Internal links: [count] present, [suggestions]
+
+### Derivative Content
+- Social angle 1: [platform + hook line]
+- Social angle 2: [platform + hook line]
+- Email teaser: [subject + opening sentence]
 ```
 
 ## Rules
 
 - Always provide specific rewrites, not just "make it better"
-- Preserve the author's voice -- edit, don't rewrite from scratch
+- Preserve the author's voice — edit, don't rewrite from scratch
 - If no brand guidelines exist, default to Voyager voice (direct, warm, no fluff)
 - Flag factual claims that need verification
-- Be honest about quality. A mediocre piece that gets published is worse than honest feedback that improves it.
+- Be honest about quality — a mediocre piece that ships is worse than honest feedback that improves it
+- Never use the word "elevate" in any suggested copy
