@@ -1,23 +1,22 @@
 ---
 name: content-audit
-description: "Use this skill when the user asks to audit content quality, check for stale content, find thin pages, run a content freshness scan, or assess overall site content health."
-argument-hint: "[--type post|page|service_area] [--months 6] [--keyword 'web design'] [--images] [--limit 20]"
-allowed-tools: [Bash, Read, Grep, Glob, Agent, TodoWrite, mcp__wordpress__mcp-adapter-execute-ability]
+description: "Use when asked to audit content quality, check for stale content, find thin pages, run a content freshness scan, or assess overall site content health for a client."
+argument-hint: "[--type post|page|service_area] [--months 6] [--keyword 'topic'] [--images] [--limit 20]"
 user-invocable: true
 ---
 
 # Content Audit — Full-Site Quality Assessment
 
-Run comprehensive content quality audits across the site. Identifies stale content, thin pages, image SEO issues, content gaps, and optimization opportunities.
+Identify stale content, thin pages, image SEO issues, content gaps, and optimization opportunities across a client site.
 
 ## WP Root
 
-The WP root path is defined in the project's CLAUDE.md. Use `WP_ROOT` from that file. All WP-CLI commands should be run with `wp --path=$WP_ROOT`.
+Resolved from CLAUDE.md. Use `WP_ROOT`. All WP-CLI: `wp --path=$WP_ROOT`.
 
 ## Audit Types
 
 ### Freshness Audit (default)
-Scan for stale content that needs updating.
+Scan for stale content needing updates.
 
 ```bash
 wp --path=$WP_ROOT eval "
@@ -27,11 +26,10 @@ wp_set_current_user(1);
 echo json_encode(\$result, JSON_PRETTY_PRINT);
 "
 ```
-
-Show results as: Title | Last Modified | Age (months) | Word Count | Recommendation
+Show: Title | Last Modified | Age (months) | Word Count | Recommendation
 
 ### Image SEO Audit (`--images`)
-Find images with missing alt text, oversized files, and default titles.
+Find images with missing alt text, oversized files, default titles.
 
 ```bash
 wp --path=$WP_ROOT eval "
@@ -41,22 +39,20 @@ wp_set_current_user(1);
 echo json_encode(\$result, JSON_PRETTY_PRINT);
 "
 ```
-
-Show: Filename | Issues | Size (KB). Summarize totals at the end.
+Show: Filename | Issues | Size (KB). Summarize totals.
 
 ### Content Gap Analysis (`--keyword`)
-Analyze a keyword to find missing content opportunities.
+Find missing content opportunities for a keyword.
 
 ```bash
 wp --path=$WP_ROOT eval "
 wp_set_current_user(1);
 \$a = wp_get_ability('voyager-content/analyze-content-gaps');
-\$result = \$a->execute(['keyword' => 'web design', 'post_type' => 'any']);
+\$result = \$a->execute(['keyword' => 'KEYWORD', 'post_type' => 'any']);
 echo json_encode(\$result, JSON_PRETTY_PRINT);
 "
 ```
-
-Show gaps as: Topic | Priority | Content Type | Description. Also show thin content if found.
+Show: Topic | Priority | Content Type | Description
 
 ### Performance Prediction (`--post [id]`)
 Score a specific post for content quality.
@@ -70,17 +66,14 @@ echo json_encode(\$result, JSON_PRETTY_PRINT);
 "
 ```
 
-Show the overall score, breakdown, and recommendations.
-
 ## Full Audit Mode
 
-When user says "full audit" or "complete audit", run ALL audit types:
-
-1. **Freshness** — posts older than 6 months
-2. **Images** — site-wide image SEO
-3. **Performance** — score top 10 most recent posts
-4. Compile a summary report with action items prioritized by impact
+When user says "full audit" or "complete audit", run ALL types:
+1. Freshness — posts older than 6 months
+2. Images — site-wide image SEO
+3. Performance — score top 10 most recent posts
+4. Compile prioritized action list by impact
 
 ## Output
 
-Present findings in markdown tables. End with a prioritized action list: what to fix first based on impact and effort. Group by severity (critical, moderate, low).
+Markdown tables for findings. End with prioritized action list grouped by severity: critical, moderate, low.
