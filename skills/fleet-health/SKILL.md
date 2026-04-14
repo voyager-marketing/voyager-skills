@@ -1,32 +1,26 @@
 ---
 name: fleet-health
-description: "Use this skill when the user asks to check fleet health, run fleet monitoring, audit all client sites, or check site status across the fleet."
+description: "Use when asked to check fleet health, run fleet monitoring, audit all client sites, or check site status across the Voyager client fleet."
 argument-hint: "[--site=domain] [--notify]"
-allowed-tools: [Bash, Read, Grep, Glob, Agent, mcp__claude_ai_Notion__notion-search, mcp__claude_ai_Notion__notion-create-pages, mcp__claude_ai_Notion__notion-update-page, mcp__claude_ai_Slack__slack_send_message]
 user-invocable: true
 ---
 
 # Fleet Health Sweep
 
-Run a comprehensive health check across all Voyager client sites. Uses the `fleet-site-status` ability via MCP or local WP-CLI.
+Run a comprehensive health check across all Voyager client sites. Uses the `fleet-site-status` ability via WP-CLI or Portal MCP.
 
 ## What It Checks Per Site
 
-Uses the `voyager-orbit/fleet-site-status` ability which returns:
+Uses `voyager-orbit/fleet-site-status` ability which returns:
 - Plugin versions (Orbit, Blocks, Core)
 - Portal registration status
-- Binding sources count
-- Abilities count
+- Binding sources count + abilities count
 - Pattern Cloud configuration
-- Site data population
+- Site data population status
 - CPTs registered
 - Detected tier (tier-1, tier-2, tier-3, unconfigured)
 
-## WP Root
-
-The WP root path is defined in the project's CLAUDE.md. Use `WP_ROOT` from that file.
-
-## For Local Site
+## For Local Site (WP-CLI)
 
 ```bash
 wp --path=$WP_ROOT --user=1 eval '
@@ -36,14 +30,10 @@ echo json_encode($result, JSON_PRETTY_PRINT);
 '
 ```
 
-## For Remote Client Sites (via MCP)
+## For Remote Client Sites
 
-Use the MCP ability execution path:
-```
-wp_execute_ability → voyager-orbit/fleet-site-status
-```
-
-Each client site with Orbit installed exposes this ability via AbilityBridge REST API.
+Use the Portal Bridge via AbilityBridge REST endpoint:
+`POST /voyager/v1/abilities/execute` with `{"ability": "voyager-orbit/fleet-site-status"}` and HMAC auth.
 
 ## Health Grading
 
@@ -55,17 +45,13 @@ Each client site with Orbit installed exposes this ability via AbilityBridge RES
 
 ## Output Format
 
-After checking all sites, produce a summary:
-
 ```
 ## Fleet Health Report — {date}
 
 ### Summary
-- Total sites: {n}
-- Healthy: {n} | Warning: {n} | Critical: {n}
+- Total sites: N | Healthy: N | Warning: N | Critical: N
 
 ### Issues Found
-- {site}: {issue description}
 - {site}: {issue description}
 
 ### Recommendations
@@ -74,14 +60,14 @@ After checking all sites, produce a summary:
 
 ## Notification
 
-If `--notify` is passed, send the summary to Slack channel #fleet-ops using:
+If `--notify` is passed, post summary to Slack #fleet-ops:
 ```
-slack_send_message: channel=#fleet-ops, text={summary}
+slack_send_message: channel="#fleet-ops", text={summary}
 ```
 
 ## Scheduled Agent Use
 
-This skill is designed to run as a weekly managed agent:
+Design this to run as a weekly managed agent:
 - **Schedule:** Monday 9:00 AM ET
-- **Purpose:** Catch plugin drift, missing configs, stale patterns
-- **Action:** Report to Notion fleet status page + Slack notification
+- **Purpose:** Catch plugin drift, missing configs, stale Pattern Cloud
+- **Action:** Summary to Notion fleet status page + Slack #fleet-ops
