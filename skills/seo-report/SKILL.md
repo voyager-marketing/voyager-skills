@@ -1,28 +1,22 @@
 ---
 name: seo-report
-description: "Use this skill when the user asks for an SEO health report, content cluster planning, A/B variant generation, schema markup generation, or overall SEO analysis."
-argument-hint: "[cluster 'topic'] [schema post_id] [ab 'headline text'] [report]"
-allowed-tools: [Bash, Read, Grep, Glob, Agent, TodoWrite, mcp__wordpress__mcp-adapter-execute-ability]
+description: "Use when asked for an SEO health report, content cluster planning, schema markup generation, A/B headline variants, or overall SEO analysis for a client site."
+argument-hint: "[cluster 'topic'] [schema post_id] [ab 'headline'] [report]"
 user-invocable: true
 ---
 
 # SEO Report — Analysis, Planning & Optimization
 
-Generate SEO health reports, plan content clusters, create A/B variants, and generate schema markup.
+Generate SEO health reports, plan content clusters, create A/B variants, and generate schema markup via Voyager Orbit abilities.
 
 ## WP Root
 
-The WP root path is defined in the project's CLAUDE.md. Use `WP_ROOT` from that file. All WP-CLI commands should be run with `wp --path=$WP_ROOT`.
+Resolved from CLAUDE.md. Use `WP_ROOT`. All WP-CLI: `wp --path=$WP_ROOT`.
 
 ## Commands
 
 ### `report` (default) — SEO Health Report
-Comprehensive SEO health check combining multiple signals.
-
-Run these audits in sequence:
-1. **Content freshness** — flag stale posts
-2. **Image SEO** — find missing alt text
-3. **Content performance** — score recent posts
+Comprehensive health check combining freshness, image SEO, and content performance.
 
 ```bash
 wp --path=$WP_ROOT eval "
@@ -33,7 +27,7 @@ echo json_encode(['freshness' => \$fresh, 'images' => \$images], JSON_PRETTY_PRI
 "
 ```
 
-Compile into a structured report with scores, issues, and prioritized recommendations.
+Compile into a structured report: scores, issues table, prioritized recommendations.
 
 ### `cluster [topic]` — Content Cluster Planning
 Plan a hub-and-spoke content cluster around a pillar topic.
@@ -49,7 +43,7 @@ echo json_encode(\$result, JSON_PRETTY_PRINT);
 
 Present as:
 - **Pillar page:** Title, keyword, target word count
-- **Spoke articles:** Table with Title | Keyword | Angle | Link Strategy | Word Count
+- **Spoke articles:** Title | Keyword | Angle | Link Strategy | Word Count
 
 ### `schema [post_id]` — Generate Schema Markup
 Generate JSON-LD structured data for a post.
@@ -63,7 +57,7 @@ echo json_encode(\$result, JSON_PRETTY_PRINT);
 "
 ```
 
-Show the detected schema type and formatted JSON-LD. Offer to save it to post meta.
+Show detected schema type + formatted JSON-LD. Offer to save to post meta.
 
 ### `ab [text]` — A/B Variant Generation
 Generate A/B test variants for headlines, CTAs, or descriptions.
@@ -77,8 +71,8 @@ echo json_encode(\$result, JSON_PRETTY_PRINT);
 "
 ```
 
-Show as: Original | Variant | Approach | Target Audience
+Show: Original | Variant | Approach | Target Audience
 
 ## Output
 
-Format all reports with clear sections, tables, and actionable recommendations. Use severity indicators for issues.
+Structured reports with clear sections, tables, severity indicators, and actionable recommendations.
