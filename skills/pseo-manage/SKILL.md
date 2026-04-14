@@ -1,8 +1,8 @@
 ---
 name: pseo-manage
-description: "Use this skill when the user asks to manage pSEO pages — audit quality, enrich local data, generate stats/FAQ, suggest cities, or bulk-manage existing service area pages."
+description: "Use when asked to manage pSEO pages — audit quality, enrich local data, generate stats or FAQ, suggest new cities, or bulk-manage existing service area pages."
 argument-hint: "[audit|enrich|stats|faq|suggest|bulk-update] [--state Colorado] [--region 'Front Range'] [--limit 20]"
-allowed-tools: [Bash, Read, Grep, Glob, Agent, TodoWrite, mcp__wordpress__mcp-adapter-execute-ability]
+allowed-tools: [Bash, Read, Grep, Glob, Agent]
 user-invocable: true
 ---
 
@@ -12,7 +12,7 @@ Manage existing pSEO service area pages. Audit quality, enrich with local data, 
 
 ## WP Root
 
-The WP root path is defined in the project's CLAUDE.md. Use `WP_ROOT` from that file. All WP-CLI commands should be run with `wp --path=$WP_ROOT`.
+Resolved from CLAUDE.md. Use `WP_ROOT`. All WP-CLI: `wp --path=$WP_ROOT`.
 
 ## Commands
 
@@ -28,10 +28,10 @@ echo json_encode(\$result, JSON_PRETTY_PRINT);
 "
 ```
 
-Show results as a table: City | Score | Word Count | Issues. Highlight pages scoring below 60.
+Show: City | Score | Word Count | Issues. Highlight pages scoring below 60.
 
 ### `enrich [post_id]` — Add local data
-Enrich a service area page with demographics, landmarks, neighborhoods, and economy data.
+Enrich a page with demographics, landmarks, neighborhoods, and economy data.
 
 ```bash
 wp --path=$WP_ROOT eval "
@@ -66,8 +66,7 @@ echo json_encode(\$result, JSON_PRETTY_PRINT);
 "
 ```
 
-### `suggest [state]` — Suggest high-value cities
-Recommend cities for pSEO expansion, considering existing coverage.
+### `suggest [state]` — Recommend cities for pSEO expansion
 
 ```bash
 wp --path=$WP_ROOT eval "
@@ -78,15 +77,13 @@ echo json_encode(\$result, JSON_PRETTY_PRINT);
 "
 ```
 
-### `bulk-update` — Enrich all pages
-Iterate through all service area pages and enrich those missing local data.
-
-1. Get all service area posts
-2. For each, check if `sa_local_stats` is empty
-3. If empty, call `generate-local-stats`
+### `bulk-update` — Enrich all pages missing local data
+1. Get all service_area posts
+2. Check if `sa_local_stats` is empty
+3. Call `generate-local-stats` for empty pages
 4. Pause 2 seconds between AI calls
 5. Report results
 
 ## Output
 
-Show results in tables. For audits, highlight issues in the summary. For suggestions, indicate which cities already have pages.
+Results in tables. Audits highlight issues. Suggestions flag which cities already have pages.
