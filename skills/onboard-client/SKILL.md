@@ -1,342 +1,307 @@
 ---
 name: onboard-client
-description: "Use this skill when the user asks to onboard a new client, set up a new client, add a client site, or verify a client's WordPress setup."
+description: "Use when asked to onboard a new client, set up a new client site, add a client to the system, or verify a client's WordPress setup is correctly configured."
 argument-hint: "<client-name> [--verify-only] [--site=domain]"
-allowed-tools: [Bash, Read, Grep, Glob, Agent, mcp__claude_ai_Notion__notion-search, mcp__claude_ai_Notion__notion-fetch, mcp__claude_ai_Notion__notion-create-pages, mcp__claude_ai_Notion__notion-update-page, mcp__claude_ai_Notion__notion-query-database-view]
 user-invocable: true
 ---
 
-# Client Onboarding Automation
+# Onboard Client
 
-Onboard a new client across Notion and WordPress, or verify an existing client's setup. Uses MCP tools for Notion and WP-CLI for WordPress.
-
-## Notion IDs
-
-| Database | ID |
-|----------|----|
-| Client Profiles | `collection://1e9bfa0d-34b6-4864-a693-9118c8f71033` |
-| Websites | `collection://f12cc677-9dd3-499d-b23e-9c7873c5620f` |
-| Content Cycles | `collection://dcff4afb-e469-481f-929c-cd23cc87f822` |
-| Content | `collection://cfda5145-1b35-4980-934d-d2f26ead562c` |
-
-## WP Root
-
-The WP root path is defined in the project's CLAUDE.md. Use `WP_ROOT` from that file, or resolve it via:
-```bash
-wp --info --format=json | jq -r '.wp_root'
-```
+Full pipeline for adding a new client to the Voyager system: Notion records, WordPress verification, Tier 1 bindings, and content cycle setup.
 
 ## Modes
 
-### `--verify-only` (check existing setup)
+- **Default**: Full pipeline — Notion records + WP verification + bindings + content cycle.
+- **`--verify-only`**: Run Step 3 only (WP verification checklist). Skip all Notion steps.
 
-Verify a client's WordPress site is properly configured. Skip Notion steps and go directly to Step 3 (Verify WordPress Setup). Report the checklist and exit.
+---
 
-### default (full onboard)
+## Step 0: Scaffold Claude Config (new servers only)
 
-Complete client onboarding across Notion + WordPress. Execute all steps below in order.
+Skip this step if the server already has a `.claude/` directory.
 
-## Pipeline Steps
+Ask for the following before running the installer:
+- Server root path
+- WordPress root path
+- DB table prefix (default: `wp_`)
+- Portal Site ID
 
-### Step 0: Scaffold Claude Config (new servers only)
-
-If this is a brand new client server (no `.claude/` directory exists yet), scaffold the Claude Code config before anything else.
-
-Ask the user:
-- Server root path (e.g. `/sites/client.com`)
-- WP root path (e.g. `/sites/client.com/files/`)
-- DB prefix (default: `tgn_`)
-- Portal Site ID (can be filled in after Portal registration)
-
-Then run the installer from the voyager-skills repo:
+Run the Voyager Skills installer:
 
 ```bash
 voyager-skills/install.sh \
-  --domain=<client-domain> \
+  --domain=<domain> \
   --name="<Client Name>" \
-  --wp-root=<wp-root> \
-  --db-prefix=<db-prefix> \
-  --portal-site-id=<portal-id> \
+  --wp-root=<wp-root-path> \
+  --db-prefix=<prefix> \
+  --portal-site-id=<id> \
   --target=<server-root>
 ```
 
-Verify the output:
-- ✅ `<server-root>/CLAUDE.md` created
-- ✅ `<server-root>/.mcp.json` created with correct `--path`
-- ✅ `<server-root>/.claude/settings.json` created
-- ✅ `<server-root>/.claude/skills/` populated (10 skills)
-- ✅ `<server-root>/.claude/hooks/` populated (3 hooks)
+Verify the following were created:
+- `CLAUDE.md`
+- `.mcp.json`
+- `settings.json`
+- 10 skills installed
+- 3 hooks registered
 
-If the server already has a `.claude/` directory, skip this step.
+If any are missing, report what failed and do not proceed until resolved.
 
-### Step 1: Resolve or Create Client in Notion
+---
 
-Search the Client Profiles DB (`collection://1e9bfa0d-34b6-4864-a693-9118c8f71033`) for the client name:
+## Step 1: Resolve or Create Client in Notion
 
-```
-notion-search: query="<client-name>" filter_type="page"
-```
+Search the Client Profiles DB (`collection://1e9bfa0d-34b6-4864-a693-9118c8f71033`) for the client name.
 
-Look for matches within the Client Profiles collection. If found, fetch the page and note the client page URL for linking.
+- **If found**: Note the page ID and proceed to Step 2.
+- **If not found**: Ask the user for:
+  - Client name
+  - Primary contact name
+  - Primary contact email
+  - Industry
 
-If not found, ask the user for details:
-- Client name
-- Contact name
-- Contact email
-- Industry/vertical
+  Confirm before creating. Then create the record via `notion-create-pages` in the Client Profiles DB with the fields above.
 
-Then create the Client Profile page:
-```
-notion-create-pages:
-  parent_type: "database"
-  parent_id: "1e9bfa0d-34b6-4864-a693-9118c8f71033"
-  title: "<Client Name>"
-  properties: (as gathered from user)
-```
+Never create a duplicate record. If unsure, ask the user to confirm the match before proceeding.
 
-Note the client page URL for linking in subsequent steps.
+---
 
-### Step 2: Verify or Create Website Record
+## Step 2: Verify or Create Website Record
 
-Search the Websites DB (`collection://f12cc677-9dd3-499d-b23e-9c7873c5620f`) for the client's domain:
+Search the Websites DB (`c6685c2d-de74-48ef-8225-ffdbc63ee1a8`) for the client's domain.
 
-```
-notion-search: query="<domain>" filter_type="page"
-```
+- **If found**: Confirm the record is linked to the correct client page and note the page ID.
+- **If not found**: Ask the user for:
+  - Domain (e.g., `example.com`)
+  - Full URL (e.g., `https://example.com`)
+  - Hosting provider
 
-If not found, ask the user for:
-- Domain name
-- Site URL
-- Hosting provider
-- DNS provider
+  Confirm before creating. Then create the Website record linked to the client page with:
+  - Stage: `Prod`
+  - Status: `Active`
 
-Create the Website record linked to the Client:
-```
-notion-create-pages:
-  parent_type: "database"
-  parent_id: "f12cc677-9dd3-499d-b23e-9c7873c5620f"
-  title: "<domain>"
-  properties:
-    "Stage": "Prod"
-    "Status": "Active"
-    "Client": relation to client page
-```
+---
 
-Ensure Stage = "Prod" and Status = "Active".
+## Step 3: Verify WordPress Setup
 
-### Step 3: Verify WordPress Setup
+### Local sites (WP-CLI)
 
-Use WP-CLI with the WP root from CLAUDE.md:
+Run the following WP-CLI command on the server:
+
 ```bash
 wp --path=$WP_ROOT --user=1 eval '
-// Check required plugins
+require_once ABSPATH . "wp-admin/includes/plugin.php";
+
+// Required plugins
 $plugins = [
-    "voyager-orbit/voyager-core.php",
-    "voyager-blocks/voyager-blocks.php",
-    "voyager-core/voyager-core.php",
-    "seo-by-rank-math/seo-by-rank-math.php",
+  "voyager-orbit/voyager-core.php",
+  "voyager-blocks/voyager-blocks.php",
+  "seo-by-rank-math/seo-by-rank-math.php",
 ];
 foreach ($plugins as $p) {
-    $active = is_plugin_active($p);
-    echo ($active ? "✅" : "❌") . " $p\n";
+  echo (is_plugin_active($p) ? "✅" : "❌") . " $p\n";
 }
 
-// Check theme
+// Theme
 $theme = wp_get_theme();
-echo "\nTheme: " . $theme->get("Name") . " v" . $theme->get("Version") . "\n";
-$is_voyager = strpos(strtolower($theme->get("Name")), "voyager") !== false
-    || strpos(strtolower($theme->get_template()), "voyager") !== false;
-echo ($is_voyager ? "✅" : "❌") . " Voyager theme active\n";
+echo ($theme->get("Name") === "Voyager" ? "✅" : "❌") . " Theme: " . $theme->get("Name") . "\n";
 
-// Check Portal registration
+// Portal registration
 $portal_id = get_option("voyager_portal_site_id", "");
 echo ($portal_id ? "✅ Portal registered (ID: $portal_id)" : "❌ Portal not registered") . "\n";
 
-// Check CPTs
-$cpts = get_post_types(["_builtin" => false], "names");
-$voyager_cpts = array_filter($cpts, function($t) { return strpos($t, "voyager") !== false; });
-echo (count($voyager_cpts) > 0 ? "✅" : "❌") . " CPTs registered: " . implode(", ", $voyager_cpts) . "\n";
-
-// Check abilities
+// Abilities API
 if (function_exists("wp_get_abilities")) {
-    $abilities = wp_get_abilities();
-    echo "✅ " . count($abilities) . " abilities available\n";
+  echo "✅ " . count(wp_get_abilities()) . " abilities available\n";
 } else {
-    echo "❌ Abilities API not active\n";
+  echo "❌ Abilities API not active\n";
 }
 
-// Plugin versions
-$orbit = get_plugin_data(WP_PLUGIN_DIR . "/voyager-orbit/voyager-core.php", false);
-$blocks = get_plugin_data(WP_PLUGIN_DIR . "/voyager-blocks/voyager-blocks.php", false);
-echo "\nVersions:\n";
-echo "  Orbit: " . ($orbit["Version"] ?? "n/a") . "\n";
-echo "  Blocks: " . ($blocks["Version"] ?? "n/a") . "\n";
+// CPTs
+$required_cpts = ["service_area", "industry_page", "neighborhood", "portfolio", "team"];
+foreach ($required_cpts as $cpt) {
+  echo (post_type_exists($cpt) ? "✅" : "❌") . " CPT: $cpt\n";
+}
+
+// Binding sources
+$binding_sources = [
+  "voyager/post-meta-text",
+  "voyager/site-data",
+  "voyager/contextual-cta",
+  "voyager/geo",
+];
+$registered_sources = function_exists("wp_get_registered_block_bindings_sources")
+  ? array_keys(wp_get_registered_block_bindings_sources())
+  : [];
+foreach ($binding_sources as $src) {
+  echo (in_array($src, $registered_sources) ? "✅" : "❌") . " Binding: $src\n";
+}
 '
 ```
 
-For remote sites, use the MCP ability `voyager-orbit/verify-setup` via AbilityBridge. Note this for the user if the site is not local.
+### Remote sites (Portal MCP)
 
-Report a checklist:
-- ✅/❌ Orbit active (v1.39.0+)
-- ✅/❌ Blocks active (v1.0.0+)
-- ✅/❌ Core active (v1.0.0+)
-- ✅/❌ RankMath active
-- ✅/❌ Abilities API active
-- ✅/❌ MCP Adapter active
-- ✅/❌ Portal registered
-- ✅/❌ Theme correct
-- ✅/❌ CPTs registered (service_area, industry_page, neighborhood, portfolio, team, services, testimonials)
-- ✅/❌ Binding sources active (voyager/post-meta-text, voyager/site-data, voyager/contextual-cta, voyager/geo)
+For remote sites without direct SSH access, use `wp_get_post(site)` to verify Portal connectivity is active. Note that full WP-CLI verification (plugin versions, CPTs, binding sources) requires SSH access and cannot be completed remotely through the Portal alone.
 
-If `--verify-only` mode, stop here and display the checklist.
+### Verification checklist
 
-### Step 3b: Provision Site Data (Tier 1 Bindings)
+Report each item as pass or fail:
 
-After verifying WordPress, provision the client's site data for block bindings. Ask the user for (or look up from the Notion Client Profile):
+| Check | Expected |
+|---|---|
+| Orbit (voyager-orbit) | Active, v1.39.0+ |
+| Blocks (voyager-blocks) | Active |
+| RankMath (seo-by-rank-math) | Active |
+| Abilities API (`wp_get_abilities`) | Active |
+| Portal registered | `voyager_portal_site_id` option present |
+| Theme | Voyager theme active |
+| CPTs | `service_area`, `industry_page`, `neighborhood`, `portfolio`, `team` all registered |
+| Binding sources | `voyager/post-meta-text`, `voyager/site-data`, `voyager/contextual-cta`, `voyager/geo` all registered |
 
-- Business phone number
-- Business email
-- Street address, city, state, ZIP
-- Business hours
-- Social media URLs (Facebook, Instagram, LinkedIn, X)
+If `--verify-only` was passed, stop here and output the checklist results.
 
-Then execute the `voyager-orbit/provision-site-data` ability:
+---
+
+## Step 3b: Provision Site Data (Tier 1 Bindings)
+
+Ask for or look up the following site data fields. If the client has an existing Website record in Notion, check there first before prompting.
+
+Required fields:
+- Phone number
+- Email address
+- Street address
+- City
+- State
+- ZIP code
+- Business hours (e.g., `Mon–Fri: 8am–5pm`)
+- Social URLs (Facebook, Instagram, LinkedIn — as applicable)
+
+Once all fields are gathered, execute the `voyager-orbit/provision-site-data` ability via WP-CLI:
 
 ```bash
 wp --path=$WP_ROOT --user=1 eval '
-$ability = wp_get_ability("voyager-orbit/provision-site-data");
-$result = $ability->execute([
-    "phone"            => "(555) 123-4567",
-    "email"            => "hello@client.com",
-    "address"          => "123 Main St",
-    "address_city"     => "Denver",
-    "address_state"    => "CO",
-    "address_zip"      => "80202",
-    "hours"            => "Mon-Fri 9am-5pm MST",
-    "social_facebook"  => "https://facebook.com/clientpage",
-    "social_instagram" => "https://instagram.com/clientprofile",
-    "social_linkedin"  => "https://linkedin.com/company/client",
-    "social_x"         => "https://x.com/clienthandle",
+do_action("voyager_run_ability", "voyager-orbit/provision-site-data", [
+  "phone"   => "<phone>",
+  "email"   => "<email>",
+  "address" => "<street>",
+  "city"    => "<city>",
+  "state"   => "<state>",
+  "zip"     => "<zip>",
+  "hours"   => "<hours>",
+  "social"  => [
+    "facebook"  => "<facebook_url>",
+    "instagram" => "<instagram_url>",
+    "linkedin"  => "<linkedin_url>",
+  ],
 ]);
-echo json_encode($result, JSON_PRETTY_PRINT);
+echo "Site data provisioned.\n";
 '
 ```
 
-This populates all `voyager_site_*` options used by the `voyager/site-data` binding source. The site footer, header contact info, and CTAs will immediately reflect the client's data.
+This populates the `voyager_site_*` options used by the `voyager/site-data` binding source across all blocks.
 
-### Step 3c: Verify Pattern Cloud Sync
+---
 
-Ensure the client site has Pattern Cloud configured:
+## Step 3c: Verify Pattern Cloud Sync
+
+Check the `pattern_cloud_url` setting in `voyager_blocks_settings`:
 
 ```bash
-wp --path=$WP_ROOT option get voyager_blocks_settings --format=json | jq '.pattern_cloud_url'
-```
-
-If empty, set it:
-```bash
-wp --path=$WP_ROOT option patch insert voyager_blocks_settings pattern_cloud_url 'https://v3.voyagermark.com/wp-json/voyager-blocks/v1/patterns/manifest'
-```
-
-Then trigger a sync:
-```bash
-wp --path=$WP_ROOT eval '
-$ability = wp_get_ability("voyager-blocks/sync-patterns");
-if ($ability) { echo json_encode($ability->execute(["action" => "refresh"])); }
+wp --path=$WP_ROOT --user=1 eval '
+$settings = get_option("voyager_blocks_settings", []);
+$url = $settings["pattern_cloud_url"] ?? "";
+echo $url ? "✅ Pattern Cloud URL: $url\n" : "❌ Pattern Cloud URL not set\n";
 '
 ```
 
-### Step 4: Create First Content Cycle in Notion
+If empty, set the default URL and trigger a sync:
 
-Search the Content Cycles DB (`collection://dcff4afb-e469-481f-929c-cd23cc87f822`) for existing cycles for this client:
-
-```
-notion-search: query="<client-name>" filter_type="page"
-```
-
-Filter results to the Content Cycles collection. If no cycle exists for the current month, create one:
-
-```
-notion-create-pages:
-  parent_type: "database"
-  parent_id: "dcff4afb-e469-481f-929c-cd23cc87f822"
-  title: "<Client Name> — <Month Year>"
-  properties:
-    "Client": relation to client page
-    "Month": current month date
+```bash
+wp --path=$WP_ROOT --user=1 eval '
+$settings = get_option("voyager_blocks_settings", []);
+$settings["pattern_cloud_url"] = "https://v3.voyagermark.com/wp-json/voyager-blocks/v1/patterns/manifest";
+update_option("voyager_blocks_settings", $settings);
+do_action("voyager_run_ability", "voyager-blocks/sync-patterns", []);
+echo "Pattern Cloud URL set and sync triggered.\n";
+'
 ```
 
-Example title: "Built Right Homes — April 2026"
+Report the number of patterns synced after the ability runs.
 
-### Step 5: Create Initial Content Items
+---
 
-Ask the user:
-- How many blog posts per month?
-- How many pages?
-- Any specific keywords to start with?
+## Step 4: Create First Content Cycle in Notion
 
-Create Content items in the Content DB (`collection://cfda5145-1b35-4980-934d-d2f26ead562c`):
+Search the Content Cycles DB (`collection://dcff4afb-e469-481f-929c-cd23cc87f822`) for an existing cycle linked to this client in the current month.
 
-```
-notion-create-pages:
-  parent_type: "database"
-  parent_id: "cfda5145-1b35-4980-934d-d2f26ead562c"
-  title: "<placeholder or keyword-based title>"
-  properties:
-    "Client": relation to client page
-    "Cycle": relation to cycle page
-    "Type": "Blog" or "Page"
-    "Status": "💡 Idea" or "Up Next"
-    "Keyword": keyword if provided
-    "Month": current month date
-```
+- **If found**: Note the cycle page ID and proceed to Step 5.
+- **If not found**: Confirm before creating. Create a new Content Cycle with:
+  - Title: `"<Client Name> — <Month Year>"` (e.g., `"Acme Plumbing — April 2026"`)
+  - Client: linked to client page from Step 1
+  - Month: first day of the target month as a date (e.g., `2026-04-01`)
 
-Create one item per blog post and per page requested. If keywords were provided, distribute them across items. If no keywords, set Status to "💡 Idea" so the SEO Cycle Planner can assign them later.
+---
 
-### Step 6: Summary Report
+## Step 5: Create Initial Content Items
 
-Display the full onboarding summary:
+Ask the user for:
+- Number of blog posts per month
+- Number of pages (if any)
+- Any specific target keywords (optional)
+
+Confirm the count before creating. For each item, create a record in the Content DB (`cba94900-3a60-4292-ba6b-f8aeea62e439`) with:
+- Title: working title or keyword-based placeholder
+- Client: linked to client page
+- Content Cycle: linked to cycle from Step 4
+- Status:
+  - `"💡 Idea"` — if no keyword provided
+  - `"Up Next"` — if a target keyword was provided
+
+Do not create items without user confirmation of the count and titles.
+
+---
+
+## Step 6: Summary Report
+
+Output a summary in this format:
 
 ```
 ## Client Onboarding: {Client Name}
 
 ### Notion
-- ✅ Client Profile: {link}
-- ✅ Website Record: {domain}
-- ✅ Content Cycle: {month}
-- ✅ Content Items: {count} created
+- Client Profile: {found | created} (ID: {page_id})
+- Website Record: {found | created} — {domain}
+- Content Cycle: {found | created} — {cycle title}
+- Content Items: {N} items created ({M} with keywords, {K} as ideas)
 
 ### WordPress ({domain})
-- ✅ Orbit v{version} — {n} abilities
-- ✅ Blocks v{version} — {n} binding sources
-- ✅ Core v{version} — CPTs registered
-- ✅ RankMath v{version}
-- ✅ Portal registered (ID: {site_id})
-- ✅ Pattern Cloud synced ({n} patterns)
+- Orbit: {version} — {active | ❌ INACTIVE}
+- Blocks: {active | ❌ INACTIVE}
+- RankMath: {active | ❌ INACTIVE}
+- Abilities API: {N} abilities — {active | ❌ INACTIVE}
+- Portal ID: {id | ❌ NOT REGISTERED}
+- Theme: {name} — {Voyager | ❌ NOT VOYAGER}
+- CPTs: {all present | list missing}
+- Binding Sources: {all present | list missing}
+- Pattern Cloud: {N} patterns synced
 
-### Tier 1 Bindings (Active)
-- ✅ Site data provisioned (phone, email, address, hours, social)
-- ✅ voyager/site-data — footer, header, contact info
-- ✅ voyager/contextual-cta — smart CTAs per page type
-- ✅ voyager/geo — visitor location personalization
+### Tier 1 Bindings
+- Site data provisioned: phone, email, address, hours, social
 
-### Ready for:
-- Tier 1: Smart bindings active on all pages
-- Tier 2: pSEO city pages via batch-create-service-areas
-- Content pipeline: SEO Cycle Planner → Draft Writer → Publisher
+### Next Steps
+- pSEO setup: use /pseo
+- Content pipeline: use /content-brief
 ```
+
+If any step failed, list what succeeded and what requires manual attention before the client is considered fully onboarded.
+
+---
 
 ## Guardrails
 
-1. **Always confirm before creating Notion records** -- show the user what will be created and ask for approval
-2. **Never skip the WordPress verification** -- even in full onboard mode, always run Step 3
-3. **Never create duplicate records** -- always search first before creating in any Notion DB
-4. **Use relations correctly** -- Client, Cycle, and Website records must be properly linked
-5. **Report failures clearly** -- if any step fails, report what succeeded and what needs manual attention
-
-## Important Notes
-
-- **WP Root:** Resolve from CLAUDE.md or `wp --info`
-- **DB Prefix:** Use `$wpdb->prefix` — do not hardcode
-- Remote site verification is not yet implemented -- note this for the user and suggest manual checks or Portal Bridge when available
-- The Content Cycles DB uses a "Month" date property -- set it to the first day of the target month (e.g., `2026-04-01`)
-- Content items with no keyword should be set to "💡 Idea" status so the SEO Cycle Planner skill can assign keywords later
+- **Always confirm** before creating any Notion record (client profile, website, cycle, or content items).
+- **Never skip** WordPress verification — even for clients being added to Notion only.
+- **Never create duplicates** — search before creating. If a near-match is found, show it to the user and ask to confirm.
+- **Report failures clearly** — if a WP-CLI command fails or a Notion write fails, state what succeeded, what failed, and what the user needs to do manually.
+- **Content Cycle Month** must always be the first day of the target month (e.g., `2026-04-01` for April 2026).
+- **Remote sites** — when SSH is not available, note in the summary which WP verification checks could not be run and recommend the user run them manually or via a local session.
