@@ -4,6 +4,8 @@ description: "Use when asked to audit a prospect's website, run an SEO audit on 
 argument-hint: "<domain> [--deep] [--pages /about,/services]"
 allowed-tools: [WebFetch, WebSearch, Bash, Read, Write, Agent]
 user-invocable: true
+owner: Ben
+last_reviewed: 2026-04-21
 ---
 
 # Prospect SEO Audit — Branded Sales Tool

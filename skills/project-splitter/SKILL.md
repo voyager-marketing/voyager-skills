@@ -4,6 +4,8 @@ description: "Use when a feature or project is too large for one session — spl
 argument-hint: "[feature or project description]"
 allowed-tools: [Bash, Read, Grep, Glob, Agent, TodoWrite]
 user-invocable: true
+owner: Ben
+last_reviewed: 2026-04-21
 ---
 
 # Project Splitter

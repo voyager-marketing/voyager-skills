@@ -4,6 +4,8 @@ description: "Use this skill when the user asks to sync patterns to client sites
 argument-hint: "[sync site.com] [sync-all] [status] [export]"
 allowed-tools: [Bash, Read, Grep, Glob, Agent, TodoWrite, mcp__wordpress__mcp-adapter-execute-ability]
 user-invocable: true
+owner: Ben
+last_reviewed: 2026-04-21
 ---
 
 # Pattern Cloud — Managed Pattern Library

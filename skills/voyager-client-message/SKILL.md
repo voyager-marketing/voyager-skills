@@ -4,6 +4,8 @@ description: "Use when drafting client-facing messages — project updates, deli
 argument-hint: "[client] [update|delivery|checkin|escalation] [context]"
 allowed-tools: [Bash, Read, Grep, Glob, Agent, TodoWrite]
 user-invocable: true
+owner: Ben
+last_reviewed: 2026-04-21
 ---
 
 # Voyager Client Message

@@ -7,6 +7,8 @@ description: >
   Triggers on: "review this copy", "edit this", "proofread", "tighten this up",
   "check the tone", "is this on brand", "editorial review", "QA this content",
   "make this better", "punch this up".
+owner: Ben
+last_reviewed: 2026-04-21
 ---
 
 # Editorial QA

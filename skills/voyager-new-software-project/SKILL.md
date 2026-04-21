@@ -4,6 +4,8 @@ description: "Use when scaffolding a new Voyager software project — repo struc
 argument-hint: "[project name] [type: portal-feature|orbit-module|theme|worker|tool]"
 allowed-tools: [Bash, Read, Grep, Glob, Agent, TodoWrite]
 user-invocable: true
+owner: Ben
+last_reviewed: 2026-04-21
 ---
 
 # New Voyager Software Project

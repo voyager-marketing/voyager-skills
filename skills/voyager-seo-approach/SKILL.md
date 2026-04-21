@@ -4,6 +4,8 @@ description: "Use when planning or reviewing SEO work — keyword targeting, on-
 argument-hint: "[topic or task to apply SEO approach to]"
 allowed-tools: [Bash, Read, Grep, Glob, Agent, TodoWrite]
 user-invocable: true
+owner: Ben
+last_reviewed: 2026-04-21
 ---
 
 # Voyager SEO Approach

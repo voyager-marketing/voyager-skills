@@ -4,6 +4,8 @@ description: "Use this skill when the user asks to generate a client report, mon
 argument-hint: "<client-name> [month] [--notion] [--format=table|markdown]"
 allowed-tools: [Bash, Read, Grep, Glob, Agent, mcp__claude_ai_Notion__notion-search, mcp__claude_ai_Notion__notion-fetch, mcp__claude_ai_Notion__notion-create-pages, mcp__claude_ai_Notion__notion-update-page]
 user-invocable: true
+owner: Ben
+last_reviewed: 2026-04-21
 ---
 
 # Client Report Generator

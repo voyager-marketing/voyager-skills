@@ -2,6 +2,8 @@
 name: voyager-ai-integration
 description: "AI integration patterns in Voyager Orbit — WP AI Client, model preferences, Content Guidelines, structured output, Chat module orchestration, and AI-powered abilities."
 compatibility: "PHP 8.1+, WordPress 7.0+ (AI Client in core), AI Provider for Anthropic 1.0+"
+owner: Ben
+last_reviewed: 2026-04-21
 ---
 
 # Voyager AI Integration

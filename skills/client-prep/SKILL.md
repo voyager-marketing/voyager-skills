@@ -5,6 +5,8 @@ description: >
   recent activity, calendar, and connected platforms to build a concise briefing.
   Triggers on: "prep me for [client]", "what's going on with [client]", "client briefing",
   "meeting prep", "call prep for", "catch me up on [client]", "before my call with".
+owner: Ben
+last_reviewed: 2026-04-21
 ---
 
 # Client Prep

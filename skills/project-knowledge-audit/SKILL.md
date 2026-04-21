@@ -4,6 +4,8 @@ description: "Use when auditing a client's knowledge state in Notion — checks 
 argument-hint: "[--client name] [--all]"
 allowed-tools: [Bash, Read, Grep, Glob, Agent, TodoWrite, mcp__claude_ai_Notion__notion-search, mcp__claude_ai_Notion__notion-fetch]
 user-invocable: true
+owner: Ben
+last_reviewed: 2026-04-21
 ---
 
 # Project Knowledge Audit

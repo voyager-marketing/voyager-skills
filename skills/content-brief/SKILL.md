@@ -6,6 +6,8 @@ description: >
   gap analysis, and structured brief creation ready to trigger the AI writing pipeline.
   Triggers on: "plan content for", "keyword research for", "content briefs for",
   "what should we write about", "content calendar for".
+owner: Ben
+last_reviewed: 2026-04-21
 ---
 
 # Content Brief

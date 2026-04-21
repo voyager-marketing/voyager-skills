@@ -6,6 +6,8 @@ description: >
   content pillars, and publishing plans. Uses Ahrefs MCP for keyword data when available.
   Triggers on: "content strategy for", "plan content", "content brief", "what should we
   write about", "content calendar", "blog plan", "content pillars", "keyword research for content".
+owner: Ben
+last_reviewed: 2026-04-21
 ---
 
 # Content Strategy

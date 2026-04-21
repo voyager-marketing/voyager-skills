@@ -3,6 +3,8 @@ name: seo-report
 description: "Use when asked for an SEO health report, content cluster planning, schema markup generation, A/B headline variants, or overall SEO analysis for a client site."
 argument-hint: "[cluster 'topic'] [schema post_id] [ab 'headline'] [report]"
 user-invocable: true
+owner: Ben
+last_reviewed: 2026-04-21
 ---
 
 # SEO Report — Analysis, Planning & Optimization

@@ -9,6 +9,8 @@ triggers:
   - "content lifecycle for"
   - "what's performing for"
   - "refresh recommendations for"
+owner: Ben
+last_reviewed: 2026-04-21
 ---
 
 # Content Tracker Skill — Phase 7

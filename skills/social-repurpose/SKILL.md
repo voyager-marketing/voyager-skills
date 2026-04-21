@@ -8,6 +8,8 @@ description: >
   captions for any client.
   Triggers on: "repurpose this blog", "social content for", "social posts from",
   "generate social captions", "social repurpose", "content calendar social".
+owner: Ben
+last_reviewed: 2026-04-21
 ---
 
 # Social Repurpose

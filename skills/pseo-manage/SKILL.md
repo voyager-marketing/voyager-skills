@@ -4,6 +4,8 @@ description: "Use when asked to manage pSEO pages — audit quality, enrich loca
 argument-hint: "[audit|enrich|stats|faq|suggest|bulk-update] [--state Colorado] [--region 'Front Range'] [--limit 20]"
 allowed-tools: [Bash, Read, Grep, Glob, Agent]
 user-invocable: true
+owner: Ben
+last_reviewed: 2026-04-21
 ---
 
 # pSEO Management — Audit, Enrich & Optimize

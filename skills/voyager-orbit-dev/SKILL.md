@@ -2,6 +2,8 @@
 name: voyager-orbit-dev
 description: "Development workflow for Voyager Orbit WordPress plugin — module architecture, services, REST endpoints, database conventions, and deployment."
 compatibility: "PHP 8.1+, WordPress 6.0+, Voyager Orbit 1.30+"
+owner: Ben
+last_reviewed: 2026-04-21
 ---
 
 # Voyager Orbit Development

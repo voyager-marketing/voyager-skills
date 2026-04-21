@@ -4,6 +4,8 @@ description: "Use when evaluating a decision, feature request, or business direc
 argument-hint: "[decision or situation to evaluate]"
 allowed-tools: [Bash, Read, Grep, Glob, Agent, TodoWrite]
 user-invocable: true
+owner: Ben
+last_reviewed: 2026-04-21
 ---
 
 # Voyager Operating Principles

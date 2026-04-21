@@ -9,6 +9,8 @@ description: >
   Triggers on: "plan content for", "write a blog post for", "publish content",
   "schedule posts for", "content calendar", "repurpose this blog post",
   "social content for", "what should we write about", "content status for".
+owner: Ben
+last_reviewed: 2026-04-21
 ---
 
 # Content Production — Orchestrator

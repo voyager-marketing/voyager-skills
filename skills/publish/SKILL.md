@@ -3,6 +3,8 @@ name: publish
 description: "Use when asked to publish content to WordPress, schedule content from Notion, check publish queue, or run the publishing pipeline for a client site."
 argument-hint: "[--dry-run] [--status] [content-item-url]"
 user-invocable: true
+owner: Ben
+last_reviewed: 2026-04-21
 ---
 
 # Notion -> WordPress Publisher

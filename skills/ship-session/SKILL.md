@@ -2,6 +2,8 @@
 name: ship-session
 description: "Use at the end of a work session to commit changes, sync skill mirrors, verify the build, update Notion tasks, and leave a clean handoff. Triggers on: 'wrap up', 'end session', 'ship this', 'commit and close', 'ready to hand off'."
 user-invocable: true
+owner: Ben
+last_reviewed: 2026-04-21
 ---
 
 # Ship Session — End-of-Session Checklist

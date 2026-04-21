@@ -3,6 +3,8 @@ name: onboard-client
 description: "Use when asked to onboard a new client, set up a new client site, add a client to the system, or verify a client's WordPress setup is correctly configured."
 argument-hint: "<client-name> [--verify-only] [--site=domain]"
 user-invocable: true
+owner: Ben
+last_reviewed: 2026-04-21
 ---
 
 # Onboard Client

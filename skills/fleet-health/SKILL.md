@@ -3,6 +3,8 @@ name: fleet-health
 description: "Use when asked to check fleet health, run fleet monitoring, audit all client sites, or check site status across the Voyager client fleet."
 argument-hint: "[--site=domain] [--notify]"
 user-invocable: true
+owner: Ben
+last_reviewed: 2026-04-21
 ---
 
 # Fleet Health Sweep

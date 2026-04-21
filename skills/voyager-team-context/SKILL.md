@@ -4,6 +4,8 @@ description: "Background context about Voyager Marketing — team, clients, serv
 argument-hint: ""
 allowed-tools: []
 user-invocable: false
+owner: Ben
+last_reviewed: 2026-04-21
 ---
 
 # Voyager Team Context

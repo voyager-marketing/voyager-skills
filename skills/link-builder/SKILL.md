@@ -3,6 +3,8 @@ name: link-builder
 description: "Use when asked to analyze internal links, find orphaned pages, suggest linking opportunities, or build an internal link strategy for a client site."
 argument-hint: "[post_id] [--all] [--limit 10]"
 user-invocable: true
+owner: Ben
+last_reviewed: 2026-04-21
 ---
 
 # Link Builder — Internal Linking Analysis

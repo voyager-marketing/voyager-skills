@@ -2,6 +2,8 @@
 name: voyager-abilities
 description: "Create and register WordPress Abilities for Voyager Orbit — schemas, permissions, MCP exposure, AbilityBridge, Chat tool integration."
 compatibility: "PHP 8.1+, WordPress 6.9+ (Abilities API), MCP Adapter 0.5+"
+owner: Ben
+last_reviewed: 2026-04-21
 ---
 
 # Voyager Abilities Development

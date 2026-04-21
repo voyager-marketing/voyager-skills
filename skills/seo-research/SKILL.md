@@ -6,6 +6,8 @@ description: >
   Triggers on: "SEO research for", "keyword research", "check rankings for",
   "backlink analysis", "competitor SEO", "content gap analysis", "what keywords should
   we target", "SEO audit", "how is [domain] doing in search", "ranking report".
+owner: Ben
+last_reviewed: 2026-04-21
 ---
 
 # SEO Research

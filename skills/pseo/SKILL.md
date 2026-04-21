@@ -4,6 +4,8 @@ description: "Use when asked to create pSEO pages, batch create service area pag
 argument-hint: "[cities...] [--layout bold|showcase|landing|random] [--service 'Web Design'] [--region 'Southwest'] [--dry-run] [--status]"
 allowed-tools: [Bash, Read, Grep, Glob, Agent]
 user-invocable: true
+owner: Ben
+last_reviewed: 2026-04-21
 ---
 
 # Programmatic SEO — Service Area Page Generator

@@ -4,6 +4,8 @@ description: "Use when specifying a new feature before building — problem stat
 argument-hint: "[feature idea or request]"
 allowed-tools: [Bash, Read, Grep, Glob, Agent, TodoWrite]
 user-invocable: true
+owner: Ben
+last_reviewed: 2026-04-21
 ---
 
 # Voyager Feature Spec

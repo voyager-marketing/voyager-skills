@@ -4,6 +4,8 @@ description: "Use when starting a major build session — frame the mission, def
 argument-hint: "[feature or project description]"
 allowed-tools: [Bash, Read, Grep, Glob, Agent, TodoWrite]
 user-invocable: true
+owner: Ben
+last_reviewed: 2026-04-21
 ---
 
 # Mission — Session Framing

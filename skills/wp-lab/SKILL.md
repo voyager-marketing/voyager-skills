@@ -8,6 +8,8 @@ description: >
   "poke around this plugin's code", "WordPress playground", or any request to
   quickly run WordPress locally for development or exploration. Also triggers
   when the user wants to tear down or clean up WordPress dev environments.
+owner: Ben
+last_reviewed: 2026-04-21
 ---
 
 # wp-lab

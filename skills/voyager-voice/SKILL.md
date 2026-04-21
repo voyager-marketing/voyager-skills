@@ -4,6 +4,8 @@ description: "Use when writing or reviewing any Voyager content — blog posts, 
 argument-hint: "[content to check or rewrite] [--rewrite]"
 allowed-tools: [Bash, Read, Grep, Glob, Agent, TodoWrite]
 user-invocable: true
+owner: Ben
+last_reviewed: 2026-04-21
 ---
 
 # Voyager Voice — Brand Voice Guide

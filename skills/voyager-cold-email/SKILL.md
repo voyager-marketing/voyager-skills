@@ -4,6 +4,8 @@ description: "Use when writing cold outreach emails for prospecting — initial,
 argument-hint: "[prospect name] [company] [pain point] [initial|follow1|follow2|breakup]"
 allowed-tools: [Bash, Read, Grep, Glob, Agent, TodoWrite]
 user-invocable: true
+owner: Ben
+last_reviewed: 2026-04-21
 ---
 
 # Voyager Cold Email

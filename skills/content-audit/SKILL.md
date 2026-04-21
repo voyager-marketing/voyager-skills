@@ -3,6 +3,8 @@ name: content-audit
 description: "Use when asked to audit content quality, check for stale content, find thin pages, run a content freshness scan, or assess overall site content health for a client."
 argument-hint: "[--type post|page|service_area] [--months 6] [--keyword 'topic'] [--images] [--limit 20]"
 user-invocable: true
+owner: Ben
+last_reviewed: 2026-04-21
 ---
 
 # Content Audit — Full-Site Quality Assessment
