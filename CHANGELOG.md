@@ -6,6 +6,31 @@ Format: reverse chronological. Date-anchored entries group the work done that da
 
 ---
 
+## 2026-04-21 — Session 2: Skills DB + MCP Tools DB
+
+Same day, different scope. Session 1 built a Markdown Catalog on the Hub. That broke the moment we tried to track MCP tools alongside skills, and the Catalog was already unwieldy at 35 rows. Retired the Markdown approach in favor of two purpose-built Notion databases, both children of the Hub.
+
+**Databases created.**
+- [Skills DB](https://www.notion.so/d511e6fc01a342f5869d79eb51e3c0b0). 41 rows. Columns: Surface, Owner, Lifecycle, Last reviewed, Last eval, Description, Repo path, MCP tools used (relation), Replaces / Replaced by (self-relation). Seeded from the `skills/` directory plus the 4 panel-only Deprecated Org skills and 2 panel-only Personal skills.
+- [MCP Tools DB](https://www.notion.so/ae2cad4639a74f189e3e2d9af3121ecc). 111 rows. Columns: Server, Category, Description, Auth, Cost per call, Status, Source (GitHub URL), Used by skills (relation, inverse of Skills.MCP tools used). Seeded from `voyager-mcp-server/src/tools-*.ts` on main.
+
+**Relations wired (starter set).**
+- Run-parallel replacement pairs (Replaces / Replaced by self-relation): `client-prep` replaces `voyager-prep-for-client` + `voyager-client-context-check`; `fleet-health` + `pattern-cloud` replace `voyager-wp-manager`; `onboard-client` replaces `voyager-client-onboarding`.
+- MCP tool usage: 20 skills wired to their MCP dependencies. Remaining ~21 skills to be wired opportunistically.
+
+**Rule changes in `CLAUDE.md`.**
+- Rule 1 rewritten: GitHub remains canonical for `SKILL.md` content, but metadata now lives in the Skills and MCP Tools DBs. GitHub and Notion each have a narrow, non-overlapping job.
+- Old rule "Don't create Notion databases for skills" retired. Replaced with "Don't create more Notion databases for skills or MCP tools" — two exist, that's enough.
+
+**Correction on session 1 claim.**
+Session 1 flagged `voyager-mcp-server` as deploy-drift risk because the local clone didn't have image tools. That was wrong. GitHub `main` has the image tools and tests; the local clone was stale. No Worker source-control emergency.
+
+**Trigger for this session.** Ben asked where image generation lives (since it "just works" in Chat). Tracing it exposed that image gen is an MCP tool (`image_generate` on `voyager-mcp-server`, wraps Google Gemini Nano Banana, stores in R2). That tool wasn't cataloged anywhere, which revealed the bigger gap: the Hub tracked skills but not the MCP tools they depend on.
+
+**Commit.** This session's changes are in the repo commit following 8974212 on `main` (CLAUDE.md Rule 1 update, this changelog entry). All other artifacts live in Notion.
+
+---
+
 ## 2026-04-21 — Skills consolidation kickoff
 
 Reconciled the Claude.ai Org panel against the repo. Started the governance backfill that the April 14 Install Guide and April 15 Catalog deferred.
