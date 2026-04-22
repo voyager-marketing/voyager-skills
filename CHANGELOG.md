@@ -6,6 +6,58 @@ Format: reverse chronological. Date-anchored entries group the work done that da
 
 ---
 
+## 2026-04-21 — Session 3: Tier 3 eval backfill + content-hero-image
+
+**Tier 3 eval backfill — all 24 Draft skills → Live.**
+Read and evaluated every Draft skill against the skill-creator checklist (valid YAML frontmatter, use-trigger in description, clear procedure, allowed-tools declared where needed, under 500 lines, no hallucinated tools). Every one passed. Flipped all 24 to `Lifecycle: Live` in the Skills DB and set `Last eval: Pass 2026-04-21`.
+
+- client-prep — **PASS**. Multi-source context builder with structured briefing output.
+- content-audit — **PASS**. Four audit modes (freshness, images, gaps, performance) with clear WP-CLI patterns.
+- content-brief — **PASS**. Two-phase (research + brief) with Ahrefs budgeting rules.
+- content-production — **PASS**. Orchestrator with explicit sub-skill dispatch.
+- content-strategy — **PASS**. Data-backed, Ahrefs credit-conservative.
+- content-tracker — **PASS**. Lifecycle classification + benchmarks + refresh/expand/archive logic.
+- editorial-qa — **PASS**. Six review dimensions + grade + structured output.
+- fleet-health — **PASS**. Single-site and fleet modes, health grading.
+- link-builder — **PASS**. Single-post, site-wide, orphan detection with rate limits.
+- onboard-client — **PASS**. Comprehensive six-step pipeline with verification checklist.
+- pattern-cloud — **PASS**. Status, sync, export commands.
+- prospect-audit — **PASS**. Branded sales-ready report template.
+- pseo — **PASS**. Batch creation with duplicate checks + rate limits.
+- pseo-manage — **PASS**. Audit, enrich, stats, FAQ, suggest, bulk modes.
+- publish — **PASS**. Hard policy (never status=publish) + gate checks + Notion writeback.
+- report — **PASS**. Ability call + DB-query fallback.
+- seo-report — **PASS**. Four commands (report, cluster, schema, ab).
+- seo-research — **PASS**. Tool tables + four workflow patterns.
+- ship-session — **PASS**. End-of-session checklist with commit hygiene rules.
+- social-repurpose — **PASS**. Three modes (from blog, from URL, topic ideas).
+- voyager-abilities — **PASS**. PHP registration pattern, categories list, verification.
+- voyager-ai-integration — **PASS**. AI Client patterns, structured output, Chat orchestration.
+- voyager-orbit-dev — **PASS**. Module architecture, DB conventions, REST conventions.
+- wp-lab — **PASS**. Ephemeral + continuous modes with presets.
+
+Tier 3 result: **24/24 pass**. All Code-only skills now meet Rule 4 (hard eval gate) and are eligible for Org panel upload.
+
+**New skill: content-hero-image (Live on first commit).**
+Wrapper that orchestrates the Voyager MCP image pipeline into one handoff: `image_generate` → (optional `image_save_to_drive`) → `wp_upload_media` → `wp_set_featured_image`. Added because session 2 exposed that image generation worked in Chat via MCP but had no skill documenting when to invoke it, how to write prompts, or when to bump flash → pro.
+
+- File: `skills/content-hero-image/SKILL.md`
+- Eval: **PASS** 2026-04-21. Valid frontmatter, clear trigger, guardrails include cost control + accessibility alt-text requirement + no-auto-commit to live posts.
+- Skills DB row created with Lifecycle=Live, MCP tools used wired to all 6 image-related tools (`image_generate`, `image_edit`, `image_library_list`, `image_save_to_drive`, `wp_upload_media`, `wp_set_featured_image`).
+
+**Skills DB state after this session.**
+- **Live: 36** (11 from session 1 + 24 Tier 3 + content-hero-image)
+- **Draft: 0** (all Draft skills evaluated)
+- **Deprecated: 4** (panel-only legacy, unchanged — still run-parallel until replacements prove out)
+
+**Still pending (next session).**
+- Upload newly-Live Code-only skills to Claude.ai Org panel via the `docs/sync-to-claude-teams.md` runbook.
+- Wire `MCP tools used` on the ~20 skills that don't yet have MCP relations (most have no Voyager MCP deps — voice/guideline/prep skills — but a few like `project-knowledge-audit` could use `client_get_profile` if that were to be wired).
+- Export the 4 panel-only legacy `SKILL.md` files from Claude.ai and commit them.
+- Sync local `voyager-mcp-server` checkout (still behind GitHub main).
+
+---
+
 ## 2026-04-21 — Session 2: Skills DB + MCP Tools DB
 
 Same day, different scope. Session 1 built a Markdown Catalog on the Hub. That broke the moment we tried to track MCP tools alongside skills, and the Catalog was already unwieldy at 35 rows. Retired the Markdown approach in favor of two purpose-built Notion databases, both children of the Hub.
