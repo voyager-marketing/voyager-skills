@@ -63,9 +63,10 @@ jobs:
             entry_count == 1 { print }
           ' CHANGELOG.md > /tmp/changelog-entry.md || echo "(no CHANGELOG.md entry found)" > /tmp/changelog-entry.md
 
-          # Clamp to 3500 chars for Slack payload hygiene
-          if [ "$(wc -c < /tmp/changelog-entry.md)" -gt 3500 ]; then
-            head -c 3400 /tmp/changelog-entry.md > /tmp/tmp && echo -e "\n... (truncated, see CHANGELOG.md)" >> /tmp/tmp && mv /tmp/tmp /tmp/changelog-entry.md
+          # Slack mrkdwn section blocks cap text.text at 3000 chars. Clamp
+          # to 2800 to leave headroom for the JSON wrapping jq adds.
+          if [ "$(wc -c < /tmp/changelog-entry.md)" -gt 2800 ]; then
+            head -c 2700 /tmp/changelog-entry.md > /tmp/tmp && echo -e "\n... (truncated, full entry in CHANGELOG.md on GitHub)" >> /tmp/tmp && mv /tmp/tmp /tmp/changelog-entry.md
           fi
 
           echo "--- CHANGELOG entry for this release: ---"
