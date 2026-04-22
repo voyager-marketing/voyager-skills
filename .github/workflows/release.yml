@@ -1,0 +1,110 @@
+name: Release (build zips + Slack notify)
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2  # need HEAD~1 for CHANGELOG diff
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Validate (hard gate)
+        run: node scripts/validate-skills.mjs
+
+      - name: Build Claude.ai upload zips
+        run: node scripts/build-zips.mjs
+
+      - name: Sync SKILL.md frontmatter to Notion Skills DB
+        env:
+          NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${NOTION_API_KEY:-}" ]; then
+            echo "NOTION_API_KEY secret not set — skipping Notion sync. Configure it in Settings > Secrets to enable."
+            exit 0
+          fi
+          node scripts/sync-to-notion.mjs
+
+      - name: Upload zips as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: claude-ai-skill-zips-${{ github.sha }}
+          path: dist/
+          retention-days: 30
+
+      - name: Extract latest CHANGELOG entry
+        shell: bash
+        run: |
+          set -euo pipefail
+          awk '
+            /^# Changelog/ { in_changelog=1; next }
+            in_changelog && /^## / {
+              if (entry_count == 0) { entry_count=1; print; next }
+              if (entry_count == 1) exit
+            }
+            entry_count == 1 { print }
+          ' CHANGELOG.md > /tmp/changelog-entry.md || echo "(no CHANGELOG.md entry found)" > /tmp/changelog-entry.md
+
+          # Clamp to 3500 chars for Slack payload hygiene
+          if [ "$(wc -c < /tmp/changelog-entry.md)" -gt 3500 ]; then
+            head -c 3400 /tmp/changelog-entry.md > /tmp/tmp && echo -e "\n... (truncated, see CHANGELOG.md)" >> /tmp/tmp && mv /tmp/tmp /tmp/changelog-entry.md
+          fi
+
+          echo "--- CHANGELOG entry for this release: ---"
+          cat /tmp/changelog-entry.md
+
+      - name: Post to Slack #dev-agents
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
+          ARTIFACT_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          SHA_SHORT: ${{ github.sha }}
+          AUTHOR: ${{ github.event.head_commit.author.name }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${SLACK_WEBHOOK_URL:-}" ]; then
+            echo "SLACK_WEBHOOK_URL secret not set — skipping Slack post. Configure it in Settings > Secrets to enable."
+            exit 0
+          fi
+          ENTRY=$(cat /tmp/changelog-entry.md)
+          SHA_SHORT=${SHA_SHORT:0:7}
+          jq -n \
+            --arg commit "$COMMIT_URL" \
+            --arg artifact "$ARTIFACT_URL" \
+            --arg sha "$SHA_SHORT" \
+            --arg entry "$ENTRY" \
+            --arg author "$AUTHOR" \
+            '{
+              text: "voyager-skills merged to main",
+              blocks: [
+                { type: "header", text: { type: "plain_text", text: "voyager-skills • main", emoji: true } },
+                { type: "section", fields: [
+                  { type: "mrkdwn", text: ("*Commit:* <" + $commit + "|" + $sha + ">") },
+                  { type: "mrkdwn", text: ("*By:* " + $author) }
+                ] },
+                { type: "section", text: { type: "mrkdwn", text: $entry } },
+                { type: "actions", elements: [
+                  { type: "button", text: { type: "plain_text", text: "Download zips", emoji: true }, url: $artifact }
+                ] }
+              ]
+            }' > /tmp/payload.json
+          curl -sS -X POST -H 'Content-type: application/json' \
+            --data @/tmp/payload.json "$SLACK_WEBHOOK_URL"

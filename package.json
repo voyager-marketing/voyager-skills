@@ -1,0 +1,21 @@
+{
+  "name": "voyager-skills",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Governance + automation for Voyager skills. The skills themselves live in skills/; this package.json exists only for the CI tooling in scripts/.",
+  "scripts": {
+    "validate": "node scripts/validate-skills.mjs",
+    "build-zips": "node scripts/build-zips.mjs",
+    "sync-notion": "node scripts/sync-to-notion.mjs",
+    "check-api": "node scripts/check-v1-skills-api.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@notionhq/client": "^2.2.15",
+    "adm-zip": "^0.5.16",
+    "js-yaml": "^4.1.0"
+  }
+}

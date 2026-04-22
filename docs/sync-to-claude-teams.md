@@ -40,7 +40,7 @@ zip -r ~/Desktop/voyager-voice.zip voyager-voice/   # macOS / Linux / Git Bash
 
 On Windows, use PowerShell with the `.NET` ZipFile API and explicit forward-slash entry names — the `dist/` build in this repo does exactly that.
 
-**Pre-built zips** (when available): `dist/org/` and `dist/personal/` contain ready-to-upload zips for every Live skill. Regenerate via `scripts/build-zips.ps1` (or rebuild on demand with the same pattern used in `docs/sync-to-claude-teams.md` session 3). The `dist/` folder is gitignored.
+**Pre-built zips.** `dist/org/` and `dist/personal/` contain ready-to-upload zips for every Live skill. Regenerate via `npm run build-zips` (see `scripts/build-zips.mjs`). The `dist/` folder is gitignored. The release GitHub Action also builds these as a workflow artifact on every merge to main.
 
 ### 4. Upload to the Org panel
 

@@ -1,0 +1,33 @@
+name: v1/skills API check (monthly)
+
+on:
+  schedule:
+    # 1st of each month at 14:00 UTC (10am ET)
+    - cron: '0 14 1 * *'
+  workflow_dispatch:  # also manual
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Check /v1/skills
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        shell: bash
+        run: |
+          if [ -z "${ANTHROPIC_API_KEY:-}" ]; then
+            echo "ANTHROPIC_API_KEY secret not set. Add it in Settings > Secrets to enable."
+            exit 0
+          fi
+          node scripts/check-v1-skills-api.mjs

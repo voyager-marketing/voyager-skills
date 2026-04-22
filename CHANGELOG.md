@@ -6,6 +6,37 @@ Format: reverse chronological. Date-anchored entries group the work done that da
 
 ---
 
+## 2026-04-21 — Session 7: Automation stack (validate + build + sync + API check)
+
+Four GitHub Actions + four Node scripts close the loops between GitHub, Notion, Claude.ai panels, and the Anthropic API. Replaces the PowerShell build script with a cross-platform Node version. Details in `docs/automation.md`.
+
+**Added:**
+- `package.json` — Node 20+ tooling. Deps: `@notionhq/client`, `adm-zip`, `js-yaml`.
+- `scripts/validate-skills.mjs` — hard-gates every SKILL.md. Errors on missing YAML, mismatched/non-kebab name, missing owner / last_reviewed / description, description >1024 chars. Warns on stale reviews (>90d) and missing use-trigger phrases.
+- `scripts/build-zips.mjs` — cross-platform replacement for `build-zips.ps1` (removed). Uses `adm-zip` with explicit forward-slash entry names so every platform produces a Claude.ai-compatible archive.
+- `scripts/sync-to-notion.mjs` — reads repo frontmatter, diffs against the Skills DB, patches Description / Owner / Last reviewed / Repo path where they've drifted. Never touches human-curated fields (Surface, Lifecycle, Last eval, relations). `--dry-run` supported.
+- `scripts/check-v1-skills-api.mjs` — pings Anthropic's `/v1/skills` beta endpoint, detects Teams-scope signals. Posts summary to Slack if a webhook is configured.
+- `.github/workflows/validate.yml` — runs validation on every PR and push to main.
+- `.github/workflows/release.yml` — on push to main: validate → build zips → upload artifact → sync Notion (if `NOTION_API_KEY` secret set) → post CHANGELOG delta to Slack (if `SLACK_WEBHOOK_URL` set).
+- `.github/workflows/api-check.yml` — 1st of each month at 14:00 UTC: pings `/v1/skills` and reports.
+- `docs/automation.md` — what each piece does, required secrets, failure modes, and how the stack collapses once `/v1/skills` supports the Teams Org panel.
+
+**Removed:** `scripts/build-zips.ps1` (replaced by the Node version).
+
+**Tested locally.** Validation passes all 42 skills with 7 warnings (trigger-phrase hints). Build-zips produces correct forward-slash zip structure. Notion sync fails cleanly when the API key is absent.
+
+**Secrets Ben needs to set in repo Settings → Secrets** (workflows degrade gracefully when a secret is missing, so add them incrementally):
+
+- `NOTION_API_KEY` — internal integration, shared with the Skills DB
+- `SLACK_WEBHOOK_URL` — `#dev-agents` incoming webhook
+- `ANTHROPIC_API_KEY` — read-only if that option exists
+
+Once all three are set, the whole stack runs automatically on merge to main.
+
+**Next evolution.** When the monthly `api-check` workflow detects a Teams-scope signal in `/v1/skills`, replace the manual upload runbook with an auto-upload step in `release.yml`. `docs/automation.md` has the plan.
+
+---
+
 ## 2026-04-21 — Session 6: voyager-build-kickoff skill (Draft)
 
 New infra-provisioning skill that fires after `voyager-client-intake` and before anything else in the Path A lifecycle. Chains off intake's Clients row, stands up a complete Voyager-standard dev environment, hands back a ready-to-design site.

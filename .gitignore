@@ -1,6 +1,9 @@
 # Upload build artifacts (rebuilt on demand via the runbook)
 dist/
 
+# Node tooling (scripts/ depends on these via npm)
+node_modules/
+
 # Temporary .skill exports from Claude.ai
 *.skill
 
