@@ -1,0 +1,12 @@
+# Upload build artifacts (rebuilt on demand via the runbook)
+dist/
+
+# Temporary .skill exports from Claude.ai
+*.skill
+
+# Editor noise
+.DS_Store
+Thumbs.db
+
+# Local Claude settings (machine-specific)
+.claude/settings.local.json

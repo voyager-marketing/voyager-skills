@@ -31,14 +31,16 @@ A skill needs re-upload if:
 
 ### 3. For each skill, build the upload archive
 
-Claude.ai expects a `.zip`. The zip must contain a single folder named after the skill, with `SKILL.md` at its root. Any referenced files (scripts, templates) go inside that folder.
+Claude.ai expects a `.zip`. The zip must contain a single folder named after the skill, with `SKILL.md` at its root. Any referenced files (scripts, templates) go inside that folder. **Path separators inside the zip must be forward slashes.** Windows-default `Compress-Archive` produces backslash separators and will silently fail Claude.ai's upload validator. Use the `dist/` build below or an `unzip`-compatible tool.
 
 ```bash
 cd ~/code/voyager-skills/skills
-zip -r ~/Desktop/voyager-voice.zip voyager-voice/
+zip -r ~/Desktop/voyager-voice.zip voyager-voice/   # macOS / Linux / Git Bash
 ```
 
-Repeat per skill. Keep the zips on the Desktop so they're easy to grab during the next step.
+On Windows, use PowerShell with the `.NET` ZipFile API and explicit forward-slash entry names — the `dist/` build in this repo does exactly that.
+
+**Pre-built zips** (when available): `dist/org/` and `dist/personal/` contain ready-to-upload zips for every Live skill. Regenerate via `scripts/build-zips.ps1` (or rebuild on demand with the same pattern used in `docs/sync-to-claude-teams.md` session 3). The `dist/` folder is gitignored.
 
 ### 4. Upload to the Org panel
 
