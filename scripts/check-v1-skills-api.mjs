@@ -83,6 +83,20 @@ async function main() {
   console.log(`Status: ${status}`);
   console.log(`Response keys: ${summariseShape(body)}`);
 
+  // Dump every skill's name + description so we can audit what's on the
+  // Anthropic account. These come from /v1/skills, which is Messages-API
+  // scoped — unrelated to the Claude.ai Teams Org panel. Useful to know
+  // what's there though, so flag anything unexpected.
+  if (Array.isArray(body?.data)) {
+    console.log(`\nSkills on this Anthropic account (${body.data.length}):`);
+    for (const s of body.data) {
+      const id = s.id || s.name || '(no id)';
+      const name = s.display_name || s.name || '(unnamed)';
+      const desc = (s.description || '').slice(0, 160);
+      console.log(`  · ${id} — ${name}${desc ? `\n      ${desc}` : ''}`);
+    }
+  }
+
   const teamsHint = detectsTeamsScope(body);
   const verdict =
     status === 200
@@ -91,12 +105,17 @@ async function main() {
         : 'Reachable but no Teams/Org signal. Messages-API-scoped as expected.'
       : `Not reachable (HTTP ${status}). Beta header ${BETA_HEADER} may have changed.`;
 
+  const skillsList = Array.isArray(body?.data)
+    ? body.data.map((s) => `• \`${s.id || s.name || '(no id)'}\` — ${s.display_name || s.name || '(unnamed)'}`).join('\n')
+    : '(no data array in response)';
+
   const lines = [
     `*Date:* ${today}`,
     `*Status:* HTTP ${status}`,
     `*Response shape:* \`${summariseShape(body)}\``,
     `*Teams scope hint:* ${teamsHint ? 'yes' : 'no'}`,
     `*Verdict:* ${verdict}`,
+    `*Skills on account:*\n${skillsList}`,
   ];
 
   if (status !== 200) {
