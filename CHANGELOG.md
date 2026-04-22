@@ -6,6 +6,36 @@ Format: reverse chronological. Date-anchored entries group the work done that da
 
 ---
 
+## 2026-04-21 — Session 6: voyager-build-kickoff skill (Draft)
+
+New infra-provisioning skill that fires after `voyager-client-intake` and before anything else in the Path A lifecycle. Chains off intake's Clients row, stands up a complete Voyager-standard dev environment, hands back a ready-to-design site.
+
+**Added:** `skills/voyager-build-kickoff/SKILL.md` + `commands/voyager-build-kickoff.md` + `intake-edits.md`. Five-phase pipeline: schema check + server resolve → gate + confirm → SpinupWP site on shared Voyager Dev server + Cloudflare DNS → 7-plugin stack + block theme → wait for Orbit self-registration → flip Clients flags + CLIENT.md handoff.
+
+**Architecture decisions locked this session:**
+- Path A inferred from Clients state (`WP Publish Enabled = YES` + empty `Websites` relation + `Voyager Orbit Installed` unchecked). No new Path property on Clients DB — Path is an onboarding state, not a client identity attribute.
+- All dev sites reuse the shared Voyager Dev server (Notion ID `22893507-c65f-431c-a4e3-a08e8ceffab6`, IP `159.65.174.126`, 6 sites already attached). No per-client server provisioning.
+- Portal registration is Orbit-initiated on plugin activation, not skill-initiated. Skill polls `voyager_registration_status` option until `active`, then reads `voyager_site_secret` and writes it to the Websites row's `Orbit Secret` field.
+- Orbit token/secret generation is automatic in `TokenManager::generateSecret()`. No WP-CLI command exists; skill reads the option after activation.
+- Websites DB has no `Provisioning` or `Failed` status values. Skill uses `In Progress` during runs and `Needs Review` on failure.
+- Uses the existing "New voyager.website site" template (`5e7cf74e-6103-45eb-a12b-26c50305e9cb`) to create Websites rows.
+
+**Scope intentionally narrow.** Dev environment only. Launch activities (domain delegation, GA4, GSC, kickoff email, Stripe care plan upsell) deferred to a future `voyager-site-launch` skill. ACF explicitly excluded — the ecosystem uses native Block Bindings API + post meta instead.
+
+**Verified against live code:**
+- Orbit `TokenManager.php`, `RegistrationService.php`, `Abilities.php` at `f:\dev\voyager\wordpress\voyager-orbit`.
+- Portal `app/api/wp-manager/sites/register/route.ts` in voyager-report.
+- SpinupWP plan format (`s-XvcpuXgb`) in `tests/e2e/agents/spinupwp-provisioning.spec.ts`.
+- Websites DB + Servers DB + Voyager Dev server row via Notion MCP.
+
+**Intake handoff.** Two small text additions to `voyager-client-intake` required for the handoff. Drafted at `skills/voyager-build-kickoff/intake-edits.md` rather than applied directly because intake currently lives in `.claude/worktrees/eloquent-hypatia-f7524b/skills/voyager-client-intake/` and has not been promoted to main.
+
+**Lifecycle: Draft.** Cannot move to Live until skill-creator eval passes (CLAUDE.md rule 4). Eval blocked on test fixture (sandbox SpinupWP server + Cloudflare test zone). Plan: dry-run against a real Path A candidate first, then formal eval.
+
+**Owner: Ben.**
+
+---
+
 ## 2026-04-21 — Session 5: content-image-library wrapper
 
 Companion to `content-hero-image`. Searches the Voyager R2 image library via `image_library_list` before paying for a new generation — saves the ~$0.04-$0.24 generation cost when reuse is an option.
