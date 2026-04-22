@@ -1,6 +1,6 @@
 ---
 name: voyager-build-kickoff
-description: Provision a Voyager-standard WordPress development site for a Path A (new build) client. Creates SpinupWP site at [slug].voyager.website on the shared Voyager server, adds Cloudflare DNS, installs Voyager plugin stack and block theme, waits for Orbit to auto-register with Portal, stashes the Orbit secret on the Websites DB row, and flips the Clients DB infra flags. Fires ONLY on explicit trigger phrases and ONLY for Path A clients already in the Clients DB. Trigger phrases. "run build kickoff for [name]", "provision dev site for [name]", "build kickoff [name]", "/build-kickoff [name]". Halts if the client has no Clients DB row, is not Path A, or already has a Websites DB row. Do NOT use for launch activities (domain delegation, GA4, GSC, kickoff email, care plan upsell) or for existing-site takeovers (Path B, use voyager-site-dna).
+description: Use when provisioning the Voyager dev environment for a Path A (new build) client who already has a Clients DB row. Creates SpinupWP site at [slug].voyager.website on the shared Voyager server, adds Cloudflare DNS, installs Voyager plugin stack and block theme, waits for Orbit to auto-register with Portal, stashes the Orbit secret on the Websites DB row, and flips Clients DB infra flags. Trigger phrases include "run build kickoff for [name]", "provision dev site for [name]", "build kickoff [name]", "/build-kickoff [name]". Halts if the client has no Clients DB row, is not Path A, or already has a Websites DB row. Do NOT use for launch activities (domain delegation, GA4, GSC, kickoff email, care plan upsell) or existing-site takeovers (Path B, use voyager-site-dna).
 owner: Ben
 last_reviewed: 2026-04-21
 ---
@@ -122,12 +122,14 @@ Capture `clients_db_url`, `clients_db_id`, `business_name` (from `Company` field
 
 All must pass. Halt on first failure with specific reason.
 
-- `Status` = `Active`
-- `WP Publish Enabled` = `__YES__`. If `__NO__`, this is Path C (marketing-only). Halt. "Client has `WP Publish Enabled = NO`. Voyager is not building their site. Use voyager-client-message or another skill."
+- `Status` = `Active`.
+- **At least one build signal.** Either `WP Publish Enabled` = `__YES__` OR `Services` contains `Website` or `MWP`. If neither, halt. "No build signal on Clients row. `WP Publish Enabled = NO` and `Services` does not include Website/MWP. This is Path C (marketing-only) or a data problem. Use voyager-client-message or another skill."
 - `Websites` relation is empty. If populated, this is likely Path B (takeover) or already built. Halt. "Client already has a Websites row. If this is a takeover, run voyager-site-dna. If the previous build failed, resume with --phase=N against the existing row."
 - `Voyager Orbit Installed` = unchecked. If checked, halt. "Client already provisioned. Aborting."
 
-These four together imply Path A. No explicit path field is read or written.
+If `WP Publish Enabled = __NO__` but `Services` includes `Website` or `MWP`, proceed but warn: "Services indicates a build but `WP Publish Enabled = __NO__`. Likely a Clients row created before voyager-client-intake was live. Flipping the flag to `__YES__` as part of Phase 5 cleanup." Then add that flag flip to the Phase 5 Clients DB update.
+
+These checks together imply Path A. No explicit path field is read or written.
 
 ### Step 3 — Determine slug
 
@@ -356,6 +358,7 @@ Update Clients row:
 - `Block Theme` = checked
 - `Voyager Blocks` = checked
 - `Websites` = add relation to new Websites row
+- `WP Publish Enabled` = `__YES__` (only if it was `__NO__` at Phase 1 and the Services fallback was used — flips the flag to match reality)
 
 ### Step 13 — Write CLIENT.md on server
 
