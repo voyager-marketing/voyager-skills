@@ -5,7 +5,7 @@ argument-hint: "[description of the image] [--aspect 16:9|1:1|9:16|4:3|3:4] [--m
 allowed-tools: [Bash, Read, Grep, Glob, Agent, TodoWrite]
 user-invocable: true
 owner: Ben
-last_reviewed: 2026-04-21
+last_reviewed: 2026-04-22
 ---
 
 # Content Hero Image
