@@ -6,6 +6,28 @@ Format: reverse chronological. Date-anchored entries group the work done that da
 
 ---
 
+## 2026-04-21 — Session 4: Exported the 4 panel-only legacy skills to the repo
+
+Closes the Rule 1 governance break from session 1. The 4 skills that were only in the Claude.ai Teams Org panel now have `SKILL.md` files committed to `skills/`. This unblocks retirement — they can't formally move from Deprecated to Retired without source in the repo.
+
+**Committed (commits 7bbcbfc, c6cd1d1, aa04c15, and this one):**
+
+- `skills/voyager-wp-manager/SKILL.md` — WordPress ops skill for Chat. Corrected three stale MCP tool names in the reference table to match the current `voyager-mcp-server` on main (`wp_plugins` → `wp_plugins_list`, `wp_security` → `wp_security_scan`, `wp_fleet_site_status` → `wp_fleet_status`). Wired 13 MCP tools into `MCP tools used` on the Skills DB row.
+- `skills/voyager-prep-for-client/SKILL.md` — Full client briefing across Notion CRM + Gmail + Calendar + Slack + Stripe + Ahrefs. No tool name drift. No Voyager MCP tools (Chat connectors only).
+- `skills/voyager-client-onboarding/SKILL.md` — Process/checklist skill for new-client setup. No Voyager MCP tools.
+- `skills/voyager-client-context-check/SKILL.md` — Prerequisite context check before drafting any client-facing message. No Voyager MCP tools.
+
+**All 4 pass skill-creator eval.** Added Voyager frontmatter to each (`owner: Ben`, `last_reviewed: 2026-04-21`, `allowed-tools` for the Chat connectors each uses). Added a Deprecated-with-replacement-named lifecycle note at the top of each.
+
+**Skills DB updated.** All 4 rows: Surface changed from `Chat Org` to `Chat Org + Code`, Repo path set to the GitHub URL, Last eval set to `Pass 2026-04-21`. Lifecycle stays Deprecated per the run-parallel rule. The replacements (`fleet-health` + `pattern-cloud`, `client-prep`, `onboard-client`) need two weeks of verification in Live before any of these can retire.
+
+**What's ready after this session:**
+- The repo is now Rule 1-clean. Every Live or Deprecated skill in the Org panel has source in GitHub.
+- The retirement path is unblocked. Once the replacements prove out, the 4 legacy skills can move Deprecated → Retired + `archive/`.
+- Next manual step for Ben: the 24 Tier 3 Live skills + `content-hero-image` can be uploaded to the Org panel per `docs/sync-to-claude-teams.md`.
+
+---
+
 ## 2026-04-21 — Session 3: Tier 3 eval backfill + content-hero-image
 
 **Tier 3 eval backfill — all 24 Draft skills → Live.**
