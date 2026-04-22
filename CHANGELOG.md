@@ -6,6 +6,55 @@ Format: reverse chronological. Date-anchored entries group the work done that da
 
 ---
 
+## 2026-04-22 — Session 8: voyager-build-kickoff v2 (first live run + 11 fixes)
+
+First end-to-end run of `voyager-build-kickoff` against a real Path A client (Melody Magic Music Studio). Site now live at https://melody-magic-site.voyager.website with full Voyager stack installed and Orbit registered with Portal. Run surfaced 11 real-world gaps between the paper spec and what actually works on live APIs. SKILL.md rewritten to match reality.
+
+**Verified infrastructure:** SpinupWP server #16035 (Voyager Dev), SpinupWP site #245502, Cloudflare A record, Let's Encrypt cert, WP 6.9.4 + PHP 8.2, 9 plugins active, voyager-block-theme 2.0.1 active, Orbit registered 2026-04-22 06:05:50 UTC with 64-char site_secret stored on the Websites Notion row.
+
+**11 findings rolled into SKILL.md:**
+
+1. **voyager-blocks release zip is broken** — v1.0.0 ships without the `src/` directory. `voyager-blocks.php:439` fatals on `require_once src/utils/settings-helpers.php`. Workaround documented: install from `gh api repos/voyager-marketing/voyager-blocks/tarball/v1.0.0`. Upstream fix needed in the voyager-blocks release pipeline.
+2. **Plugin repo paths were wrong**. Three plugins I'd assumed lived under `voyager-marketing` don't exist there. Correct sources:
+   - `WordPress/abilities-api` (not `voyager-marketing/wp-abilities-api`)
+   - `WordPress/mcp-adapter` (not `voyager-marketing/mcp-adapter`)
+   - `Automattic/wordpress-mcp` (the thing I'd called "wp-ai-client" — that name doesn't exist anywhere)
+3. **voyager-block-theme has no GitHub releases**, only git tags. Install via `gh api repos/voyager-marketing/voyager-block-theme/tarball/v2.0.1`.
+4. **Portal URL was wrong.** Correct host: `https://app.voyagermark.com`, not `portal.voyagermark.com` (DNS doesn't resolve). Correct endpoint: `/api/sites/register` (public, no auth, SSRF-protected). The `/api/wp-manager/sites/register` I'd pointed at is staff-only (Clerk-gated) and returns 401 Unauthorized.
+5. **SpinupWP silently ignores `https.enabled: true`** on site creation if DNS isn't visible to SpinupWP's internal resolver at the exact provision moment. Site deploys fine but `https.enabled: false` in the response. No API endpoint exists to enable SSL post-creation (`/v1/sites/{id}/https` only accepts `type=custom`; no "letsencrypt" variant is accepted). SKILL.md now pauses for manual UI click at this point.
+6. **`dig` is not on Windows git bash.** DNS propagation poll must use `nslookup` or Node's `dns.promises`.
+7. **Plugin install pattern** — SpinupWP API has no WP-CLI/plugin-management endpoints. Must SSH. Site users use publickey auth without a key pre-provisioned for us, so SSH as `benw` (sudo user, id_rsa works) and `sudo -u [site_user] wp ...` for WP-CLI. sudo is NOT NOPASSWD — pipe password via `echo "$PW" | sudo -S ...`.
+8. **Phase 2 reordered.** DNS record creation must precede site creation (proven by voyager-report's `trigger/spinupwp-site-creation.ts`). Site creation triggers Let's Encrypt cert request which needs DNS propagated to verify domain ownership.
+9. **Orbit/Portal schema matches at `/api/sites/register`.** Orbit's PortalClient sends `{domain, site_url, site_secret, callback_url, metadata: {...}}` which matches `/api/sites/register` exactly. (The other Portal route `/api/wp-manager/sites/register` has a different schema expecting `site_id`, but that route is staff-only and irrelevant for Orbit registration.)
+10. **Notion Websites DB field names** (confirmed live, some were wrong in v1):
+    - `Orbit Secret` (not "Orbit Token")
+    - `userDefined:URL` (shown as "URL"; NOT a "Staging URL" field)
+    - No "WP Admin URL" field exists — derive in summary only
+    - No "Portal Site ID" field — Portal uses domain as site identifier
+    - Server/IP lives in a separate Servers DB via the `Server` relation
+    - Status values: no "Provisioning" or "Failed" — use `In Progress` and `Needs Review`
+    - SpinupWP auto-generates random 3-char table_prefix (e.g. `4kq_`) — capture from site detail after deploy
+11. **WP_Ability property validation notices** — WP 6.9.0 added stricter property validation. Orbit and voyager-blocks declare `_voyager_sanitizer_wrapped` on ability objects which isn't in the allowed set. Non-fatal but noisy in logs. Documented as known drift; fix belongs in Orbit/blocks.
+
+**Also landed in SKILL.md v2:**
+- SSH pattern documented explicitly (sudo password from Servers DB `Password` field, `echo $PW | sudo -S -u [site_user] wp ...`).
+- CLIENT.md write pattern — write to `/tmp` first then `sudo mv`. The `sudo tee <target> <<'EOF'` pattern silently fails because the heredoc attaches to `tee`, not to sudo's stdin.
+- Event status terminal success is `deployed`, NOT `completed`.
+- Voyager Dev server hardcoded: Notion `22893507-c65f-431c-a4e3-a08e8ceffab6`, SpinupWP `#16035`, IP `159.65.174.126`.
+
+**Files changed.** `skills/voyager-build-kickoff/SKILL.md` (full rewrite, still under 1024-char description gate), `skills/voyager-build-kickoff/commands/voyager-build-kickoff.md` (summary of phases).
+
+**Validation.** 42 skills pass, 6 warnings (unchanged from session 7).
+
+**Lifecycle.** Still Draft. Eval gate requires a sandbox fixture. First live run proved the pipeline works end-to-end once the 11 gaps are closed, but formal skill-creator eval is pending.
+
+**Known remaining gaps (not in this skill's scope):**
+- voyager-blocks release pipeline needs a fix so future dev-site builds don't need the source-tarball workaround.
+- SpinupWP API has no post-creation SSL enable — skill pauses for manual UI click. Could be revisited if SpinupWP adds the endpoint.
+- Orbit + voyager-blocks should declare `_voyager_sanitizer_wrapped` properly or stop decorating the ability objects that way, to silence WP 6.9 notices.
+
+---
+
 ## 2026-04-21 — Session 7: Automation stack (validate + build + sync + API check)
 
 Four GitHub Actions + four Node scripts close the loops between GitHub, Notion, Claude.ai panels, and the Anthropic API. Replaces the PowerShell build script with a cross-platform Node version. Details in `docs/automation.md`.

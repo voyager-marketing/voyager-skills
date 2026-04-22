@@ -5,15 +5,15 @@ argument-hint: "<business-name> [--clients-db-url=<id>] [--slug=<kebab>] [--serv
 
 # /voyager-build-kickoff
 
-Provision the dev environment for a new Path A client on the shared Voyager SpinupWP server. Arguments. $ARGUMENTS
+Provision the dev environment for a new Path A client on the shared Voyager Dev SpinupWP server. Arguments. $ARGUMENTS
 
 Follow the SKILL.md pipeline:
 
-- **Phase 0**. Load Notion MCP. Verify `SPINUPWP_API_KEY`, `CLOUDFLARE_API_TOKEN` (`gh auth` handles release downloads). Fetch Clients, Websites, Servers DB schemas. Halt if Clients DB `Path` property missing. Resolve the shared Voyager server in Servers DB + SpinupWP API.
-- **Phase 1**. Resolve Clients row. Gate on `Path = A`, `Status = Active`, `WP Publish Enabled = YES`, no existing Websites row, `Voyager Orbit Installed` unchecked. Validate slug not taken. Ask user to proceed.
-- **Phase 2**. Create Websites row using the "New voyager.website site" template (`Stage = Dev`, `Status = In Progress`, `Server` relation to shared server, `Company` relation to Clients row). Provision SpinupWP site on shared server. Add Cloudflare A record, wait for propagation. Verify SSL.
-- **Phase 3**. Install plugin stack via SpinupWP shell (Orbit, Blocks, Core, Abilities API, MCP Adapter, WP AI Client, Rank Math). Install + activate voyager-block-theme. Orbit installed LAST so its activation finds the other plugins present.
-- **Phase 4**. Wait for Orbit to self-register with Portal (polls `voyager_registration_status` option until `active`). Read `voyager_site_secret` via WP-CLI, write to Websites row `Orbit Secret` field without echoing to transcript.
-- **Phase 5**. Flip Clients flags (Orbit, Theme, Blocks = YES). Write CLIENT.md handoff on server. Emit summary + JSON.
+- **Phase 0**. Load Notion MCP, `gh auth`, SSH keys. Verify `SPINUPWP_API_KEY` + `CLOUDFLARE_API_TOKEN` (must have `Zone.DNS:Edit` scope). Fetch Clients, Websites, Servers DB schemas. Resolve Voyager Dev server (Notion + SpinupWP API, hardcoded id `16035`). Read sudo password from Servers DB row.
+- **Phase 1**. Resolve Clients row. Gate on `Status = Active`, build signal (`WP Publish Enabled = YES` OR `Services` contains Website/MWP), empty `Websites` relation, unchecked `Voyager Orbit Installed`. Validate slug unused. Ask user to proceed.
+- **Phase 2**. Create Websites row from template (`Stage = Dev`, `Status = In Progress`). Create Cloudflare A record. **Wait for DNS propagation via `nslookup 1.1.1.1`** (NOT `dig` — not on Windows). POST to SpinupWP `/v1/sites` with full schema (`installation_method: "wp"`, `wordpress.{title, admin_user, admin_email, admin_password}`, `database.{name, username, password}`, `https.enabled: true`). Poll event until status = **`deployed`** (NOT `completed`). Verify `https.enabled: true` on site response; if false, pause for manual UI enable.
+- **Phase 3**. Download plugin + theme assets (parallel `gh release download` for release zips, `gh api .../tarball/<tag>` for source tarballs). `scp` to server `/tmp/`. Install via SSH + `echo $SUDO_PW | sudo -S -u [site_user] wp ...` — sudo is NOT NOPASSWD. Plugin order: core → abilities-api → mcp-adapter → wordpress-mcp → blocks (source tarball, not release zip — release is broken) → rank-math (WP.org) → **Orbit LAST** (activation triggers Portal registration). Install theme via extracted source dir move (no `zip` on server).
+- **Phase 4**. Poll `voyager_registration_status` until `active`. If `failed` + "HTTPS required", verify HTTPS live then reset retries + retry via `RegistrationService::attemptRegistration()`. Read `voyager_site_secret`, write to Websites row `Orbit Secret` field without echoing.
+- **Phase 5**. Flip Clients flags (Orbit, Theme, Blocks = YES; auto-flip `WP Publish Enabled` if Services fallback was used). Write CLIENT.md to `/tmp` first then `sudo mv` into `/sites/[domain]/CLIENT.md` (NOT `sudo tee <<EOF` — the heredoc attaches to `tee`, not sudo). Update Websites row to `Status = Active`. Emit summary + JSON.
 - Every failure leaves the Websites row with `Status = Needs Review` and a resume hint in exit output.
-- Never create duplicate Notion records. Never log or echo the Orbit Secret.
+- Never log or echo the Orbit Secret.

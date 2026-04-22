@@ -1,17 +1,19 @@
 ---
 name: voyager-build-kickoff
-description: Use when provisioning the Voyager dev environment for a Path A (new build) client who already has a Clients DB row. Creates SpinupWP site at [slug].voyager.website on the shared Voyager server, adds Cloudflare DNS, installs Voyager plugin stack and block theme, waits for Orbit to auto-register with Portal, stashes the Orbit secret on the Websites DB row, and flips Clients DB infra flags. Trigger phrases include "run build kickoff for [name]", "provision dev site for [name]", "build kickoff [name]", "/build-kickoff [name]". Halts if the client has no Clients DB row, is not Path A, or already has a Websites DB row. Do NOT use for launch activities (domain delegation, GA4, GSC, kickoff email, care plan upsell) or existing-site takeovers (Path B, use voyager-site-dna).
+description: Use when provisioning the Voyager dev environment for a Path A (new build) client who already has a Clients DB row. Creates SpinupWP site at [slug].voyager.website on the shared Voyager Dev server, adds Cloudflare DNS, installs Voyager plugin stack and block theme, waits for Orbit to auto-register with Portal, stashes the Orbit secret on the Websites DB row, and flips Clients DB infra flags. Trigger phrases include "run build kickoff for [name]", "provision dev site for [name]", "build kickoff [name]", "/build-kickoff [name]". Halts if the client has no Clients DB row, is not Path A, or already has a Websites DB row. Do NOT use for launch activities (domain delegation, GA4, GSC, kickoff email, care plan upsell) or existing-site takeovers (Path B, use voyager-site-dna).
 owner: Ben
-last_reviewed: 2026-04-21
+last_reviewed: 2026-04-22
 ---
 
 # Voyager Build Kickoff
 
-Day 1 infra provisioning for a Path A client. Spins up a Voyager-standard dev site on the shared Voyager SpinupWP server, wires it to Portal via Orbit self-registration, and hands off a ready-to-design environment. Runs after `voyager-client-intake` has created the Clients DB row and confirmed Path A.
+Day 1 infra provisioning for a Path A client. Spins up a Voyager-standard dev site on the shared Voyager Dev SpinupWP server, wires it to Portal via Orbit self-registration, and hands off a ready-to-design environment. Runs after `voyager-client-intake` has created the Clients DB row and confirmed Path A.
 
-Time to complete. Roughly 3 to 5 minutes (site provision + DNS propagation + plugin install + Orbit registration callback).
+Time to complete. Roughly 10 to 15 minutes end-to-end (DNS propagation + site provision + plugin install + theme install + Orbit registration + HTTPS verify).
 
 Scope. Dev environment only. Launch activities (domain delegation, GA4, GSC, kickoff email, Stripe care plan upsell) fire later via a separate launch skill.
+
+Verified live against `melody-magic-site.voyager.website` on 2026-04-22.
 
 ---
 
@@ -22,24 +24,25 @@ Silently. Cache results.
 ### 0.0 Load required tools
 
 - **Notion MCP**. Should be loaded. If not, `tool_search` query `"Notion page database"`.
-- **SpinupWP API**. Accessed via `curl` with `SPINUPWP_API_KEY` env var. No MCP.
+- **SpinupWP API**. Accessed via `curl` with `SPINUPWP_API_KEY` env var. No MCP. No CLI on the server.
 - **Cloudflare API**. Accessed via `curl` with `CLOUDFLARE_API_TOKEN` env var. No MCP.
-- **GitHub CLI**. `gh auth status` must succeed. Used to pull latest release zips for theme and private plugins.
+- **GitHub CLI**. `gh auth status` must succeed. Used for release downloads AND git-tag tarball downloads.
+- **SSH**. Required to install plugins / theme on the provisioned site. Pattern: `ssh -i ~/.ssh/id_rsa benw@<server_ip>`. The sudo password for `benw` on the Voyager Dev server lives on that server's Notion Servers row (`Password` field); read it once per session and never log it.
 
 Halt if any are missing. Report which and surface remediation.
 
 ### 0.1 Env var check
 
-| Var | Purpose |
-|---|---|
-| `SPINUPWP_API_KEY` | SpinupWP site provisioning |
-| `CLOUDFLARE_API_TOKEN` | DNS record creation on voyager.website zone |
+| Var | Purpose | Required scope |
+|---|---|---|
+| `SPINUPWP_API_KEY` | SpinupWP site provisioning | Read/write |
+| `CLOUDFLARE_API_TOKEN` | DNS record creation on voyager.website zone | **`Zone.DNS:Edit`** on voyager.website (Read-only tokens and Global API Key tokens both fail the POST — check perms via `GET /client/v4/zones?name=voyager.website` and confirm `#dns_records:edit` is in the response) |
 
-Private plugin + theme release zips are downloaded via `gh release download`, which uses `gh auth` credentials — not a separate PAT. `gh auth status` must return OK (already checked in Phase 0.0).
+Private plugin + theme downloads use `gh` CLI auth (already checked in Phase 0.0) — no separate PAT needed.
 
-Portal registration happens automatically via Orbit plugin activation (no `PORTAL_API_KEY` needed from skill).
+Portal registration is initiated by Orbit itself on plugin activation, not by this skill. No `PORTAL_API_KEY` required.
 
-If any missing, halt with the exact export command needed.
+Storage. Use `.claude/settings.local.json` `env` block (gitignored, loaded by Claude Code on startup). NEVER commit these to `.claude/settings.json`. If this shell doesn't see them (variables were set with `setx` or added to `settings.local.json` mid-session), restart Claude Code before running.
 
 ### 0.2 Fetch Notion schemas (parallel)
 
@@ -47,7 +50,7 @@ If any missing, halt with the exact export command needed.
 - Websites DB data source. `collection://f12cc677-9dd3-499d-b23e-9c7873c5620f`
 - Servers DB data source. `collection://21e21904-2f4b-4cc9-a314-5ef68ed6cf32`
 
-Confirm the properties below exist. Halt if any are missing (especially `Path` on Clients, which must be added manually before first run).
+Confirm the properties below exist. Halt if any are missing.
 
 **Clients DB required properties:**
 - `Company` (title)
@@ -58,50 +61,39 @@ Confirm the properties below exist. Halt if any are missing (especially `Path` o
 - `Voyager Blocks` (checkbox)
 - `Websites` (relation to Websites DB)
 
-Path is not a Clients property. Path A is inferred from state: `WP Publish Enabled = YES` + `Websites` relation empty + `Voyager Orbit Installed` unchecked. That combination only holds for a new build pre-provision. Path B clients already have a `Websites` row; Path C has `WP Publish Enabled = NO`.
+Path A is inferred from state: `WP Publish Enabled = __YES__` OR `Services` contains `Website` or `MWP`, plus empty `Websites` relation and unchecked `Voyager Orbit Installed`. No `Path` property is read or written.
 
-**Websites DB properties used:**
+**Websites DB properties used** (confirmed live in Notion):
 - `Domain` (title)
-- `userDefined:URL` (URL, displayed as "URL")
+- `userDefined:URL` (URL field, displayed as "URL")
 - `Stage` (select, value `Dev` used here)
 - `Status` (select, value `In Progress` during provisioning, `Active` on success, `Needs Review` on failure)
-- `Orbit Secret` (text, written after Orbit self-registers)
-- `SpinupWP Site ID` (text)
-- `Server` (relation to Servers DB — carries IP Address and Hosting as rollups)
-- `Company` (relation to Clients DB)
-- `Prefix` (text, the WP table prefix)
+- `Orbit Secret` (text, 64-char HMAC key — written after Orbit self-registers)
+- `SpinupWP Site ID` (text, numeric site ID from SpinupWP)
+- `Server` (relation to Servers DB — IP Address and Hosting come as rollups)
+- `Company` (relation to Clients DB — bidirectional, auto-fills Clients.Websites)
+- `Prefix` (text — SpinupWP auto-generates a random 3-char prefix like `4kq_`)
+- `System User`, `WP User`, `WP Password`, `DB Name`, `DB User`, `DB Password` (text — stash provision-time credentials)
 
 **Servers DB properties used:**
-- `Name` (title)
-- `IP Address` (text)
-- `Host` (select, value `SpinupWP`)
-- `Datacenter` (select, value `NYC3`)
-- `Status` (select, value `Active`)
+- `Name` (title), `IP Address`, `Host` (select: `SpinupWP`), `Datacenter` (select: `NYC3`), `Status` (select: `Active`), `Password` (text — sudo password for SSH)
 
-### 0.3 Resolve shared Voyager server
+### 0.3 Resolve shared Voyager Dev server
 
-Default. All dev sites run on the shared **Voyager Dev** SpinupWP server.
+All dev sites run on the shared **Voyager Dev** SpinupWP server.
 
-Hardcoded lookup (confirmed 2026-04-21):
+Hardcoded:
 - Notion page. `https://www.notion.so/22893507c65f431ca4e3a08e8ceffab6`
 - Server Notion ID. `22893507-c65f-431c-a4e3-a08e8ceffab6`
 - IP Address. `159.65.174.126`
-- Host. SpinupWP
-- Datacenter. NYC3
+- Host. SpinupWP, Datacenter. NYC3
+- SpinupWP numeric server ID. `16035`
 
 Resolution flow:
-1. If `--server-notion-id=<id>` passed, use that. Fetch the Server row to get IP + name.
-2. Otherwise, fetch the Voyager Dev server by hardcoded ID above. Verify `Status = Active` and `Host = SpinupWP`. If not active, halt with "Voyager Dev server is [status]. Create a replacement in Servers DB and pass --server-notion-id=<id>."
-3. Cache `server_notion_url`, `server_notion_id`, `server_ip`, `server_name`.
-
-Resolve SpinupWP numeric server ID via API:
-
-```
-GET https://api.spinupwp.app/v1/servers
-  Authorization: Bearer $SPINUPWP_API_KEY
-```
-
-Match on `ip_address = server_ip`. Capture `spinupwp_server_id`. Halt if no match ("Notion IP [x] not found on SpinupWP — Servers DB row may be stale").
+1. If `--server-notion-id=<id>` passed, fetch that Server row; use its IP and SpinupWP ID lookup.
+2. Otherwise, fetch the Voyager Dev server by hardcoded Notion ID. Verify `Status = Active` and `Host = SpinupWP`. If not, halt.
+3. Confirm `spinupwp_server_id = 16035` by calling `GET https://api.spinupwp.app/v1/servers` and matching `ip_address = 159.65.174.126`. If no match, halt ("Notion IP stale — Servers DB row needs update").
+4. Read the sudo password from the Server row's `Password` field. Cache in memory for the session only.
 
 ---
 
@@ -114,308 +106,384 @@ Input priority:
 2. Positional `<business_name>`. Query Clients DB by `Company` (case-insensitive, trimmed).
 
 If zero matches, halt. "No Clients row for [name]. Run `voyager-client-intake` first."
+If multiple, ask user to pick.
 
-If more than one match, show list, ask user to pick.
-
-Capture `clients_db_url`, `clients_db_id`, `business_name` (from `Company` field).
+Capture `clients_db_url`, `clients_db_id`, `business_name`.
 
 ### Step 2 — Gate checks (Path A inferred from state)
 
 All must pass. Halt on first failure with specific reason.
 
 - `Status` = `Active`.
-- **At least one build signal.** Either `WP Publish Enabled` = `__YES__` OR `Services` contains `Website` or `MWP`. If neither, halt. "No build signal on Clients row. `WP Publish Enabled = NO` and `Services` does not include Website/MWP. This is Path C (marketing-only) or a data problem. Use voyager-client-message or another skill."
-- `Websites` relation is empty. If populated, this is likely Path B (takeover) or already built. Halt. "Client already has a Websites row. If this is a takeover, run voyager-site-dna. If the previous build failed, resume with --phase=N against the existing row."
-- `Voyager Orbit Installed` = unchecked. If checked, halt. "Client already provisioned. Aborting."
+- **At least one build signal.** Either `WP Publish Enabled = __YES__` OR `Services` contains `Website` or `MWP`. If neither, halt (probably Path C or data issue).
+- `Websites` relation is empty. If populated, halt (Path B takeover or already built — different skill).
+- `Voyager Orbit Installed` = unchecked. If checked, halt ("Client already provisioned").
 
-If `WP Publish Enabled = __NO__` but `Services` includes `Website` or `MWP`, proceed but warn: "Services indicates a build but `WP Publish Enabled = __NO__`. Likely a Clients row created before voyager-client-intake was live. Flipping the flag to `__YES__` as part of Phase 5 cleanup." Then add that flag flip to the Phase 5 Clients DB update.
-
-These checks together imply Path A. No explicit path field is read or written.
+If `WP Publish Enabled = __NO__` but `Services` includes `Website`/`MWP`, proceed; flip the flag as part of Phase 5. This handles Clients rows created before `voyager-client-intake` was live.
 
 ### Step 3 — Determine slug
 
-- Slug. Default `slugify(business_name)`.
+- Slug. Default `slugify(business_name)` (kebab-case, no special chars).
 - If `--slug=<kebab>` passed, use that.
-- Validate the slug is not already taken. Query Websites DB for `Domain` = `[slug].voyager.website`. If exists, halt. "Subdomain [slug].voyager.website already in use. Pick a different slug with --slug=<kebab>."
+- Validate: query Websites DB for `Domain = [slug].voyager.website`. Halt if taken.
+- Verify site_user: for SpinupWP, derive a no-dash version (e.g. `melody-magic-site` → `melodymagicsite`). Max 32 chars. If over, truncate or derive differently.
 
 ### Step 4 — Pre-flight confirmation
 
-Show plan. Ask to proceed.
-
-```
-Build kickoff for [business_name]:
-
-Path: A (new build)
-Staging URL: https://[slug].voyager.website
-Server: [server_name] ([server_ip]) — shared Voyager server
-
-Will do:
-1. Create Websites DB row (Stage=Dev, Status=In Progress)
-2. Provision SpinupWP site on shared server (~60s)
-3. Add Cloudflare DNS A record, wait for propagation
-4. Install plugins. Orbit, Blocks, Core, Abilities API, MCP Adapter, WP AI Client, Rank Math
-5. Install + activate voyager-block-theme
-6. Wait for Orbit to auto-register with Portal
-7. Capture Orbit Secret, write to Websites row
-8. Flip Clients flags (Orbit, Theme, Blocks = YES)
-9. Write CLIENT.md handoff on server
-
-Proceed?
-```
-
-Options. `Run it` / `Change slug` / `Cancel`.
+Show the plan (phases to run, expected URLs, server to use). Options: `Run it` / `Change slug` / `Cancel`.
 
 ---
 
 ## Phase 2. Provision infrastructure
 
+DNS precedes site creation because SpinupWP's `https: {enabled: true}` in the site-create payload only works if DNS is already visible to Let's Encrypt at provision time.
+
 ### Step 5 — Create Websites DB row (In Progress state)
 
-Create the row upfront so failures mid-provision leave a breadcrumb for resume. Use the existing template for consistency.
-
-Template. `5e7cf74e-6103-45eb-a12b-26c50305e9cb` ("New voyager.website site") on the Websites DB.
+Use template `5e7cf74e-6103-45eb-a12b-26c50305e9cb` ("New voyager.website site") on Websites DB data source `f12cc677-9dd3-499d-b23e-9c7873c5620f`.
 
 Override properties:
 - `Domain` = `[slug].voyager.website`
 - `userDefined:URL` = `https://[slug].voyager.website`
 - `Stage` = `Dev`
 - `Status` = `In Progress`
-- `Server` = relation to `server_notion_url` (the shared Voyager server row)
-- `Company` = relation to `clients_db_url`
-- `Prefix` = `wp_`
+- `Server` = relation to Voyager Dev (`22893507-c65f-431c-a4e3-a08e8ceffab6`)
+- `Company` = relation to Clients row
+- `Prefix` = `wp_` (will be overwritten with SpinupWP-generated prefix after site create)
 
 Capture `website_db_url`, `website_db_id`.
 
-### Step 6 — SpinupWP site provision
+### Step 6 — Cloudflare DNS
 
-Create the site on the existing shared server. Do NOT create a new server.
-
-```
-POST https://api.spinupwp.app/v1/servers/[spinupwp_server_id]/sites
-  Authorization: Bearer $SPINUPWP_API_KEY
-  Content-Type: application/json
-  {
-    "domain": "[slug].voyager.website",
-    "site_user": "[slug]",
-    "php_version": "8.2",
-    "wp": {
-      "title": "[business_name]",
-      "admin_user": "voyager_admin",
-      "admin_email": "sites@voyagermark.com",
-      "locale": "en_US"
-    },
-    "db": {
-      "name": "[slug]_wp",
-      "user": "[slug]_wp",
-      "host": "localhost"
-    },
-    "ssl": {
-      "enabled": true,
-      "certificate_type": "letsencrypt"
-    },
-    "https": true
-  }
-```
-
-Capture `site_id` from response. Poll `GET /v1/sites/[site_id]` until `status = ready`, timeout 5 minutes.
-
-Update Websites row. `SpinupWP Site ID` = `site_id`.
-
-Capture `admin_password` from the provision response (stored in the same API call's `wp.admin_password` field). Keep in memory only, write to the Websites `WP Password` field at end of Phase 5.
-
-On failure. Surface error, set Websites Status = `Needs Review`, leave domain in row, exit 1 with `resume_hint: --phase=6`.
-
-### Step 7 — Cloudflare DNS
-
-Zone. `voyager.website`. Look up zone ID once per session, cache.
+Zone. `voyager.website`, zone ID `5ed6cffac6ab37ff6da397fc2818fd7c` (cache per session).
 
 ```
-GET https://api.cloudflare.com/client/v4/zones?name=voyager.website
+POST https://api.cloudflare.com/client/v4/zones/5ed6cffac6ab37ff6da397fc2818fd7c/dns_records
   Authorization: Bearer $CLOUDFLARE_API_TOKEN
-```
-
-Then create A record:
-
-```
-POST https://api.cloudflare.com/client/v4/zones/[zone_id]/dns_records
-  Authorization: Bearer $CLOUDFLARE_API_TOKEN
-  Content-Type: application/json
   {
     "type": "A",
     "name": "[slug]",
-    "content": "[server_ip]",
-    "ttl": 1,
+    "content": "159.65.174.126",
+    "ttl": 300,
     "proxied": false
   }
 ```
 
-Wait for propagation. Poll `dig @1.1.1.1 [slug].voyager.website A` until it resolves to `server_ip`, max 3 minutes.
+Capture `cloudflare_record_id`. If POST returns 401/403 "Authentication error", the token lacks `Zone.DNS:Edit` — halt with remediation.
 
-SSL. Let's Encrypt issuance runs automatically via SpinupWP once DNS resolves. Verify cert within 2 minutes by fetching `https://[slug].voyager.website/wp-admin/install.php` and checking for valid cert. If cert issuance fails, continue but flag in summary. Alex can re-trigger from SpinupWP UI.
+### Step 6b — Wait for DNS propagation
 
----
+Poll via `nslookup <domain> 1.1.1.1` (NOT `dig` — not available on Windows git bash). Every 5 seconds, accept when Address matches `159.65.174.126`. Timeout 180s.
 
-## Phase 3. Install stack
+Alternative poller: Node's `dns.promises.resolve4()` with `dns.setServers(['1.1.1.1'])`.
 
-Plugin and theme installs run via SpinupWP's site shell (SSH) using WP-CLI. SpinupWP exposes shell commands through its API:
+If not propagated in 180s, continue anyway but flag that HTTPS may not enable at site creation (SpinupWP re-checks DNS internally; Let's Encrypt needs it visible).
+
+### Step 7 — SpinupWP site provision
 
 ```
-POST https://api.spinupwp.app/v1/sites/[site_id]/ssh
+POST https://api.spinupwp.app/v1/sites
   Authorization: Bearer $SPINUPWP_API_KEY
-  { "command": "<command>" }
+  Content-Type: application/json
 ```
 
-### Step 8 — Plugin install
+Payload (schema confirmed via `f:\dev\voyager\voyager-report\trigger\spinupwp-site-creation.ts`):
 
-Seven plugins. Six private from `voyager-marketing` GitHub org, one public from WP.org.
-
-| Plugin | Source | Slug |
-|---|---|---|
-| Voyager Orbit | GitHub `voyager-marketing/voyager-orbit` | `voyager-orbit` |
-| Voyager Blocks | GitHub `voyager-marketing/voyager-blocks` | `voyager-blocks` |
-| Voyager Core | GitHub `voyager-marketing/voyager-core` | `voyager-core` |
-| Abilities API | GitHub `voyager-marketing/wp-abilities-api` | `wp-abilities-api` |
-| MCP Adapter | GitHub `voyager-marketing/mcp-adapter` | `mcp-adapter` |
-| WP AI Client | GitHub `voyager-marketing/wp-ai-client` | `wp-ai-client` |
-| Rank Math SEO | WP.org | `seo-by-rank-math` |
-
-For each private plugin:
-```
-gh release download --repo voyager-marketing/[repo] --pattern "*.zip" --dir /tmp
-scp /tmp/[plugin].zip via SpinupWP upload API
-wp plugin install /tmp/[plugin].zip --activate (via shell)
-```
-
-For Rank Math:
-```
-wp plugin install seo-by-rank-math --activate
-```
-
-Install Orbit LAST among the Voyager plugins, since its activation triggers Portal registration which expects the other plugins already present.
-
-Verify all seven active via `wp plugin list --status=active --format=json`. If any missing, halt with which.
-
-### Step 9 — Theme install + activate
-
-```
-gh release download --repo voyager-marketing/voyager-block-theme --pattern "*.zip" --dir /tmp
-wp theme install /tmp/voyager-block-theme-*.zip --activate
+```json
+{
+  "server_id": 16035,
+  "domain": "[slug].voyager.website",
+  "site_user": "[slug-no-dashes]",
+  "installation_method": "wp",
+  "php_version": "8.2",
+  "public_folder": "/",
+  "page_cache": {"enabled": false},
+  "https": {"enabled": true},
+  "database": {
+    "name": "[slug_no_dashes]_wp",
+    "username": "[slug_no_dashes]_wp",
+    "password": "<generated 32-char>"
+  },
+  "wordpress": {
+    "title": "[business_name]",
+    "admin_user": "voyager_admin",
+    "admin_email": "sites@voyagermark.com",
+    "admin_password": "<generated 32-char>"
+  }
+}
 ```
 
-Verify active via `wp theme list --status=active`.
+Note. NOT `wp.*` — the nested key is `wordpress`, not `wp`. NOT `db.user` — it's `database.username`. NOT `ssl.enabled` — HTTPS control is via `https.enabled` at creation only (see known issue below).
+
+Generate passwords with `require('crypto').randomBytes(24).toString('base64').replace(/[+/=]/g,'').slice(0,32)`.
+
+Capture `site_id`, `event_id` from response.
+
+### Step 7b — Poll event + verify HTTPS
+
+Poll `GET https://api.spinupwp.app/v1/events/[event_id]` every 30 seconds. **Terminal success status is `deployed`, NOT `completed`.** Fail on `failed`. Timeout 20 minutes (HTTPS cert install adds time).
+
+When status reaches `deployed`, fetch `GET https://api.spinupwp.app/v1/sites/[site_id]` and check:
+- `status: deployed`
+- `https.enabled: true`
+- `database.table_prefix` = auto-generated 3-char prefix (e.g. `4kq_`) — capture for the Websites row
+
+**Known SpinupWP bug**: if DNS wasn't visible to SpinupWP at the moment of site creation (even if visible elsewhere), SpinupWP silently drops `https.enabled` to `false`. No post-creation API endpoint enables it (`/v1/sites/{id}/https` only accepts `type=custom`; no Let's Encrypt value works). If `https.enabled: false` after deploy:
+
+1. Halt skill execution.
+2. Output: "HTTPS not enabled during site creation. Click 'Install Let's Encrypt certificate' on https://dashboard.spinupwp.com/sites/[site_id] then say 'continue'."
+3. On resume, verify `https.enabled: true` and `curl -I https://[domain]/` returns 200 with a valid Let's Encrypt cert (issuer contains `Let's Encrypt`).
+
+### Step 7c — Update Websites row with infra details
+
+```
+SpinupWP Site ID: [site_id]
+Prefix: [table_prefix]
+WP User: voyager_admin
+WP Password: [admin_password]
+DB Name: [database.name]
+DB User: [database.username]
+DB Password: [database.password]
+System User: [site_user]
+```
 
 ---
 
-## Phase 4. Wait for Orbit self-registration
+## Phase 3. Install plugin stack + theme
 
-Orbit generates its site secret and registers with Portal automatically on plugin activation. The skill does NOT make the Portal API call.
+All installs via SSH + WP-CLI. SpinupWP's API exposes no WP-CLI or plugin-management endpoints (`/v1/sites/{id}/plugins` returns 404).
 
-Mechanism (from Orbit source, `TokenManager.php` + `RegistrationService.php`):
+**SSH pattern** (used throughout Phase 3 and beyond):
+```bash
+ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no benw@159.65.174.126 "<command>"
 
-1. On activation, Orbit calls `TokenManager::generateSecret()` → stores 64-char hex in `voyager_site_secret` option.
-2. Orbit POSTs to `https://portal.voyagermark.com/api/wp-manager/sites/register` with `{site_url, site_id, site_secret, orbit_version, wp_version, php_version}`.
-3. Portal triggers async callback to `https://[slug].voyager.website/wp-json/voyager/v1/verify`.
-4. Orbit signs the challenge, Portal confirms.
-5. Orbit sets `voyager_registration_status` option to `active`.
-
-### Step 10 — Poll registration status
-
-Poll the WP site until registration completes.
-
-```
-wp option get voyager_registration_status
+# For WP-CLI as the site user (sudo is NOT NOPASSWD):
+echo "$SUDO_PASSWORD" | sudo -S -u [site_user] wp --path=/sites/[domain]/files <wp-cli-command>
 ```
 
-Expected values. `none`, `pending`, `active`, `failed`.
+SSH as `melodymagicsite` (site user) fails with `Permission denied (publickey)` since site users don't have our key in their authorized_keys by default. Always SSH as `benw`, then `sudo -u [site_user]` for WP-CLI.
 
-Poll every 5 seconds, timeout 60 seconds. Accept `active` as success.
+**CLIENT.md write pattern** (applies here and Phase 5): write to `/tmp/` first, then `sudo mv` into place. Don't combine `echo "$PW" | sudo -S tee <target> <<'EOF'...EOF` — the heredoc attaches to `tee`, not sudo, so the password doesn't reach stdin.
 
-If status stuck at `pending`. Check Orbit logs via `wp option get voyager_registration_retries` — if > 0, registration is retrying. Wait up to 5 minutes total.
+### Step 8 — Download plugin + theme assets locally
 
-If status = `failed`. Halt. Surface `voyager_registration_status` + retry count. Exit 1, `resume_hint: --phase=10`.
+Release sources (corrected vs. prior SKILL.md — several were wrong):
 
-### Step 11 — Capture Orbit Secret
+| Plugin | Source | Install format |
+|---|---|---|
+| voyager-orbit | `gh release download --repo voyager-marketing/voyager-orbit --pattern "*.zip"` | Release zip |
+| voyager-core | `gh release download --repo voyager-marketing/voyager-core --pattern "*.zip"` | Release zip |
+| voyager-blocks | `gh api repos/voyager-marketing/voyager-blocks/tarball/v1.0.0 > voyager-blocks-v1.0.0.tar.gz` | **Source tarball — release zip is broken (missing `src/` dir)** |
+| abilities-api | `gh release download --repo WordPress/abilities-api --pattern "abilities-api.zip"` | Release zip (WordPress org, not voyager-marketing) |
+| mcp-adapter | `gh release download --repo WordPress/mcp-adapter --pattern "mcp-adapter.zip"` | Release zip (WordPress org) |
+| wordpress-mcp | `gh release download --repo Automattic/wordpress-mcp --pattern "wordpress-mcp.zip"` | Release zip (Automattic, not Voyager — and not "wp-ai-client", which doesn't exist) |
+| Rank Math SEO | WP.org | Install via `wp plugin install seo-by-rank-math` on site |
+| voyager-block-theme | `gh api repos/voyager-marketing/voyager-block-theme/tarball/v2.0.1 > voyager-block-theme-v2.0.1.tar.gz` | **Source tarball — no GitHub releases, only git tags** |
 
+Download in parallel (bash `&`, then `wait`). Verify file sizes > 0. Stage in `/tmp/kickoff-<slug>/` locally.
+
+### Step 9 — Upload to server
+
+```bash
+scp -i ~/.ssh/id_rsa \
+  voyager-orbit.zip voyager-core.zip \
+  abilities-api.zip mcp-adapter.zip wordpress-mcp.zip \
+  voyager-blocks-v1.0.0.tar.gz \
+  voyager-block-theme-v2.0.1.tar.gz \
+  benw@159.65.174.126:/tmp/
 ```
-wp option get voyager_site_secret
-wp option get voyager_site_id
+
+### Step 10 — Install plugins via WP-CLI
+
+Install order (Orbit **LAST** — its activation triggers Portal registration, which expects the rest of the stack already present):
+
+```bash
+SITE_PATH="/sites/[domain]/files"
+
+# voyager-core first (simplest, no deps)
+echo "$SUDO_PASSWORD" | sudo -S -u [site_user] wp --path="$SITE_PATH" plugin install /tmp/voyager-core.zip --activate
+
+# abilities-api + mcp-adapter + wordpress-mcp (framework plugins)
+echo "$SUDO_PASSWORD" | sudo -S -u [site_user] wp --path="$SITE_PATH" plugin install /tmp/abilities-api.zip --activate
+echo "$SUDO_PASSWORD" | sudo -S -u [site_user] wp --path="$SITE_PATH" plugin install /tmp/mcp-adapter.zip --activate
+echo "$SUDO_PASSWORD" | sudo -S -u [site_user] wp --path="$SITE_PATH" plugin install /tmp/wordpress-mcp.zip --activate
+
+# voyager-blocks via source tarball (release zip broken — see Step 8 table)
+ssh -i ~/.ssh/id_rsa benw@159.65.174.126 bash <<EOF
+  cd /tmp && rm -rf vblocks-prep && mkdir vblocks-prep && cd vblocks-prep
+  tar -xzf /tmp/voyager-blocks-v1.0.0.tar.gz
+  EXTRACTED=\$(ls -d */ | head -1 | tr -d '/')
+  mv "\$EXTRACTED" voyager-blocks
+  echo "$SUDO_PASSWORD" | sudo -S rm -rf "$SITE_PATH/wp-content/plugins/voyager-blocks"
+  echo "$SUDO_PASSWORD" | sudo -S mv voyager-blocks "$SITE_PATH/wp-content/plugins/"
+  echo "$SUDO_PASSWORD" | sudo -S chown -R [site_user]:[site_user] "$SITE_PATH/wp-content/plugins/voyager-blocks"
+  echo "$SUDO_PASSWORD" | sudo -S -u [site_user] wp --path="$SITE_PATH" plugin activate voyager-blocks
+EOF
+
+# Rank Math from WP.org
+echo "$SUDO_PASSWORD" | sudo -S -u [site_user] wp --path="$SITE_PATH" plugin install seo-by-rank-math --activate
+
+# Orbit LAST (triggers Portal registration)
+echo "$SUDO_PASSWORD" | sudo -S -u [site_user] wp --path="$SITE_PATH" plugin install /tmp/voyager-orbit.zip --activate
 ```
 
-Write to Websites row via Notion MCP:
-- `Orbit Secret` = output of `voyager_site_secret`
+Verify all 7 active plus SpinupWP defaults (`spinupwp`, `limit-login-attempts-reloaded`):
+```bash
+echo "$SUDO_PASSWORD" | sudo -S -u [site_user] wp --path="$SITE_PATH" plugin list --status=active --format=csv
+```
 
-Never log or echo the secret to chat transcript. Pass it directly from WP-CLI stdout into the Notion update call.
+**Known non-fatal warnings** (do NOT fail the run on these):
+- `voyager-core`: `include(): Failed opening '.../vendor/composer/../../src/Updater/GitHubUpdater.php'` — composer autoload miss. Plugin still works.
+- `voyager-orbit`: `Deprecated: ...canReadRest(): Implicitly marking parameter $request as nullable` — PHP 8.4 deprecation.
+- Multiple `WP_Ability::__construct ... Property "_voyager_sanitizer_wrapped" is not a valid property` — WP 6.9.0 tightened property validation. Orbit/blocks declare a property that isn't in the allowed set. Non-fatal noise until Orbit/blocks are updated.
 
-Update Websites row. `Status` = `Active`.
+### Step 11 — Install theme
+
+Theme release zip doesn't exist (no GitHub releases). Use source tarball at latest git tag. `zip` is not installed on the SpinupWP server, so **don't re-zip** — directly move the extracted dir into `wp-content/themes/`.
+
+```bash
+ssh -i ~/.ssh/id_rsa benw@159.65.174.126 bash <<EOF
+  cd /tmp && rm -rf theme-prep && mkdir theme-prep && cd theme-prep
+  tar -xzf /tmp/voyager-block-theme-v2.0.1.tar.gz
+  EXTRACTED=\$(ls -d */ | head -1 | tr -d '/')
+  mv "\$EXTRACTED" voyager-block-theme
+  echo "$SUDO_PASSWORD" | sudo -S mv voyager-block-theme "$SITE_PATH/wp-content/themes/"
+  echo "$SUDO_PASSWORD" | sudo -S chown -R [site_user]:[site_user] "$SITE_PATH/wp-content/themes/voyager-block-theme"
+  echo "$SUDO_PASSWORD" | sudo -S -u [site_user] wp --path="$SITE_PATH" theme activate voyager-block-theme
+EOF
+```
+
+Verify: `wp theme list --status=active` shows `voyager-block-theme` active.
+
+---
+
+## Phase 4. Verify Orbit registration + capture secret
+
+Orbit generates its site_secret (64-char hex) and POSTs to Portal on first activation. Portal verifies via callback to `https://[domain]/wp-json/voyager/v1/verify`. **Callback URL must be HTTPS** — Portal rejects HTTP with "Callback URL must use HTTPS in production" (HTTP 400).
+
+Portal endpoint (Orbit's default): `https://app.voyagermark.com/api/sites/register` (public, no auth — SSRF-protected + rate-limited). **NOT** `https://app.voyagermark.com/api/wp-manager/sites/register` (staff-only, Clerk-gated, returns 401 Unauthorized without valid session). **NOT** `portal.voyagermark.com` (doesn't resolve).
+
+Orbit's request schema (what it sends):
+```json
+{
+  "domain": "...",
+  "site_url": "...",
+  "site_secret": "...64 hex chars...",
+  "callback_url": "https://.../wp-json/voyager/v1/verify",
+  "metadata": {"wp_version": "...", "plugin_version": "...", "php_version": "...", "site_name": "..."}
+}
+```
+
+Portal's `/api/sites/register` schema matches exactly (`domain` key, not `site_id`).
+
+### Step 12 — Poll registration status
+
+```bash
+echo "$SUDO_PASSWORD" | sudo -S -u [site_user] wp --path="$SITE_PATH" option get voyager_registration_status
+```
+
+Expected values: `none`, `pending`, `active`, `failed`. Poll every 5s, timeout 60s. Success: `active`.
+
+If `failed`, debug via direct retry:
+```bash
+echo "$SUDO_PASSWORD" | sudo -S -u [site_user] wp --path="$SITE_PATH" eval '
+  $s = new \Voyager\Orbit\Auth\RegistrationService();
+  $r = $s->attemptRegistration();
+  echo "status: " . $r["status"] . "\n";
+  echo "message: " . $r["message"] . "\n";
+'
+```
+
+Common failure causes:
+- **"HTTP error: 400" + Portal returned "Callback URL must use HTTPS in production"** → HTTPS isn't actually live on the site. Verify Phase 2 Step 7b completed and SSL cert issued. If missing, pause for manual SSL enable, then reset and retry:
+  ```bash
+  echo "$SUDO_PASSWORD" | sudo -S -u [site_user] wp --path="$SITE_PATH" option update voyager_registration_retries 0
+  echo "$SUDO_PASSWORD" | sudo -S -u [site_user] wp --path="$SITE_PATH" option update voyager_registration_status none
+  # then call RegistrationService::attemptRegistration() as above
+  ```
+- **DNS unreachable from Portal's side** → Portal's verify-callback can't hit the site. Check Cloudflare WAF or firewall rules.
+
+### Step 13 — Capture secret to Notion
+
+```bash
+SECRET=$(ssh ... "sudo -S -u [site_user] wp --path=$SITE_PATH option get voyager_site_secret")
+```
+
+64 chars expected. Write to Notion Websites row `Orbit Secret` field via Notion MCP. Never log or echo to the main output.
+
+Also update Websites row:
+- `Status` = `Active`
+- `date:Website Launched:start` = today (ISO)
+- `date:Website Launched:is_datetime` = 0
 
 ---
 
 ## Phase 5. Finalize
 
-### Step 12 — Update Clients DB flags
+### Step 14 — Update Clients DB
 
-Update Clients row:
-- `Voyager Orbit Installed` = checked
-- `Block Theme` = checked
-- `Voyager Blocks` = checked
-- `Websites` = add relation to new Websites row
-- `WP Publish Enabled` = `__YES__` (only if it was `__NO__` at Phase 1 and the Services fallback was used — flips the flag to match reality)
-
-### Step 13 — Write CLIENT.md on server
-
-Via SpinupWP site shell, write to `/sites/[slug].voyager.website/CLIENT.md`:
-
+```json
+{
+  "Voyager Orbit Installed": "__YES__",
+  "Block Theme": "__YES__",
+  "Voyager Blocks": "__YES__"
+}
 ```
+
+Plus, if we auto-flipped from `__NO__` in Phase 1 (Services-based Path A detection):
+```json
+{"WP Publish Enabled": "__YES__"}
+```
+
+The `Websites` relation auto-populates bidirectionally from the Websites row's `Company` relation set in Phase 2 Step 5 — no explicit update needed.
+
+### Step 15 — Write CLIENT.md on server
+
+Write to `/tmp/CLIENT.md` as `benw` (heredoc is safe here, no sudo), then `sudo mv` into `/sites/[domain]/CLIENT.md` and `sudo chown` to `[site_user]:[site_user]`.
+
+Content (substitute vars):
+```md
 # [business_name]
 
 Voyager-managed development site. Provisioned [date] by voyager-build-kickoff.
 
-- Staging URL. https://[slug].voyager.website
-- WP Admin. https://[slug].voyager.website/wp-admin
-- Clients Notion. [clients_db_url]
-- Websites Notion. [website_db_url]
-- Orbit Portal site_id. [slug].voyager.website (domain is the Portal site_id)
-- SpinupWP. server #[spinupwp_server_id], site #[site_id]
+## URLs
+- Staging: https://[slug].voyager.website
+- WP Admin: https://[slug].voyager.website/wp-admin
 
-Plugin stack. Orbit, Blocks, Core, Abilities API, MCP Adapter, WP AI Client, Rank Math.
-Theme. voyager-block-theme (activated).
+## Notion
+- Clients: [clients_db_url]
+- Websites: [website_db_url]
 
-Next phase. brand tokens, site data, core pages, content. Run via `voyager-orbit/*` abilities once client provides inputs.
+## Infrastructure
+- SpinupWP server #[spinupwp_server_id] ([server_name], [server_ip])
+- SpinupWP site #[spinupwp_site_id]
+- Site user: [site_user]
+- Cloudflare DNS: record [cloudflare_record_id]
+- SSL: Let's Encrypt
+
+## Plugin stack (active)
+- voyager-orbit, voyager-core, voyager-blocks, voyager-block-theme, abilities-api, mcp-adapter, wordpress-mcp, seo-by-rank-math, plus SpinupWP defaults
+
+## Portal registration
+- Status: active (registered [timestamp] UTC)
+- Portal URL: https://app.voyagermark.com
+- Site ID: [domain]
+- Secret: stored on Websites Notion row (Orbit Secret field)
+
+## What's next (not done by build-kickoff)
+- Brand tokens → manual for now
+- Site data (phone, email, address, hours, social) → "provision site data for [business_name]"
+- Content Cycle + content items
+- Welcome email → voyager-client-message
+- Launch activities (domain delegation, GA4, GSC, Stripe care plan) → voyager-site-launch (TBD)
 ```
 
-### Step 14 — Return summary
+### Step 16 — Final summary + JSON
 
-Output in chat:
+Human-facing summary in chat with all URLs, IDs, next-steps list.
 
-```
-Build kickoff complete. [business_name]
-
-Staging URL.    https://[slug].voyager.website
-WP Admin.       https://[slug].voyager.website/wp-admin
-Notion Clients. [clients_db_url]
-Notion Website. [website_db_url]
-
-Infra:
-- SpinupWP server #[spinupwp_server_id] (shared Voyager), site #[site_id], IP [server_ip]
-- Cloudflare DNS. A record [slug] → [server_ip] (propagated)
-- SSL. Let's Encrypt [issued|pending]
-- Plugins. 7/7 active
-- Theme. voyager-block-theme active
-- Orbit registration. active (secret stashed on Websites row)
-
-Clients flags flipped:
-- Voyager Orbit Installed. YES
-- Block Theme. YES
-- Voyager Blocks. YES
-
-Next:
-1. Gather brand tokens (primary hex, secondary hex, logo) → manual for now
-2. Gather site data (phone, email, address, hours, social) → "provision site data for [business_name]"
-3. Scaffold core pages → (pending Orbit release with scaffold-core-pages ability)
-4. Ship design → voyager-block-theme child theme repo (create when customization starts)
-```
-
-Also emit JSON to stdout for programmatic consumers:
+stdout JSON for programmatic consumers:
 
 ```json
 {
@@ -423,12 +491,14 @@ Also emit JSON to stdout for programmatic consumers:
   "business_name": "...",
   "clients_db_url": "...",
   "website_db_url": "...",
-  "staging_url": "...",
-  "wp_admin_url": "...",
-  "spinupwp_server_id": 0,
+  "staging_url": "https://[slug].voyager.website",
+  "wp_admin_url": "https://[slug].voyager.website/wp-admin",
+  "spinupwp_server_id": 16035,
   "spinupwp_site_id": 0,
-  "server_ip": "...",
-  "orbit_registration_status": "active"
+  "cloudflare_record_id": "...",
+  "server_ip": "159.65.174.126",
+  "orbit_registration_status": "active",
+  "orbit_registered_at": "..."
 }
 ```
 
@@ -436,48 +506,53 @@ Also emit JSON to stdout for programmatic consumers:
 
 ## Error handling
 
-All failures update the Websites row `Status` to `Needs Review` and exit 1 with a resume hint. The Websites DB has no `Failed` status value, so `Needs Review` is the closest match.
+All failures update Websites row `Status = Needs Review` and exit 1 with a resume hint.
 
-| Phase | Common failure | Websites Status | Resume hint |
+| Phase | Failure | Websites Status | Resume hint |
 |---|---|---|---|
-| 0 | Missing env var or MCP | not set | Surface exact fix. Nothing written yet |
-| 0.2 | Clients DB missing `Path` property | not set | Ben adds the property. No resume |
-| 0.3 | Shared Voyager server not found in Notion | not set | Create Server row manually or pass `--server-notion-id=<id>`. No resume |
-| 1 | Gate check fails | not set | No resume. User must fix Clients row first |
+| 0.1 | Cloudflare token lacks `Zone.DNS:Edit` | not set | Generate token from "Edit zone DNS" template, restart |
+| 0.2 | Clients or Websites DB schema drift | not set | Fix Notion schema |
+| 0.3 | Voyager Dev server not Active or IP mismatch | not set | Fix Servers DB, pass `--server-notion-id=<id>` |
+| 1 | Gate check fails | not set | Fix Clients row first |
 | 2 Step 5 | Websites row create fails | n/a | `--phase=5` |
-| 2 Step 6 | SpinupWP provision timeout | `Needs Review` | `--phase=6` |
-| 2 Step 7 | Cloudflare zone not found or DNS stuck | `Needs Review` | Check `CLOUDFLARE_API_TOKEN` scope. `--phase=7` |
-| 3 Step 8 | Plugin install fails (release 404, zip corrupt, shell timeout) | `Needs Review` | `--phase=8` |
-| 3 Step 9 | Theme activate fails | `Needs Review` | `--phase=9` |
-| 4 Step 10 | Orbit registration status = `failed` or stuck `pending` > 5min | `Needs Review` | Check Portal status. `--phase=10` |
-| 4 Step 11 | Secret read fails | `Needs Review` | `--phase=11` |
-| 5 Step 12 | Clients flag update fails | `Active` | No resume. Fix manually |
+| 2 Step 6 | Cloudflare 401/403 | n/a | Check token scope. `--phase=6` |
+| 2 Step 6b | DNS not propagated in 180s | `Needs Review` | Wait longer, manual nslookup check. `--phase=7` |
+| 2 Step 7 | SpinupWP site POST fails | `Needs Review` | Fix payload, `--phase=7` |
+| 2 Step 7b | Event status = `failed` | `Needs Review` | Check event output, `--phase=7` |
+| 2 Step 7b | Site deployed but `https.enabled: false` | `In Progress` | **Manual**: click "Install Let's Encrypt certificate" in SpinupWP dashboard, then `continue` |
+| 3 Step 10 | voyager-blocks fatal (missing src/) | `Needs Review` | Expected — skill should already use source tarball. If still failing, check repo |
+| 3 Step 10 | Other plugin install fails | `Needs Review` | `--phase=10` |
+| 3 Step 11 | Theme install/activate fails | `Needs Review` | `--phase=11` |
+| 4 Step 12 | Orbit registration stuck `pending` > 5min | `Needs Review` | Check Portal reachability from site. `--phase=12` |
+| 4 Step 12 | Orbit registration `failed` + "HTTPS required" | `Needs Review` | Verify HTTPS live, reset retries, retry via `RegistrationService::attemptRegistration()` |
+| 4 Step 13 | Secret read fails | `Needs Review` | `--phase=13` |
 
-On any mid-run failure, the partial Websites row remains with `Status = Needs Review`. Resume re-runs only from the named phase onward by reading the Websites row for already-captured IDs.
+On mid-run failure, the partial Websites row stays with `Status = Needs Review`. Resume re-runs only the named phase onward, reading the Websites row for already-captured IDs.
 
 ---
 
 ## What this skill does NOT do
 
-- Draft kickoff email → `voyager-client-message`
-- Configure brand tokens → manual for now (pending ability release)
-- Scaffold core pages → pending Orbit release with `voyager-orbit/scaffold-core-pages`
-- Configure Rank Math baseline, GA4, GSC → launch-time skill (not yet built)
-- Domain delegation → launch-time, manual per Alex's SOP
+- Draft welcome email → `voyager-client-message`
+- Configure brand tokens → manual for now (pending Orbit ability release)
+- Scaffold core pages → pending `voyager-orbit/scaffold-core-pages` ability
+- Configure Rank Math baseline, GA4, GSC → launch-time skill (TBD: `voyager-site-launch`)
+- Domain delegation → launch-time, Alex's manual SOP
 - Stripe care plan upsell → launch-time, `voyager-stripe-subscribe`
-- Site data provisioning (phone, email, address, hours, social) → `voyager-orbit/provision-site-data` ability via onboard-client Step 3b, or run later when client provides
-- Pattern Cloud sync → pending, layered in separately
+- Site data provisioning (phone, email, address, hours, social) → `voyager-orbit/provision-site-data` ability, handed off post-run
+- Pattern Cloud sync → pending, separate skill
 - GitHub child-theme repo creation → only when customization starts, separate skill
 - Local dev env (wp-env) → only when a developer needs to work on the code, separate skill
-- Any Path B (takeover) or Path C (marketing-only) work → hand off to `voyager-site-dna`
-- New server provisioning → all dev sites reuse the shared Voyager SpinupWP server. If that server is full, Ben creates a new one manually and updates Servers DB before re-running
+- Any Path B (takeover) or Path C (marketing-only) work → `voyager-site-dna`
+- Divi/Elementor content migration → no converter tooling exists yet
+- New server provisioning → all dev sites reuse shared Voyager Dev server
 
 ---
 
 ## Handoff phrases after completion
 
-- "draft welcome email" / "send welcome" → `voyager-client-message`
-- "provision site data for [name]" → run onboard-client Step 3b or invoke `voyager-orbit/provision-site-data` directly
+- "draft welcome email" → `voyager-client-message`
+- "provision site data for [name]" → `voyager-orbit/provision-site-data` via onboard-client Step 3b
 - "launch [name]" → (future) `voyager-site-launch`
 
 ---
@@ -492,48 +567,58 @@ On any mid-run failure, the partial Websites row remains with `Status = Needs Re
 ### Websites DB template
 - New voyager.website site. `5e7cf74e-6103-45eb-a12b-26c50305e9cb`
 
-### Cloudflare
-- Zone. `voyager.website` (zone ID resolved at runtime, cached for session)
+### Voyager Dev server (hardcoded)
+- Notion page. `22893507-c65f-431c-a4e3-a08e8ceffab6`
+- SpinupWP server ID. `16035`
+- IP. `159.65.174.126`
 
-### SpinupWP
-- API base. `https://api.spinupwp.app/v1`
-- Shared Voyager server resolved at runtime from Servers DB
+### Cloudflare
+- Zone. `voyager.website`, zone ID `5ed6cffac6ab37ff6da397fc2818fd7c`
 
 ### Portal
-- Base URL. `https://portal.voyagermark.com`
-- Registration endpoint. `/api/wp-manager/sites/register` (called by Orbit, not by this skill)
-- Verification callback. `/wp-json/voyager/v1/verify` on the WP site (Portal calls this)
+- Base URL. `https://app.voyagermark.com/api` (Orbit's default via `TokenManager::getPortalBaseUrl()`)
+- Public register endpoint. `POST /sites/register` (= `https://app.voyagermark.com/api/sites/register`)
+- Verify callback (Portal → site). `GET https://[domain]/wp-json/voyager/v1/verify`
 
-### GitHub org
-- `voyager-marketing`
+### GitHub sources
+- `voyager-marketing/voyager-orbit` (release zip)
+- `voyager-marketing/voyager-core` (release zip)
+- `voyager-marketing/voyager-blocks` (source tarball — release zip broken)
+- `voyager-marketing/voyager-block-theme` (source tarball — no releases)
+- `WordPress/abilities-api` (release zip)
+- `WordPress/mcp-adapter` (release zip)
+- `Automattic/wordpress-mcp` (release zip)
 
-### Orbit option keys (WP options written by Orbit plugin)
+### Orbit WP options
 - `voyager_site_secret` — 64-char hex HMAC key
-- `voyager_site_id` — domain
+- `voyager_site_id` — domain (= Portal's site identifier)
 - `voyager_registration_status` — `none` | `pending` | `active` | `failed`
 - `voyager_registered_at` — ISO timestamp
-- `voyager_portal_base_url` — Portal URL
+- `voyager_portal_base_url` — Portal URL (empty means default)
+- `voyager_registration_retries` — retry counter
 
 ---
 
 ## Config
 
 - `DNS_PROPAGATION_TIMEOUT_SEC`. `180`
-- `SSL_ISSUE_TIMEOUT_SEC`. `120`
-- `SITE_PROVISION_TIMEOUT_SEC`. `300`
+- `SITE_DEPLOY_TIMEOUT_SEC`. `1200` (20 min — HTTPS cert install adds time)
 - `ORBIT_REGISTRATION_POLL_INTERVAL_SEC`. `5`
 - `ORBIT_REGISTRATION_POLL_TIMEOUT_SEC`. `300`
+- `DEFAULT_PHP_VERSION`. `8.2`
+- `DEFAULT_WP_ADMIN_USER`. `voyager_admin`
+- `DEFAULT_WP_ADMIN_EMAIL`. `sites@voyagermark.com`
 
 ---
 
 ## Known drift risks
 
-- Path is inferred from Clients state, not stored. If the state signals ever stop cleanly encoding A/B/C (for example, a Path A client gets a dummy Websites row added manually), the gate will misfire. Intake should never create a Websites row for Path A clients before build-kickoff runs.
-- Voyager Dev server Notion ID is hardcoded (`22893507-c65f-431c-a4e3-a08e8ceffab6`). If Ben retires this server and provisions a new shared Voyager server, update Phase 0.3 hardcoded IDs OR pass `--server-notion-id=<id>` on every run until the hardcode is updated.
-- The Voyager Dev server at IP `159.65.174.126` is shared across all dev sites. Monitor site count growth — SpinupWP default plans cap at roughly 5-10 sites per server depending on size. At that point, Ben provisions a new Voyager Dev server and updates this skill's hardcoded ID.
-- Websites DB `Status` options do not include `Provisioning` or `Failed`. Skill uses `In Progress` during and `Needs Review` on failure. If Ben adds dedicated options later, update Phase 2 Step 5 and the error handling table.
-- Orbit registration relies on the WP site being reachable from Portal's IP for the verify callback. If Cloudflare WAF or firewall blocks Portal, registration will hang in `pending`. SpinupWP defaults should allow this, but check if registration stalls.
-- Portal registration endpoint shape may change. Validated against `app/api/wp-manager/sites/register/route.ts` as of 2026-04-21 — body requires `site_url`, `site_id`, `site_secret`, optional `orbit_version` / `wp_version` / `php_version`. Orbit's PortalClient must stay in sync with this contract.
-- Rank Math is the only plugin from WP.org. If it ever requires a license token on install, this step needs a key.
-- SpinupWP PHP version `8.2` is hardcoded. Revisit when `8.3` or `8.4` becomes the fleet default.
-- GitHub release zip filenames may vary by repo (`*-build.zip`, `*-release.zip`, etc.). If `--pattern "*.zip"` matches multiple files per release, narrow the glob per repo.
+- **voyager-blocks release pipeline bug** — v1.0.0 release zip is missing the entire `src/` directory. Skill uses source tarball as workaround. Remove the workaround once the release pipeline is fixed (check future releases include `src/`).
+- **SpinupWP HTTPS silent-fail behavior** — if DNS isn't visible to SpinupWP's internal resolver at the exact moment of site creation, `https.enabled: true` in the payload is silently set back to `false`. No API post-fix. Current mitigation: Phase 2 Step 7c pauses for manual UI enable. If SpinupWP ever adds a `POST /v1/sites/{id}/https` that accepts a Let's Encrypt type, automate it.
+- **WP 6.9 property validation notices** — Orbit / voyager-blocks declare `_voyager_sanitizer_wrapped` on `WP_Ability` instances which WP 6.9+ flags as not-a-valid-property. Non-fatal but noisy in logs. Fix belongs in Orbit/blocks, not this skill.
+- **Voyager Dev server IP hardcoded** — `159.65.174.126` cached. If Ben retires Voyager Dev and provisions a successor, update Phase 0.3 OR pass `--server-notion-id=<id>` on every run until the hardcode is updated.
+- **Voyager Dev capacity** — server is shared across all dev sites. Monitor count growth. SpinupWP defaults cap at roughly 5-10 sites per low-tier droplet. At saturation, Ben provisions a new server and updates this skill.
+- **Path A inference breaks** if anyone manually adds a Websites row to a Path A client before build-kickoff runs. Intake must not create Websites rows for Path A.
+- **`dig` not available on Windows git bash** — skill uses `nslookup` instead. If run on Linux/Mac, `dig` would work; keep `nslookup` as a portability choice.
+- **Portal endpoint shape**. Validated against `f:\dev\voyager\voyager-report\app\api\sites\register\route.ts` on 2026-04-22. If Portal changes the `/api/sites/register` schema, Orbit's `PortalClient::register()` and this skill's resume-hint text need updating in lockstep.
+- **Server SSH access** — skill relies on `benw` user with `~/.ssh/id_rsa` authorized. If keys rotate, update the skill's auth pattern.
