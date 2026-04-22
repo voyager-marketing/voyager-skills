@@ -6,6 +6,23 @@ Format: reverse chronological. Date-anchored entries group the work done that da
 
 ---
 
+## 2026-04-21 — Session 5: content-image-library wrapper
+
+Companion to `content-hero-image`. Searches the Voyager R2 image library via `image_library_list` before paying for a new generation — saves the ~$0.04-$0.24 generation cost when reuse is an option.
+
+**Added:** `skills/content-image-library/SKILL.md`. When-to-use and when-NOT-to-use both documented; procedure covers listing, filtering by intent, user-picks-or-punts, and three reuse paths (URL only, save to Drive, upload to WP + optional featured).
+
+**Skills DB row created.** Lifecycle=Live on first commit. MCP tools used wired: `image_library_list`, `image_save_to_drive`, `wp_upload_media`, `wp_set_featured_image`. Surface=Code.
+
+**Skills DB state after this session.**
+- **Live: 37** (36 + content-image-library)
+- **Draft: 0**
+- **Deprecated: 4** (the panel-only legacy skills; unchanged)
+
+Eval: PASS 2026-04-21.
+
+---
+
 ## 2026-04-21 — Session 4: Exported the 4 panel-only legacy skills to the repo
 
 Closes the Rule 1 governance break from session 1. The 4 skills that were only in the Claude.ai Teams Org panel now have `SKILL.md` files committed to `skills/`. This unblocks retirement — they can't formally move from Deprecated to Retired without source in the repo.
