@@ -12,6 +12,7 @@ on:
       - 'skills/**'
       - 'scripts/validate-skills.mjs'
       - 'package.json'
+  workflow_dispatch:  # also manual
 
 jobs:
   validate:

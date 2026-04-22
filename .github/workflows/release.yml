@@ -3,6 +3,7 @@ name: Release (build zips + Slack notify)
 on:
   push:
     branches: [main]
+  workflow_dispatch:  # also manual
 
 concurrency:
   group: release-${{ github.ref }}
