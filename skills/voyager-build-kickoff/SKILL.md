@@ -22,7 +22,7 @@ Silently. Cache results.
 ### 0.0 Load required tools
 
 - **Notion MCP**. Should be loaded. If not, `tool_search` query `"Notion page database"`.
-- **SpinupWP API**. Accessed via `curl` with `SPINUPWP_API_TOKEN` env var. No MCP.
+- **SpinupWP API**. Accessed via `curl` with `SPINUPWP_API_KEY` env var. No MCP.
 - **Cloudflare API**. Accessed via `curl` with `CLOUDFLARE_API_TOKEN` env var. No MCP.
 - **GitHub CLI**. `gh auth status` must succeed. Used to pull latest release zips for theme and private plugins.
 
@@ -32,9 +32,10 @@ Halt if any are missing. Report which and surface remediation.
 
 | Var | Purpose |
 |---|---|
-| `SPINUPWP_API_TOKEN` | SpinupWP site provisioning |
+| `SPINUPWP_API_KEY` | SpinupWP site provisioning |
 | `CLOUDFLARE_API_TOKEN` | DNS record creation on voyager.website zone |
-| `GITHUB_RELEASE_PAT` | Private plugin + theme release zip downloads |
+
+Private plugin + theme release zips are downloaded via `gh release download`, which uses `gh auth` credentials — not a separate PAT. `gh auth status` must return OK (already checked in Phase 0.0).
 
 Portal registration happens automatically via Orbit plugin activation (no `PORTAL_API_KEY` needed from skill).
 
@@ -97,7 +98,7 @@ Resolve SpinupWP numeric server ID via API:
 
 ```
 GET https://api.spinupwp.app/v1/servers
-  Authorization: Bearer $SPINUPWP_API_TOKEN
+  Authorization: Bearer $SPINUPWP_API_KEY
 ```
 
 Match on `ip_address = server_ip`. Capture `spinupwp_server_id`. Halt if no match ("Notion IP [x] not found on SpinupWP — Servers DB row may be stale").
@@ -191,7 +192,7 @@ Create the site on the existing shared server. Do NOT create a new server.
 
 ```
 POST https://api.spinupwp.app/v1/servers/[spinupwp_server_id]/sites
-  Authorization: Bearer $SPINUPWP_API_TOKEN
+  Authorization: Bearer $SPINUPWP_API_KEY
   Content-Type: application/json
   {
     "domain": "[slug].voyager.website",
@@ -260,7 +261,7 @@ Plugin and theme installs run via SpinupWP's site shell (SSH) using WP-CLI. Spin
 
 ```
 POST https://api.spinupwp.app/v1/sites/[site_id]/ssh
-  Authorization: Bearer $SPINUPWP_API_TOKEN
+  Authorization: Bearer $SPINUPWP_API_KEY
   { "command": "<command>" }
 ```
 

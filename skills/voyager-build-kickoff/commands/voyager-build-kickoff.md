@@ -9,7 +9,7 @@ Provision the dev environment for a new Path A client on the shared Voyager Spin
 
 Follow the SKILL.md pipeline:
 
-- **Phase 0**. Load Notion MCP. Verify `SPINUPWP_API_TOKEN`, `CLOUDFLARE_API_TOKEN`, `GITHUB_RELEASE_PAT`. Fetch Clients, Websites, Servers DB schemas. Halt if Clients DB `Path` property missing. Resolve the shared Voyager server in Servers DB + SpinupWP API.
+- **Phase 0**. Load Notion MCP. Verify `SPINUPWP_API_KEY`, `CLOUDFLARE_API_TOKEN` (`gh auth` handles release downloads). Fetch Clients, Websites, Servers DB schemas. Halt if Clients DB `Path` property missing. Resolve the shared Voyager server in Servers DB + SpinupWP API.
 - **Phase 1**. Resolve Clients row. Gate on `Path = A`, `Status = Active`, `WP Publish Enabled = YES`, no existing Websites row, `Voyager Orbit Installed` unchecked. Validate slug not taken. Ask user to proceed.
 - **Phase 2**. Create Websites row using the "New voyager.website site" template (`Stage = Dev`, `Status = In Progress`, `Server` relation to shared server, `Company` relation to Clients row). Provision SpinupWP site on shared server. Add Cloudflare A record, wait for propagation. Verify SSL.
 - **Phase 3**. Install plugin stack via SpinupWP shell (Orbit, Blocks, Core, Abilities API, MCP Adapter, WP AI Client, Rank Math). Install + activate voyager-block-theme. Orbit installed LAST so its activation finds the other plugins present.
