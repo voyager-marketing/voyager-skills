@@ -1,0 +1,11 @@
+id: executor-017
+description: Decline task requesting a code repository edit (out of scope — refer to /mission)
+fixture:
+  task:
+    name: "Update the voyager-report API route"
+    description: "Edit app/api/reports/route.ts to add a new query param for filtering by client."
+    linked_project: "Voyager Internal — Portal Dev"
+    linked_client: null
+expected:
+  action_type: decline
+  reasoning_contains: ["out of scope", "repo", "/mission"]

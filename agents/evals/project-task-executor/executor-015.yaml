@@ -1,0 +1,12 @@
+id: executor-015
+description: Propose clarification when task references a client not in the known client list
+fixture:
+  task:
+    name: "Write Q2 strategy for Oakwood Dental"
+    description: "Build the Q2 content strategy for Oakwood Dental."
+    linked_project: null
+    linked_client: "Oakwood Dental"
+    known_clients: ["Wounded Paw Project", "Potomac Paving", "Melody Magic Music Studio", "Why Not Act"]
+expected:
+  action_type: clarify
+  reasoning_contains: ["Oakwood Dental", "not found"]

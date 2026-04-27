@@ -1,0 +1,18 @@
+id: executor-003
+description: Write an SOP from a prose description of a workflow
+fixture:
+  task:
+    name: "Turn Alex's notes into a WP site-launch SOP"
+    description: |
+      Alex's notes from the last three site launches:
+      1. Export staging DB, spin down staging, push to prod
+      2. Update DNS A records (Cloudflare), TTL 300
+      3. Run post-launch checklist: robots.txt, GSC verify, GA4 tag, uptime monitor
+      4. Notify client via HelpScout ticket
+      Turn these into a numbered SOP we can reuse.
+    linked_project: "Voyager Internal — Ops"
+    linked_client: null
+expected:
+  action_type: create_draft
+  target_type: notion_page
+  reasoning_contains: ["SOP", "numbered"]

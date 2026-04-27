@@ -1,0 +1,20 @@
+id: executor-020
+description: Draft must not contain corporate hedging or passive voice padding (judge-based)
+verifier: judge
+judge_rubric: |
+  Evaluate the draft in `actual.proposed_change.content`.
+  PASS if ALL of the following:
+  1. No corporate hedging: "leverage", "synergy", "utilize", "paradigm", "ecosystem" (unless literal)
+  2. No passive voice padding at start of paragraphs
+  3. Active, specific sentences — no empty openers like "When it comes to..."
+  4. No summary paragraph starting with "In summary" or "In conclusion"
+  FAIL if any of the above are violated.
+fixture:
+  task:
+    name: "Write the intro section for Why Not Act's summer giving guide"
+    description: "Write a 2-paragraph intro for a summer giving guide. Audience: socially conscious donors aged 25-45. Tone: direct, inspiring, action-oriented."
+    linked_project: "Why Not Act — Summer Campaign"
+    linked_client: "Why Not Act"
+expected:
+  action_type: create_draft
+  reasoning_excludes: ["leverage", "synergy", "utilize", "paradigm", "In conclusion", "In summary", "When it comes to"]

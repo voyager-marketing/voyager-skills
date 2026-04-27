@@ -1,0 +1,14 @@
+id: executor-009
+description: Add a Session Notes entry to a Discovery page
+fixture:
+  task:
+    name: "Add session notes to Melody Magic Discovery page"
+    description: "Log today's session: covered brand voice pillars, identified 3 hero keywords, confirmed site relaunch is May 15. Add to Session Notes section."
+    linked_project: "Melody Magic — Brand Audit"
+    linked_page_id: "notion-page-uuid-mm-discovery"
+    linked_client: "Melody Magic Music Studio"
+expected:
+  action_type: update_notion_page
+  target_type: notion_page
+  target_id: "notion-page-uuid-mm-discovery"
+  reasoning_contains: ["Session Notes", "Melody Magic"]

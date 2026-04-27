@@ -1,0 +1,14 @@
+id: executor-007
+description: Change a project Status from "Not started" to "In progress"
+fixture:
+  task:
+    name: "Mark Q2 SEO Sprint as In progress"
+    description: "The Q2 SEO Sprint project for Why Not Act should be moved to In progress — kickoff was today."
+    linked_project: "Why Not Act — Q2 SEO Sprint"
+    linked_project_id: "notion-page-uuid-wna-seo-q2"
+    linked_client: "Why Not Act"
+expected:
+  action_type: update_notion_page
+  target_type: notion_page
+  target_id: "notion-page-uuid-wna-seo-q2"
+  reasoning_contains: ["Status", "In progress"]

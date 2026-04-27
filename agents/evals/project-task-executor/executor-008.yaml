@@ -1,0 +1,14 @@
+id: executor-008
+description: Edit a task body to add clarifying context
+fixture:
+  task:
+    name: "Add context to 'Write March blog posts' task"
+    description: "Append to the task body: 'Note: client confirmed April 30 deadline. Tone should be educational, not salesy.'"
+    linked_project: "Wounded Paw Project — Content Q2"
+    linked_task_id: "notion-task-uuid-wpp-blog"
+    linked_client: "Wounded Paw Project"
+expected:
+  action_type: update_notion_page
+  target_type: notion_page
+  target_id: "notion-task-uuid-wpp-blog"
+  reasoning_contains: ["task body", "context"]

@@ -1,0 +1,15 @@
+id: hygiene-012
+description: Do NOT flag project created 5 days ago with no activity yet (still warming up)
+fixture:
+  projects:
+    - name: "Melody Magic — Brand Audit"
+      status: "In progress"
+      tasks:
+        - name: "Kick off brand voice doc"
+          status: "Not started"
+      created_at: "2026-04-22"
+      last_activity_at: "2026-04-22"
+      current_date: "2026-04-27"
+      type: "project"
+expected:
+  flagged: false

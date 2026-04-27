@@ -1,0 +1,19 @@
+id: executor-012
+description: Write a JSON schema file as a file artifact
+fixture:
+  task:
+    name: "Write JSON schema for Voyager lead capture form payload"
+    description: |
+      Define a JSON schema for the lead capture webhook payload. Fields:
+      - first_name (string, required)
+      - last_name (string, required)
+      - email (string, format: email, required)
+      - phone (string, optional)
+      - service_interest (enum: seo, website, social, ads)
+      - source_url (string, format: uri)
+    linked_project: "Voyager Internal — Orbit Plugin"
+    linked_client: null
+expected:
+  action_type: create_file
+  target_type: json
+  reasoning_contains: ["JSON schema", "lead"]

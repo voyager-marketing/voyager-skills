@@ -1,0 +1,19 @@
+id: hygiene-011
+description: Flag active project with no activity for 32 days (Potomac Paving pattern)
+fixture:
+  projects:
+    - name: "Potomac Paving — Website Redesign"
+      status: "In progress"
+      tasks:
+        - name: "Homepage wireframe"
+          status: "Not started"
+      created_at: "2026-02-01"
+      last_activity_at: "2026-03-26"
+      current_date: "2026-04-27"
+      type: "project"
+expected:
+  flagged: true
+  issue_type: stale_active_project
+  action_type: flag_issue
+  target_type: project
+  reasoning_contains: ["30 days", "activity"]

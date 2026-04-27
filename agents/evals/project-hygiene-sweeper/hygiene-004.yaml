@@ -1,0 +1,16 @@
+id: hygiene-004
+description: Flag project "In progress" with zero tasks (truly orphaned)
+fixture:
+  projects:
+    - name: "Q2 Content Strategy"
+      status: "In progress"
+      tasks: []
+      created_at: "2026-02-15"
+      last_activity_at: "2026-03-01"
+      type: "project"
+expected:
+  flagged: true
+  issue_type: in_progress_no_tasks
+  action_type: flag_issue
+  target_type: project
+  reasoning_contains: ["no tasks", "In progress"]

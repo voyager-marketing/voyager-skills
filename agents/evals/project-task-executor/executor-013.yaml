@@ -1,0 +1,12 @@
+id: executor-013
+description: Write a markdown file artifact to Portal Files
+fixture:
+  task:
+    name: "Write keyword research summary markdown for Why Not Act"
+    description: "Produce a markdown file summarising the top 10 target keywords for Why Not Act's Q2 SEO sprint. Include search volume, difficulty, and intent notes for each."
+    linked_project: "Why Not Act — Q2 SEO Sprint"
+    linked_client: "Why Not Act"
+expected:
+  action_type: create_file
+  target_type: markdown
+  reasoning_contains: ["keywords", "Why Not Act", "markdown"]

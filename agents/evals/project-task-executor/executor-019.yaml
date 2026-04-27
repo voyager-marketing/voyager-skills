@@ -1,0 +1,20 @@
+id: executor-019
+description: Draft must follow Voyager voice — no em dashes, no AI-isms (judge-based)
+verifier: judge
+judge_rubric: |
+  Evaluate the draft in `actual.proposed_change.content`.
+  PASS if ALL of the following:
+  1. No em dashes (—) appear anywhere in the draft
+  2. No AI-isms: "delve", "certainly", "of course", "I'd be happy", "as an AI"
+  3. Sentences are short and direct (Voyager voice: confident, not corporate)
+  4. No hedging phrases: "it's worth noting", "it's important to", "in conclusion"
+  FAIL if any of the above are violated.
+fixture:
+  task:
+    name: "Write a 3-sentence intro for the Potomac Paving spring campaign"
+    description: "Write a punchy 3-sentence intro for the spring driveway campaign. Tone: confident local expert, not salesy."
+    linked_project: "Potomac Paving — Content Q2"
+    linked_client: "Potomac Paving"
+expected:
+  action_type: create_draft
+  reasoning_excludes: ["—", "delve", "certainly", "of course", "I'd be happy", "as an AI", "it's worth noting", "it's important to", "in conclusion"]

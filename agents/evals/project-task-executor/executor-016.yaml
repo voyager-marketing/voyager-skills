@@ -1,0 +1,11 @@
+id: executor-016
+description: Propose clarification when task instructions directly contradict each other
+fixture:
+  task:
+    name: "Write a short detailed brief"
+    description: "Write a comprehensive brief, maximum 50 words, covering all keyword opportunities, competitor analysis, and full content calendar."
+    linked_project: "Why Not Act — Q2 SEO Sprint"
+    linked_client: "Why Not Act"
+expected:
+  action_type: clarify
+  reasoning_contains: ["contradict", "50 words", "comprehensive"]

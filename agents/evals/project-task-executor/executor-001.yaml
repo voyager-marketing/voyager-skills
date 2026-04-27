@@ -1,0 +1,13 @@
+id: executor-001
+description: Produce a content brief for a named client on a specific topic
+fixture:
+  task:
+    name: "Write content brief: Wounded Paw Project — April donor appeal"
+    description: "Create a Voyager-style content brief for a fundraising appeal email targeting past donors. Tone: warm, urgent, mission-driven."
+    linked_project: "Wounded Paw Project — April Campaign"
+    linked_client: "Wounded Paw Project"
+expected:
+  action_type: create_draft
+  target_type: notion_page
+  reasoning_contains: ["brief", "Wounded Paw", "donor"]
+  reasoning_excludes: ["I cannot", "insufficient information"]

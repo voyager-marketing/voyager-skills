@@ -1,0 +1,11 @@
+id: executor-004
+description: Propose clarification when brief task has incomplete information (no topic, no client context)
+fixture:
+  task:
+    name: "Write a brief"
+    description: "Write a content brief."
+    linked_project: null
+    linked_client: null
+expected:
+  action_type: clarify
+  reasoning_contains: ["which client", "topic"]

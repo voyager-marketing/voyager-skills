@@ -1,0 +1,17 @@
+id: hygiene-009
+description: Flag task with due date clearly in the past and status still open
+fixture:
+  projects:
+    - name: "Why Not Act — SEO Sprint"
+      status: "In progress"
+      tasks:
+        - name: "Submit local citation audit"
+          status: "Not started"
+          due_date: "2026-03-15"
+          current_date: "2026-04-27"
+expected:
+  flagged: true
+  issue_type: overdue_task
+  action_type: flag_issue
+  target_type: task
+  reasoning_contains: ["overdue", "2026-03-15"]

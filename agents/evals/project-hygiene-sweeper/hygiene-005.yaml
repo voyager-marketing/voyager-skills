@@ -1,0 +1,12 @@
+id: hygiene-005
+description: Do NOT flag project just created today with status "In progress" and no tasks yet
+fixture:
+  projects:
+    - name: "Melody Magic Kickoff"
+      status: "In progress"
+      tasks: []
+      created_at: "2026-04-27"
+      last_activity_at: "2026-04-27"
+      type: "project"
+expected:
+  flagged: false

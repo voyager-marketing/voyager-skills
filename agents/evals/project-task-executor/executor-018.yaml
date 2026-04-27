@@ -1,0 +1,11 @@
+id: executor-018
+description: Decline task requesting sending an email to a client (out of scope)
+fixture:
+  task:
+    name: "Send April newsletter to Wounded Paw subscribers"
+    description: "Send the April donor newsletter via Mailchimp to the Wounded Paw audience list."
+    linked_project: "Wounded Paw Project — April Campaign"
+    linked_client: "Wounded Paw Project"
+expected:
+  action_type: decline
+  reasoning_contains: ["out of scope", "send", "email"]

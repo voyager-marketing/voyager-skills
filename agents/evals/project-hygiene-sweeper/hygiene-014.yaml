@@ -1,0 +1,19 @@
+id: hygiene-014
+description: Flag onboarding project open for 18 days with no sign of progress (kickoff drift)
+fixture:
+  projects:
+    - name: "Onboarding: Wounded Paw Project"
+      status: "In progress"
+      tasks:
+        - name: "Complete intake form"
+          status: "Not started"
+      created_at: "2026-04-09"
+      last_activity_at: "2026-04-09"
+      current_date: "2026-04-27"
+      type: "Onboarding"
+expected:
+  flagged: true
+  issue_type: onboarding_drift
+  action_type: flag_issue
+  target_type: project
+  reasoning_contains: ["onboarding", "14 days"]

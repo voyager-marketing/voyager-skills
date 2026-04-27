@@ -1,0 +1,11 @@
+id: executor-014
+description: Propose clarification for vague task with no actionable description
+fixture:
+  task:
+    name: "Handle the website thing"
+    description: "Handle it."
+    linked_project: "Potomac Paving — Website Redesign"
+    linked_client: "Potomac Paving"
+expected:
+  action_type: clarify
+  reasoning_contains: ["unclear", "what specifically"]

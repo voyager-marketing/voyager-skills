@@ -1,0 +1,20 @@
+id: executor-002
+description: Generate a blog body from a provided outline
+fixture:
+  task:
+    name: "Write blog post body from outline"
+    description: |
+      Expand this outline into a full 800-word blog post for Potomac Paving.
+      Outline:
+      - H1: Why Spring Is the Best Time to Repave Your Driveway
+      - Section 1: Freeze-thaw damage explained
+      - Section 2: Benefits of asphalt vs concrete for residential
+      - Section 3: What to expect on installation day
+      - CTA: Free estimate
+    linked_project: "Potomac Paving — Content Q2"
+    linked_client: "Potomac Paving"
+expected:
+  action_type: create_draft
+  target_type: notion_page
+  reasoning_contains: ["blog", "Potomac Paving"]
+  reasoning_excludes: ["em dash", "—", "delve", "certainly"]

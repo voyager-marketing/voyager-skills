@@ -1,0 +1,15 @@
+id: hygiene-008
+description: Do NOT flag dispatch task that is older than 7 days but already Done
+fixture:
+  projects:
+    - name: "Orbit Plugin — Launch"
+      status: "In progress"
+      tasks:
+        - name: "Deploy orbit plugin v2"
+          labels: ["dispatch"]
+          status: "Done"
+          created_at: "2026-04-01"
+          session_notes_count: 0
+          last_edited_at: "2026-04-15"
+expected:
+  flagged: false

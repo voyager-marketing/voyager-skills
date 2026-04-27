@@ -1,0 +1,58 @@
+name: Agent evals
+
+on:
+  pull_request:
+    paths:
+      - 'agents/**'
+      - 'scripts/run-evals.mjs'
+  push:
+    branches: [main]
+    paths:
+      - 'agents/**'
+      - 'scripts/run-evals.mjs'
+  workflow_dispatch:
+
+jobs:
+  hygiene-sweeper:
+    name: Hygiene sweeper evals
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run evals (stub)
+        run: node scripts/run-evals.mjs project-hygiene-sweeper --stub --verbose
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+
+  task-executor:
+    name: Task executor evals
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run evals (stub)
+        run: node scripts/run-evals.mjs project-task-executor --stub --verbose
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}

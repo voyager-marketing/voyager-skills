@@ -1,0 +1,19 @@
+id: hygiene-006
+description: Flag dispatch task open >7 days with zero session notes activity
+fixture:
+  projects:
+    - name: "Wounded Paw Project — SEO"
+      status: "In progress"
+      tasks:
+        - name: "Write March blog posts"
+          labels: ["dispatch"]
+          status: "In progress"
+          created_at: "2026-04-10"
+          session_notes_count: 0
+          last_edited_at: "2026-04-10"
+expected:
+  flagged: true
+  issue_type: dispatch_stalled
+  action_type: flag_issue
+  target_type: task
+  reasoning_contains: ["dispatch", "7 days", "session notes"]

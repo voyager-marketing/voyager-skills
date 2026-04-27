@@ -1,0 +1,13 @@
+id: hygiene-013
+description: Do NOT flag Done project with no activity for 45 days (already closed)
+fixture:
+  projects:
+    - name: "Content OS — 12-Sprint Build"
+      status: "Done"
+      tasks: []
+      created_at: "2026-02-01"
+      last_activity_at: "2026-03-13"
+      current_date: "2026-04-27"
+      type: "project"
+expected:
+  flagged: false

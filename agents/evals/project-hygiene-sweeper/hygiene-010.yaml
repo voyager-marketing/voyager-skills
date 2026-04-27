@@ -1,0 +1,13 @@
+id: hygiene-010
+description: Do NOT flag task with past due date if status is Done
+fixture:
+  projects:
+    - name: "Why Not Act — SEO Sprint"
+      status: "In progress"
+      tasks:
+        - name: "Submit local citation audit"
+          status: "Done"
+          due_date: "2026-03-15"
+          current_date: "2026-04-27"
+expected:
+  flagged: false

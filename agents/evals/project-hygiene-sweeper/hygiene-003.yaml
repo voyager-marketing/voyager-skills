@@ -1,0 +1,18 @@
+id: hygiene-003
+description: Flag project recently renamed to include "Done" but status still "In progress"
+fixture:
+  projects:
+    - name: "WP Fleet Audit — Done"
+      status: "In progress"
+      tasks:
+        - name: "Final review"
+          status: "Done"
+      created_at: "2026-01-10"
+      last_activity_at: "2026-04-20"
+      type: "project"
+expected:
+  flagged: true
+  issue_type: status_mismatch
+  action_type: flag_issue
+  target_type: project
+  reasoning_contains: ["Done", "In progress"]

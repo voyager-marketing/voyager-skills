@@ -1,0 +1,12 @@
+id: executor-005
+description: Propose clarification when brief references a client that does not exist
+fixture:
+  task:
+    name: "Write content brief for Apex Construction — summer campaign"
+    description: "Create a Voyager brief for Apex Construction's summer HVAC campaign."
+    linked_project: null
+    linked_client: "Apex Construction"
+    known_clients: ["Wounded Paw Project", "Potomac Paving", "Melody Magic Music Studio", "Why Not Act"]
+expected:
+  action_type: clarify
+  reasoning_contains: ["Apex Construction", "not found", "client"]

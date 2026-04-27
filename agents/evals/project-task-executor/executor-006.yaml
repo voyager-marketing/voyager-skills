@@ -1,0 +1,14 @@
+id: executor-006
+description: Update the AI summary field on a Notion project page
+fixture:
+  task:
+    name: "Update AI summary on Wounded Paw April Campaign project"
+    description: "Set the project AI summary to: 'April donor appeal targeting past donors. Focus on impact stories and matching gift deadline.'"
+    linked_project: "Wounded Paw Project — April Campaign"
+    linked_project_id: "notion-page-uuid-wpp-april"
+    linked_client: "Wounded Paw Project"
+expected:
+  action_type: update_notion_page
+  target_type: notion_page
+  target_id: "notion-page-uuid-wpp-april"
+  reasoning_contains: ["AI summary", "Wounded Paw"]

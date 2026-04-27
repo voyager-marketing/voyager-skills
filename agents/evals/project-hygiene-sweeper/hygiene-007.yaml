@@ -1,0 +1,19 @@
+id: hygiene-007
+description: Flag dispatch task >7 days old with recent edit but still no session notes
+fixture:
+  projects:
+    - name: "Potomac Paving — Content"
+      status: "In progress"
+      tasks:
+        - name: "Produce April newsletter"
+          labels: ["dispatch"]
+          status: "In progress"
+          created_at: "2026-04-05"
+          session_notes_count: 0
+          last_edited_at: "2026-04-26"
+expected:
+  flagged: true
+  issue_type: dispatch_stalled
+  action_type: flag_issue
+  target_type: task
+  reasoning_contains: ["dispatch", "session notes"]

@@ -1,0 +1,16 @@
+id: hygiene-002
+description: Flag project with "Sprint Done" in name but status "On Hold"
+fixture:
+  projects:
+    - name: "Content OS Sprint Done"
+      status: "On Hold"
+      tasks: []
+      created_at: "2026-02-01"
+      last_activity_at: "2026-02-28"
+      type: "project"
+expected:
+  flagged: true
+  issue_type: status_mismatch
+  action_type: flag_issue
+  target_type: project
+  reasoning_contains: ["Sprint Done", "On Hold"]
