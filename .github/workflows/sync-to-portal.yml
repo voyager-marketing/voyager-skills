@@ -25,8 +25,12 @@ jobs:
         run: |
           echo "payload=$(node scripts/collect-sync-payload.mjs '${{ github.sha }}' 'voyager-marketing/voyager-skills')" >> $GITHUB_OUTPUT
       - name: Sync to Portal
+        env:
+          VOYAGER_SKILLS_SYNC_SECRET: ${{ secrets.VOYAGER_SKILLS_SYNC_SECRET }}
+          PORTAL_SYNC_URL: ${{ secrets.PORTAL_SYNC_URL }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
         run: |
           node scripts/sync-to-portal.mjs \
             '${{ steps.collect.outputs.payload }}' \
-            '${{ secrets.PORTAL_URL }}' \
-            '${{ secrets.VOYAGER_SKILLS_SYNC_SECRET }}'
+            "$PORTAL_SYNC_URL" \
+            "$VOYAGER_SKILLS_SYNC_SECRET"

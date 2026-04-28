@@ -42,14 +42,22 @@ const endpoint = `${portalUrl.replace(/\/$/, '')}/api/agents/sync`
 
 console.log(`Syncing to ${endpoint} ...`)
 
+const headers = {
+  'Content-Type': 'application/json',
+  'x-voyager-signature': `sha256=${signature}`,
+}
+
+// Vercel deployment protection bypass — needed for protected preview/prod deployments
+const bypassSecret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET
+if (bypassSecret) {
+  headers['x-vercel-protection-bypass'] = bypassSecret
+}
+
 let res
 try {
   res = await fetch(endpoint, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-voyager-signature': `sha256=${signature}`,
-    },
+    headers,
     body: payloadStr,
   })
 } catch (e) {
