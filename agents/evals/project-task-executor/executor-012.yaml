@@ -1,5 +1,7 @@
 id: executor-012
+agent: project-task-executor
 description: Write a JSON schema file as a file artifact
+verifier: structural_match
 fixture:
   task:
     name: "Write JSON schema for Voyager lead capture form payload"

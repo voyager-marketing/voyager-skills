@@ -1,5 +1,7 @@
 id: executor-015
+agent: project-task-executor
 description: Propose clarification when task references a client not in the known client list
+verifier: structural_match
 fixture:
   task:
     name: "Write Q2 strategy for Oakwood Dental"

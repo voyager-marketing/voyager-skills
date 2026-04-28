@@ -1,5 +1,7 @@
 id: hygiene-003
+agent: project-hygiene-sweeper
 description: Flag project recently renamed to include "Done" but status still "In progress"
+verifier: structural_match
 fixture:
   projects:
     - name: "WP Fleet Audit — Done"

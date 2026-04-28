@@ -1,5 +1,7 @@
 id: hygiene-009
+agent: project-hygiene-sweeper
 description: Flag task with due date clearly in the past and status still open
+verifier: structural_match
 fixture:
   projects:
     - name: "Why Not Act — SEO Sprint"

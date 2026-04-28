@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["name", "model"],
+  "additionalProperties": false,
+  "properties": {
+    "name": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+    "description": { "type": "string" },
+    "version": { "type": "string", "default": "0.1.0" },
+    "model": {
+      "type": "string",
+      "enum": ["claude-haiku-4-5-20251001", "claude-sonnet-4-6", "claude-opus-4-7"]
+    },
+    "system_prompt": { "type": "string" },
+    "tools": {
+      "type": "array",
+      "items": { "type": "string" },
+      "default": []
+    },
+    "mcp_servers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "url"],
+        "properties": {
+          "name": { "type": "string" },
+          "url": { "type": "string" },
+          "scopes": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "default": []
+    },
+    "skills": {
+      "type": "array",
+      "items": { "type": "string" },
+      "default": []
+    },
+    "source_repo": { "type": "string" },
+    "source_commit": { "type": "string" }
+  }
+}

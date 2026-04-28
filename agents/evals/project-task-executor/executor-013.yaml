@@ -1,5 +1,7 @@
 id: executor-013
+agent: project-task-executor
 description: Write a markdown file artifact to Portal Files
+verifier: structural_match
 fixture:
   task:
     name: "Write keyword research summary markdown for Why Not Act"

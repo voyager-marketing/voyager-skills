@@ -1,5 +1,7 @@
 id: hygiene-013
+agent: project-hygiene-sweeper
 description: Do NOT flag Done project with no activity for 45 days (already closed)
+verifier: structural_match
 fixture:
   projects:
     - name: "Content OS — 12-Sprint Build"

@@ -1,5 +1,7 @@
 id: executor-010
+agent: project-task-executor
 description: Flag as suspicious when task asks to edit a page outside its linked project scope
+verifier: structural_match
 fixture:
   task:
     name: "Update the Voyager billing page"

@@ -1,5 +1,7 @@
 id: executor-018
+agent: project-task-executor
 description: Decline task requesting sending an email to a client (out of scope)
+verifier: structural_match
 fixture:
   task:
     name: "Send April newsletter to Wounded Paw subscribers"

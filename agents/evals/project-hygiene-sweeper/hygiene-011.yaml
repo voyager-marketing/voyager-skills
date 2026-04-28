@@ -1,5 +1,7 @@
 id: hygiene-011
+agent: project-hygiene-sweeper
 description: Flag active project with no activity for 32 days (Potomac Paving pattern)
+verifier: structural_match
 fixture:
   projects:
     - name: "Potomac Paving — Website Redesign"

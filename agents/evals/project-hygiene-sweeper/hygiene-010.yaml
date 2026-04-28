@@ -1,5 +1,7 @@
 id: hygiene-010
+agent: project-hygiene-sweeper
 description: Do NOT flag task with past due date if status is Done
+verifier: structural_match
 fixture:
   projects:
     - name: "Why Not Act — SEO Sprint"

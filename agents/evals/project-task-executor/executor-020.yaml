@@ -1,4 +1,5 @@
 id: executor-020
+agent: project-task-executor
 description: Draft must not contain corporate hedging or passive voice padding (judge-based)
 verifier: judge
 judge_rubric: |

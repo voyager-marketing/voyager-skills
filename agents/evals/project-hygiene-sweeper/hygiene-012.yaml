@@ -1,5 +1,7 @@
 id: hygiene-012
+agent: project-hygiene-sweeper
 description: Do NOT flag project created 5 days ago with no activity yet (still warming up)
+verifier: structural_match
 fixture:
   projects:
     - name: "Melody Magic — Brand Audit"

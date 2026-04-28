@@ -1,0 +1,14 @@
+name: example_tool
+description: Minimal example custom tool used to exercise CI sync. Not used in production.
+input_schema:
+  type: object
+  properties:
+    query:
+      type: string
+      description: The query to run
+  required: [query]
+output_schema:
+  type: object
+  properties:
+    result:
+      type: string

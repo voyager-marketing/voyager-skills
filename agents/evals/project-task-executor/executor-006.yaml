@@ -1,5 +1,7 @@
 id: executor-006
+agent: project-task-executor
 description: Update the AI summary field on a Notion project page
+verifier: structural_match
 fixture:
   task:
     name: "Update AI summary on Wounded Paw April Campaign project"

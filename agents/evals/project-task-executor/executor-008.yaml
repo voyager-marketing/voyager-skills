@@ -1,5 +1,7 @@
 id: executor-008
+agent: project-task-executor
 description: Edit a task body to add clarifying context
+verifier: structural_match
 fixture:
   task:
     name: "Add context to 'Write March blog posts' task"

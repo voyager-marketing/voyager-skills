@@ -1,5 +1,7 @@
 id: executor-016
+agent: project-task-executor
 description: Propose clarification when task instructions directly contradict each other
+verifier: structural_match
 fixture:
   task:
     name: "Write a short detailed brief"

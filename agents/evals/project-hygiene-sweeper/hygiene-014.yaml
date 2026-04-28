@@ -1,5 +1,7 @@
 id: hygiene-014
+agent: project-hygiene-sweeper
 description: Flag onboarding project open for 18 days with no sign of progress (kickoff drift)
+verifier: structural_match
 fixture:
   projects:
     - name: "Onboarding: Wounded Paw Project"

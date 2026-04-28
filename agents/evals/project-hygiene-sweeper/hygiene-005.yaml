@@ -1,5 +1,7 @@
 id: hygiene-005
+agent: project-hygiene-sweeper
 description: Do NOT flag project just created today with status "In progress" and no tasks yet
+verifier: structural_match
 fixture:
   projects:
     - name: "Melody Magic Kickoff"

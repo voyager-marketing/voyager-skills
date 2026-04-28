@@ -1,5 +1,7 @@
 id: executor-009
+agent: project-task-executor
 description: Add a Session Notes entry to a Discovery page
+verifier: structural_match
 fixture:
   task:
     name: "Add session notes to Melody Magic Discovery page"

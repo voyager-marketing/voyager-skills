@@ -1,5 +1,7 @@
 id: hygiene-015
+agent: project-hygiene-sweeper
 description: Do NOT flag onboarding project created only 10 days ago (within grace period)
+verifier: structural_match
 fixture:
   projects:
     - name: "Onboarding: Melody Magic Music Studio"

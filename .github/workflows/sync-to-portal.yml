@@ -1,0 +1,32 @@
+name: Sync agents to Portal
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'agents/**'
+  workflow_dispatch:
+
+jobs:
+  validate-and-sync:
+    name: Validate and sync to Portal
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: Validate agent definitions
+        run: node scripts/validate-agents.mjs
+      - name: Collect definitions
+        id: collect
+        run: |
+          echo "payload=$(node scripts/collect-sync-payload.mjs '${{ github.sha }}' 'voyager-marketing/voyager-skills')" >> $GITHUB_OUTPUT
+      - name: Sync to Portal
+        run: |
+          node scripts/sync-to-portal.mjs \
+            '${{ steps.collect.outputs.payload }}' \
+            '${{ secrets.PORTAL_URL }}' \
+            '${{ secrets.VOYAGER_SKILLS_SYNC_SECRET }}'

@@ -1,5 +1,7 @@
 id: hygiene-007
+agent: project-hygiene-sweeper
 description: Flag dispatch task >7 days old with recent edit but still no session notes
+verifier: structural_match
 fixture:
   projects:
     - name: "Potomac Paving — Content"

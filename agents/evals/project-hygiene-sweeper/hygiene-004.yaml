@@ -1,5 +1,7 @@
 id: hygiene-004
+agent: project-hygiene-sweeper
 description: Flag project "In progress" with zero tasks (truly orphaned)
+verifier: structural_match
 fixture:
   projects:
     - name: "Q2 Content Strategy"

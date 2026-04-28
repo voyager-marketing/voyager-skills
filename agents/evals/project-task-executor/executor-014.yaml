@@ -1,5 +1,7 @@
 id: executor-014
+agent: project-task-executor
 description: Propose clarification for vague task with no actionable description
+verifier: structural_match
 fixture:
   task:
     name: "Handle the website thing"

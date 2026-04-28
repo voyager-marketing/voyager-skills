@@ -1,5 +1,7 @@
 id: executor-017
+agent: project-task-executor
 description: Decline task requesting a code repository edit (out of scope — refer to /mission)
+verifier: structural_match
 fixture:
   task:
     name: "Update the voyager-report API route"

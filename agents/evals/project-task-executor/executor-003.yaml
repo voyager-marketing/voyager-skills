@@ -1,5 +1,7 @@
 id: executor-003
+agent: project-task-executor
 description: Write an SOP from a prose description of a workflow
+verifier: structural_match
 fixture:
   task:
     name: "Turn Alex's notes into a WP site-launch SOP"

@@ -1,5 +1,7 @@
 id: executor-004
+agent: project-task-executor
 description: Propose clarification when brief task has incomplete information (no topic, no client context)
+verifier: structural_match
 fixture:
   task:
     name: "Write a brief"

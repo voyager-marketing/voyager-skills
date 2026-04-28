@@ -1,5 +1,7 @@
 id: hygiene-001
+agent: project-hygiene-sweeper
 description: Flag project with "Complete" in name but status "Not started"
+verifier: structural_match
 fixture:
   projects:
     - name: "Architecture Cleanup Sprint Complete"

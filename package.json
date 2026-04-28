@@ -17,5 +17,8 @@
     "@notionhq/client": "^2.2.15",
     "adm-zip": "^0.5.16",
     "js-yaml": "^4.1.0"
+  },
+  "devDependencies": {
+    "ajv": "^8.20.0"
   }
 }

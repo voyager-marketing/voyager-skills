@@ -1,0 +1,8 @@
+name: example-noop-agent
+description: Minimal example agent used to exercise CI sync. Not used in production.
+version: 0.1.0
+model: claude-haiku-4-5-20251001
+system_prompt: "You are a minimal test agent. Reply to any message with: Hello from example agent!"
+tools: []
+mcp_servers: []
+skills: []

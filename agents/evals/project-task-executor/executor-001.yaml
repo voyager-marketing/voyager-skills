@@ -1,5 +1,7 @@
 id: executor-001
+agent: project-task-executor
 description: Produce a content brief for a named client on a specific topic
+verifier: structural_match
 fixture:
   task:
     name: "Write content brief: Wounded Paw Project — April donor appeal"

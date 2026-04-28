@@ -1,0 +1,19 @@
+name: Validate agent definitions (PR)
+
+on:
+  pull_request:
+    paths:
+      - 'agents/**'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: Validate agent definitions
+        run: node scripts/validate-agents.mjs

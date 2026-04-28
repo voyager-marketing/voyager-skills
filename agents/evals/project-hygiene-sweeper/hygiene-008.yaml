@@ -1,5 +1,7 @@
 id: hygiene-008
+agent: project-hygiene-sweeper
 description: Do NOT flag dispatch task that is older than 7 days but already Done
+verifier: structural_match
 fixture:
   projects:
     - name: "Orbit Plugin — Launch"

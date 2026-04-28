@@ -1,5 +1,7 @@
 id: executor-005
+agent: project-task-executor
 description: Propose clarification when brief references a client that does not exist
+verifier: structural_match
 fixture:
   task:
     name: "Write content brief for Apex Construction — summer campaign"

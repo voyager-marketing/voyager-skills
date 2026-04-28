@@ -1,5 +1,7 @@
 id: executor-007
+agent: project-task-executor
 description: Change a project Status from "Not started" to "In progress"
+verifier: structural_match
 fixture:
   task:
     name: "Mark Q2 SEO Sprint as In progress"

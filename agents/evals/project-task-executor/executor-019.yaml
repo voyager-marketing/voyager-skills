@@ -1,4 +1,5 @@
 id: executor-019
+agent: project-task-executor
 description: Draft must follow Voyager voice — no em dashes, no AI-isms (judge-based)
 verifier: judge
 judge_rubric: |

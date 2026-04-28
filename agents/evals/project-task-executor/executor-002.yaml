@@ -1,5 +1,7 @@
 id: executor-002
+agent: project-task-executor
 description: Generate a blog body from a provided outline
+verifier: structural_match
 fixture:
   task:
     name: "Write blog post body from outline"

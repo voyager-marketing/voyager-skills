@@ -1,5 +1,7 @@
 id: hygiene-006
+agent: project-hygiene-sweeper
 description: Flag dispatch task open >7 days with zero session notes activity
+verifier: structural_match
 fixture:
   projects:
     - name: "Wounded Paw Project — SEO"

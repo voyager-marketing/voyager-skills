@@ -1,5 +1,7 @@
 id: executor-011
+agent: project-task-executor
 description: Generate a hero image via Voyager MCP for a blog post
+verifier: structural_match
 fixture:
   task:
     name: "Generate hero image for Potomac Paving spring driveway blog"
