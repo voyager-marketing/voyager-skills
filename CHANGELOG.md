@@ -6,6 +6,56 @@ Format: reverse chronological. Date-anchored entries group the work done that da
 
 ---
 
+## 2026-04-29 — Rename `social-repurpose` → `social`; eval-pass batch (8 skills)
+
+### Rename + redesign: `social-repurpose` → `social`
+
+User feedback that "social-repurpose" was misleading — the skill was framed as Phase 6 of the content pipeline (repurposing-only), but the actual most-common use case is from-scratch creation given a topic. Triggered renaming and a body rewrite.
+
+**Renamed directory:** `skills/social-repurpose/` → `skills/social/` (via `git mv`, history preserved).
+
+**Frontmatter:** `name: social-repurpose` → `name: social`. Description rewritten — creation-first language, broader trigger phrase list ("create social posts for [client]", "draft a [platform] post about [topic]", "write a tweet about [X]", "fill [client]'s social calendar", "what should we post for [client] this week", + repurpose/analytics phrases).
+
+**Body restructured:** five modes, ordered by frequency of use:
+
+1. **Create** (default) — topic-only, no source material required. Default flow when ambiguous.
+2. **Calendar** — plan a week/month, optionally from `social_research_topics`.
+3. **Repurpose** — when a blog or URL exists as source. Was the entire skill before; now one of five.
+4. **Quick post** — one-shot, one platform.
+5. **Analytics** — read-only check via `social_get_analytics`.
+
+**Preserved unchanged:**
+- All 8 MCP social tool wirings (`social_create_post`, `social_get_calendar`, `social_repurpose_url`, `social_research_topics`, `social_trigger_from_blog`, `social_update_post`, `social_get_analytics`, `social_list_posts`).
+- `references/platform-playbook.md` (the agency-wide canonical source for char limits, peak windows, content quality rules, hashtag strategy, content mix targets, hard guardrails).
+- All hard guardrails: NEVER publish directly (status=Draft only), NEVER skip calendar check, NEVER post identical content cross-platform, NEVER assume timezone, NEVER use the word "elevate", confirm before > 3 posts, etc.
+
+The `social` slug was previously deleted (the OLD `social` skill was a 364-line monolith retired in Option 1 today). Reclaiming it now is fine — that retirement was about the old skill's bloat, not the name.
+
+### Eval-pass batch (8 skills)
+
+`skill-creator` eval pass on the 7 outstanding Drafts plus the renamed `social`. All 8 mark Pass 2026-04-29 in Skills DB. Lifecycle Draft → Live for the 7; `social` was already Live (as social-repurpose), stays Live but with substantial-rewrite note.
+
+| Skill | Eval type | Result | Notes |
+|---|---|---|---|
+| `voyager-build-kickoff` | Sanity | Pass | Verified live April 22 against melody-magic; description triggers cleanly |
+| `voyager-image-editor` | Sanity | Pass | Already in active fleet use prior to this session |
+| `voyager-php-preflight` | Full | Pass | Portability fix `find "${1:-.}"` works against any cwd |
+| `pr` | Full | Pass | Repo table expanded 3→9 + `gh repo view` fallback covers every Voyager repo |
+| `wp-research` | Full | Pass | Phase 0 cwd detection replaces stale version table; cites 9 memory entries |
+| `voyager-pattern-migrate` | Paper | Pass | Well-structured but not yet fired live; re-eval after first real run |
+| `provision-site-data` | Full | Pass | Clean handoff after build-kickoff; explicit halt conditions |
+| `social` (renamed) | Full | Pass | Five-mode redesign, create-first ordering, all MCP wirings preserved |
+
+After this batch: 0 Drafts in the Skills DB. Every repo skill is Live or Deprecated.
+
+### Downstream
+
+- `/tmp/skill-uploads/social-repurpose.zip` rebuilt as `/tmp/skill-uploads/social.zip` (3 files: SKILL.md + references/platform-playbook.md).
+- `/tmp/session-b-runbook.md` updated: Tier A entry renamed (`social-repurpose.zip` → `social.zip`), new trigger phrase ("create social posts for [client]"), Slack template updated.
+- Skills DB: existing `social-repurpose` row updated in place (name, description, repo path) so the page-id stable references don't break. The 7 Drafts get Lifecycle bumped to Live.
+
+---
+
 ## 2026-04-29 — Option 3: wp-research promotion + 2 merges (fleet, build-kickoff)
 
 Final batch of the local→global skill reorganization. One promotion (with substantial rewrite), two merges that consolidate scattered fleet/onboarding logic into the canonical skills.
