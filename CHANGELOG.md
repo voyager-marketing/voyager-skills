@@ -6,6 +6,51 @@ Format: reverse chronological. Date-anchored entries group the work done that da
 
 ---
 
+## 2026-04-29 — Option 3: wp-research promotion + 2 merges (fleet, build-kickoff)
+
+Final batch of the local→global skill reorganization. One promotion (with substantial rewrite), two merges that consolidate scattered fleet/onboarding logic into the canonical skills.
+
+### Promoted to global (with rewrite): `wp-research`
+
+The local skill had three portability gaps that would have made it confusing on any non-v3 machine: a static "Environment Snapshot" version table that goes stale fast (it claimed voyager-blocks 1.0.0 — actually 2.0.0+ per `project_v2_0_0_release_unstuck`), a v3-only cache path (`/sites/v3.voyagermark.com/.claude/cache/`), and a "three projects" framing that hadn't kept up with the seven+ active dev repos.
+
+Full rewrite under `skills/wp-research/SKILL.md`:
+
+- **Phase 0 — environment detection.** Replaces the static table. Reads `package.json`, `composer.json`, plugin headers, and `wp core version` from cwd at run time. If cwd isn't a recognizable Voyager repo, asks the user.
+- **"Voyager dev repos (current set, April 2026)"** table covers the full inventory: voyager-orbit, voyager-blocks, voyager-core, voyager-block-theme, voyagermark, voyager-blank-child, voyager-skills, voyager-mcp-server, voyager-portal.
+- **"Build on prior research" section** — explicit "don't redo this" map citing 9 memory entries with deep dives already done (WP AI ecosystem, client-side abilities, Interactivity API, WP AI Client, DataViews, Playground, RDB, C2PA, future-forward). Skill is now a delta-finder, not a re-research-everything-every-time tool.
+- **Cache path** is `~/.claude/cache/wp-research-{date}.md` — user's home, not v3.
+- Governance frontmatter (`owner`, `last_reviewed: 2026-04-29`).
+
+### Merged: `fleet-binding-audit` → `fleet-health` as `--bindings` mode
+
+Standalone `fleet-binding-audit` skill was useful but its scope (3 voyager-blocks abilities, threshold table, Wednesday cron) is the obvious second mode of `fleet-health`. Merged in.
+
+- `fleet-health/SKILL.md` description updated to mention both modes.
+- Frontmatter `argument-hint` adds `--bindings` and `--threshold=20`.
+- New "## `--bindings` mode" section — abilities table, thresholds, local + remote calls, output format, all from the standalone skill.
+- "Scheduled agent use" now lists both schedules: Monday infra + Wednesday bindings.
+
+### Merged: `wordpress-website-project-onboarding` → `voyager-build-kickoff` as documented future modes
+
+The wp-onboarding skill (624 lines, paper spec) was largely superseded by `voyager-build-kickoff` (624 lines, verified live April 22 against melody-magic-site with 11 real-world gap fixes). The two unique pieces from wp-onboarding — provisioning a per-client SpinupWP server and creating a per-client child theme repo with push-to-deploy — don't have verified-working implementations here.
+
+Rather than copy unverified phases into the working skill (which would regress build-kickoff's quality bar — the skill is what it is *because* it was rewritten after a real run), added a clear **"## Optional follow-up modes (designed, not yet implemented)"** section that documents both:
+
+- **`--new-server`** — design sketch for provisioning a per-client server. Includes the SpinupWP API call shape from the prior skill. Implementation gate: cost-control story (auto-shutdown, billing transparency).
+- **`--with-child-theme`** — design sketch using `voyager-blank-child` as the canonical starter (per `project_voyager_blank_child.md`), not scaffold-from-scratch. Includes push-to-deploy wiring. Implementation gate: voyager-blank-child v1 release tag + verified `deploy.sh` that doesn't conflict with our SSH+WP-CLI plugin install pattern.
+
+Both modes flagged for separate future PRs. The "why not implement now" subsection explains why — preserving build-kickoff's "verified or not in here" bar.
+
+### Outcome
+
+Three more locals deleted from `~/.claude/skills/` (wp-research, fleet-binding-audit, wordpress-website-project-onboarding). The truly-local set drops from 6 → 3:
+- `frontend-design` — Anthropic example, conflicts with brand (user choice keep/delete)
+- `webapp-testing` — Playwright unusable on SpinupWP (user choice keep/delete)
+- `v3-wp-query` — intentionally local, v3 dev server only
+
+---
+
 ## 2026-04-29 — Option 1 promotions (4 skills) + dead-code cleanup
 
 Promoted 4 skills from `~/.claude/skills/` (v3 local) into the global repo, deleted 2 dead/superseded local skills, lifted operational reference content out of one before deletion.

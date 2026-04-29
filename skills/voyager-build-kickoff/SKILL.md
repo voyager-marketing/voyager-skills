@@ -2,7 +2,7 @@
 name: voyager-build-kickoff
 description: Use when provisioning the Voyager dev environment for a Path A (new build) client who already has a Clients DB row. Creates SpinupWP site at [slug].voyager.website on the shared Voyager Dev server, adds Cloudflare DNS, installs Voyager plugin stack and block theme, waits for Orbit to auto-register with Portal, stashes the Orbit secret on the Websites DB row, and flips Clients DB infra flags. Trigger phrases include "run build kickoff for [name]", "provision dev site for [name]", "build kickoff [name]", "/build-kickoff [name]". Halts if the client has no Clients DB row, is not Path A, or already has a Websites DB row. Do NOT use for launch activities (domain delegation, GA4, GSC, kickoff email, care plan upsell) or existing-site takeovers (Path B, use voyager-site-dna).
 owner: Ben
-last_reviewed: 2026-04-22
+last_reviewed: 2026-04-29
 ---
 
 # Voyager Build Kickoff
@@ -610,6 +610,69 @@ On mid-run failure, the partial Websites row stays with `Status = Needs Review`.
 - `DEFAULT_WP_ADMIN_EMAIL`. `sites@voyagermark.com`
 
 ---
+
+## Optional follow-up modes (designed, not yet implemented)
+
+When the prior `wordpress-website-project-onboarding` skill was retired into this one (2026-04-29), two of its phases didn't have a verified-working replacement here. They live as future-enhancement modes — flagged for follow-up implementation rather than copy-pasted as untested code.
+
+### `--new-server` mode
+
+**Use case.** A client needs their own SpinupWP server instead of sharing the Voyager Dev box. Reasons might include compliance scope, capacity at the shared server, or premium-tier site sizing. Today, every Path A client lands on the shared Voyager Dev server (id `16035`, IP `159.65.174.126`).
+
+**Design sketch (from prior wp-onboarding skill).** Insert a new Phase 1.5 between gate and DNS:
+
+```bash
+curl -fsS -X POST https://api.spinupwp.app/v1/servers \
+  -H "Authorization: Bearer $SPINUPWP_API_KEY" \
+  -d '{
+    "name": "voyager-<client-slug>",
+    "provider": "digitalocean",
+    "provider_server_region": "nyc3",
+    "provider_server_size": "s-2vcpu-2gb",
+    "ubuntu_version": "24.04",
+    "database_type": "mariadb",
+    "database_password": "<32-char-generated>"
+  }'
+```
+
+Poll `GET /servers/<id>` until `status=active` (4-7 min). Provision timeout >15min → report, do NOT auto-retry (cost risk). Capacity error → fall back to alternate region, retry once. Then create a Servers DB row in Notion with the same shape as the Voyager Dev row, and use that server's ID + IP for the rest of the run.
+
+Implementation gate. Don't ship `--new-server` until the cost-control story is clear (auto-shutdown of unused servers, billing transparency to Notion). Until then, multi-tenant on Voyager Dev.
+
+### `--with-child-theme` mode
+
+**Use case.** Site needs a per-client child theme with push-to-deploy from day one — most clients eventually want this once design work begins. Today, build-kickoff installs the parent `voyager-block-theme` and stops; child theme creation happens later when customization starts.
+
+**Design sketch (per memory `project_voyager_blank_child.md`).** Don't scaffold a child theme from scratch — clone `voyager-marketing/voyager-blank-child` (the canonical starter), rename, push to a new client repo, wire push-to-deploy.
+
+Expected steps:
+1. `gh repo create voyager-marketing/<client-slug>-theme --private --template=voyager-marketing/voyager-blank-child`
+2. Local clone, replace `voyager-blank-child` → `<client-slug>-theme` in `style.css`, `theme.json`, `functions.php`, `package.json`, etc.
+3. Apply `--brand-primary`, `--brand-secondary`, `--logo` if passed.
+4. Commit + push to `main`.
+5. Wire SpinupWP push-to-deploy:
+   ```bash
+   curl -fsS -X PATCH https://api.spinupwp.app/v1/sites/<site-id> \
+     -H "Authorization: Bearer $SPINUPWP_API_KEY" \
+     -d '{
+       "git": {
+         "provider": "github",
+         "repository": "git@github.com:voyager-marketing/<client-slug>-theme.git",
+         "branch": "main",
+         "deploy_path": "wp-content/themes/<client-slug>-theme",
+         "deploy_script": "bash $HOME/files/wp-content/themes/<client-slug>-theme/deploy.sh"
+       },
+       "push_to_deploy": true
+     }'
+   ```
+6. Add SpinupWP's deploy key to the GitHub repo (read-only).
+7. Activate the child theme via WP-CLI (replaces parent activation in Phase 3 Step 11).
+
+Implementation gate. Don't ship `--with-child-theme` until `voyager-blank-child` has a stable v1 release tag and a verified `deploy.sh` that doesn't conflict with our SSH+WP-CLI plugin install pattern. The wp-onboarding skill assumed `deploy.sh` did all plugin install too; this skill doesn't, so the merger needs careful reconciliation.
+
+### Why not implement now
+
+Both modes are real future needs but neither has been run live. Per project memory `project_voyager_build_kickoff` and the build-kickoff verification note (April 22), this skill earned its current state by being rewritten *after* a real run surfaced 11 gaps between paper spec and live API behavior. Adding unverified phases here would regress that quality bar. Track them as separate Notion roadmap items; promote when Ben says one is ready to land.
 
 ## Known drift risks
 
