@@ -4,7 +4,7 @@ description: "Use when asked to onboard a new client, set up a new client site, 
 argument-hint: "<client-name> [--verify-only] [--site=domain]"
 user-invocable: true
 owner: Ben
-last_reviewed: 2026-04-21
+last_reviewed: 2026-04-29
 ---
 
 # Onboard Client
@@ -204,7 +204,52 @@ This populates the `voyager_site_*` options used by the `voyager/site-data` bind
 
 ---
 
-## Step 3c: Verify Pattern Cloud Sync
+## Step 3c: Configure Notion Sync Filter (Client Isolation)
+
+**CRITICAL.** This step prevents client content cross-pollination. Every site connected to a shared Notion database MUST have a sync filter configured. Without it, an unfiltered sync pulls ALL client content onto this site.
+
+1. Get the client's Notion page ID from Step 1 (the Client Profile page ID).
+
+2. Set the sync filter on the content database:
+
+```bash
+wp --path=$WP_ROOT --user=1 eval '
+$dbs = get_option("voyager_notion_databases", []);
+$client_page_id = "<client-notion-page-id>";
+
+$found = false;
+foreach ($dbs as $i => $db) {
+    if (($db["alias"] ?? "") === "content") {
+        $dbs[$i]["sync_filter_property"] = "Client";
+        $dbs[$i]["sync_filter_value"]    = $client_page_id;
+        $dbs[$i]["sync_filter_type"]     = "relation";
+        $found = true;
+        break;
+    }
+}
+
+if (!$found) {
+    echo "No content database configured. Add it in Settings > Voyager Blocks > Notion first.\n";
+} else {
+    update_option("voyager_notion_databases", $dbs);
+    echo "Sync filter set: Client relation = " . $client_page_id . "\n";
+}
+'
+```
+
+3. Verify the filter works with a dry-run sync:
+
+```bash
+wp --path=$WP_ROOT voyager notion sync --database=content --dry-run
+```
+
+Output should show `Client filter: Client = {page-id} (relation)` and list only this client's content. If it lists content for other clients, the filter is wrong. STOP and fix before continuing.
+
+**NEVER skip this step.** An unfiltered sync will pull ALL client content onto this site. This is a data integrity violation, not a warning.
+
+---
+
+## Step 3d: Verify Pattern Cloud Sync
 
 Check the `pattern_cloud_url` setting in `voyager_blocks_settings`:
 
@@ -307,3 +352,4 @@ If any step failed, list what succeeded and what requires manual attention befor
 - **Report failures clearly** — if a WP-CLI command fails or a Notion write fails, state what succeeded, what failed, and what the user needs to do manually.
 - **Content Cycle Month** must always be the first day of the target month (e.g., `2026-04-01` for April 2026).
 - **Remote sites** — when SSH is not available, note in the summary which WP verification checks could not be run and recommend the user run them manually or via a local session.
+- **NEVER skip Step 3c (Notion sync filter).** An unfiltered sync pulls all client content onto this site. The sync filter must be set and dry-run verified before onboarding is considered complete. This is a hard data-integrity requirement, not optional.

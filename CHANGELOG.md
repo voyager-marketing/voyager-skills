@@ -6,6 +6,31 @@ Format: reverse chronological. Date-anchored entries group the work done that da
 
 ---
 
+## 2026-04-29 — Restore client-isolation gates in publish + onboard-client
+
+Comparison of repo skills against locally-hardened copies on v3 surfaced two regressions where the repo had dropped critical data-integrity content. Restored both. Also bumped `last_reviewed` on the touched files.
+
+**`skills/publish/SKILL.md`** — local was 11KB, repo was 3.6KB. Restored:
+- **Step 1 Client Isolation Gate (HARD BLOCK).** Before publishing any item, compare its `Client` relation page ID against the target site's `voyager_notion_databases[content].sync_filter_value`. Mismatch = HARD BLOCK with explicit error. No filter configured = HARD BLOCK with pointer to `/onboard-client` Step 3c. Cannot be overridden.
+- **Step 2.5 Content Quality Gate.** 800-word minimum (HARD BLOCK), SEO meta required with title/description/keyword fallbacks, internal-links minimum (warning), CTA paragraph auto-append, OG meta via RankMath social fields.
+- **Pipeline Gates checklist** — added the two new gate lines.
+- **Guardrails** — expanded from 4 to 13 rules covering all of the above.
+
+**`skills/onboard-client/SKILL.md`** — local was 13.6KB, repo was 9.9KB. Restored:
+- **Step 3c "Configure Notion Sync Filter (Client Isolation)"** — the step that establishes the filter `publish` checks. Sets `sync_filter_property=Client`, `sync_filter_value={client_page_id}`, `sync_filter_type=relation` on the content database in `voyager_notion_databases`, then dry-run-verifies via `wp voyager notion sync --dry-run`.
+- Existing "Verify Pattern Cloud Sync" renamed from Step 3c → Step 3d.
+- **Guardrails** — added explicit "NEVER skip Step 3c" rule with reasoning.
+
+**`skills/onboard-client/checklist.md`** — added the "Client Isolation" section (3 items: filter configured, dry-run verified, no other-client content present).
+
+**Why these were dropped, best guess:** repo's onboard-client + publish were created from a snapshot before the v3 hardening landed (April 16-21). Locals continued to evolve in place. No one noticed because the repo wasn't yet deployed back over the locals.
+
+**DB ID note:** verified the Websites DB ID inconsistency — local `onboard-client` had `f12cc677-9dd3-499d-b23e-9c7873c5620f`, repo has `c6685c2d-de74-48ef-8225-ffdbc63ee1a8` consistent across both `onboard-client` and `publish`. Kept the repo's ID (consistent + more recent).
+
+**No eval run** — these are restoration patches, not new content. Lifecycle stays Live. Will run `skill-creator` eval on next substantive edit.
+
+---
+
 ## 2026-04-22 — Session 8: voyager-build-kickoff v2 (first live run + 11 fixes)
 
 First end-to-end run of `voyager-build-kickoff` against a real Path A client (Melody Magic Music Studio). Site now live at https://melody-magic-site.voyager.website with full Voyager stack installed and Orbit registered with Portal. Run surfaced 11 real-world gaps between the paper spec and what actually works on live APIs. SKILL.md rewritten to match reality.
