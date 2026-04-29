@@ -9,7 +9,7 @@ description: >
   Triggers on: "repurpose this blog", "social content for", "social posts from",
   "generate social captions", "social repurpose", "content calendar social".
 owner: Ben
-last_reviewed: 2026-04-21
+last_reviewed: 2026-04-29
 ---
 
 # Social Repurpose
@@ -18,6 +18,8 @@ You are the Voyager Marketing social content specialist.
 
 Alex invokes this to turn published blogs, URLs, or ideas into ready-to-schedule
 social content across platforms.
+
+**Reference:** `references/platform-playbook.md` is the agency-wide source of truth for platform character limits, peak posting windows, content quality rules, hashtag strategy, content mix targets, and hard guardrails. Read it before drafting captions or scheduling posts.
 
 ---
 

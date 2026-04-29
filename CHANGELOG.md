@@ -6,6 +6,37 @@ Format: reverse chronological. Date-anchored entries group the work done that da
 
 ---
 
+## 2026-04-29 — Option 1 promotions (4 skills) + dead-code cleanup
+
+Promoted 4 skills from `~/.claude/skills/` (v3 local) into the global repo, deleted 2 dead/superseded local skills, lifted operational reference content out of one before deletion.
+
+### Promoted to global
+
+**`skills/voyager-image-editor/`** — Voyager MCP Gemini image gen / edit / save flow. Already fully portable: uses `~/.voyager-mcp-token` and the deployed Worker endpoint, no v3-specific paths. Added `owner: Ben` + `last_reviewed`. No body changes.
+
+**`skills/voyager-php-preflight/`** — PHP syntax + WP security anti-pattern scan. **Portability fix**: replaced hardcoded `find /sites/v3.voyagermark.com/files/wp-content/plugins/voyager-blocks` with `find "${1:-.}"` so the skill targets cwd by default and accepts a path arg for any other repo. Description rewritten to drop the "voyager-blocks" specifier — it's a generic preflight for any Voyager plugin or theme. Added governance frontmatter.
+
+**`skills/pr/`** — auto-detecting PR creation. **Portability fix**: expanded the repo detection table from 3 entries to 9 (added voyager-core, voyagermark, voyager-skills, voyager-mcp-server, voyager-portal, voyager-blank-child) plus a `gh repo view --json defaultBranchRef` fallback so per-client child theme repos and any new repo work without a code change. Added `## Prerequisites` note for `gh` CLI auth check. Added governance frontmatter.
+
+**`skills/skill-creator/`** — Anthropic's meta-skill, vendored. Voyager governance (`CLAUDE.md`) names this as the eval gate that governs every skill's Draft → Live transition, so it has to live globally. Added an explicit vendored-source note: "Vendored from `/mnt/skills/examples/skill-creator/`. Do not edit content here. When upstream changes, re-pull verbatim and bump `last_reviewed`." Owner: `Anthropic (vendored)`. Updated the "Skills Location" section to point at this repo and the eval workflow doc.
+
+### Deletes
+
+**`chat/`** — empty top-level. Contained only a stray nested `chat/voyager-wp-manager/SKILL.md` (older 237-line copy with 64 MCP tools listed). The current `voyager-wp-manager` in this repo is intentionally narrowed and explicitly **Deprecated** (running parallel with `fleet-health` + `pattern-cloud` + `client-prep`). The capabilities in the stray copy were already split across the focused replacement skills. Deleted both.
+
+**`social/`** — 364-line monolith. Largely superseded by `social-repurpose` (focused, governed, slash-command exposed) plus direct MCP tool calls (`social_get_analytics`, `social_get_calendar`, `social_list_posts`, `social_update_post`). The orchestration logic was redundant. **Lifted before delete**: the genuinely useful agency-wide content — Platform Constraints table (char limits, peak windows, best post types per platform), Content Quality Rules (hooks, hashtag strategy, content mix targets), Hard Guardrails — is now `skills/social-repurpose/references/platform-playbook.md`. The `social-repurpose` SKILL.md picked up a one-line pointer to it.
+
+### Renamed (project-local, kept on v3)
+
+**`v3-wp-query`** (was `wp-query`) — local v3 dev-server WP-CLI cheatsheet. Hardcoded to `/sites/v3.voyagermark.com/files`, `tgn_` prefix, `vm3` DB. Renamed and rewrote frontmatter description to make the v3-only scope explicit and point users at MCP `wp_*` tools for client sites. Stays at `~/.claude/skills/v3-wp-query/` — not promoted to global.
+
+### Followups
+
+- Option 2 (project-repo moves: 6 skills to voyager-blocks, 1 to voyagermark child theme) and Option 3 (the wp-research portability rewrite + 2 skill merges) are queued for follow-up sessions.
+- `frontend-design` and `webapp-testing` left local pending user decision (keep-as-personal-sandbox vs delete — both have explicit reasons not to promote).
+
+---
+
 ## 2026-04-29 — Restore client-isolation gates in publish + onboard-client
 
 Comparison of repo skills against locally-hardened copies on v3 surfaced two regressions where the repo had dropped critical data-integrity content. Restored both. Also bumped `last_reviewed` on the touched files.
