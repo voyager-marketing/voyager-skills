@@ -20,6 +20,11 @@
 - [ ] Client content replaces placeholder text
 - [ ] Images uploaded and optimized
 
+## Client Isolation
+- [ ] Notion sync filter configured (Client relation = page ID)
+- [ ] Dry-run sync verified — only this client's content appears
+- [ ] NO other client content exists on this site
+
 ## SEO
 - [ ] RankMath installed and configured
 - [ ] Sitemap generated
