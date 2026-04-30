@@ -37,7 +37,7 @@ const ORG_SKILLS = [
   'content-audit',
   'content-tracker',
   'editorial-qa',
-  'social-repurpose',
+  'social',
   'publish',
   'content-hero-image',
   'content-image-library',
@@ -47,6 +47,7 @@ const ORG_SKILLS = [
   'pseo',
   'pseo-manage',
   'report',
+  'voyager-image-editor',
 ];
 
 const PERSONAL_SKILLS = [
@@ -55,6 +56,7 @@ const PERSONAL_SKILLS = [
   'voyager-orbit-dev',
   'wp-lab',
   'ship-session',
+  'provision-site-data',
 ];
 
 function collectFiles(dir, prefix = '') {
