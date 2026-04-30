@@ -6,6 +6,35 @@ Format: reverse chronological. Date-anchored entries group the work done that da
 
 ---
 
+## 2026-04-30 — Add Drive save Flow D to `voyager-image-editor`
+
+### Flow D added to `voyager-image-editor`
+
+Background. Earlier today the `voyager-mcp-server` repo merged per-client folder routing for `image_save_to_drive` (PRs #17, #19, #20). The MCP tool now resolves a `client` argument against the Voyager Clients Shared Drive and finds-or-creates `<Client>/AI Images/`, with `_AI Image Library` as the fallback. The skill had no documentation for any Drive save path — Alex hit `AUTH_FAILED` saving STF May 2026 social images and had to interpret raw error messages without skill guidance.
+
+**Edits.**
+
+- Frontmatter `description` expanded to mention Drive saves and `image_save_to_drive` so the skill triggers on phrases like *"save to Drive"*, *"drop it in [client]'s folder"*, *"add to the AI image library"*, *"save these for STF"*.
+- Decision section split: WordPress save vs Drive save are now distinct phrase clusters.
+- New **Flow D — Save to Google Drive** section with four sub-flows:
+  - D.1 acronym translation table (STF → Smooth Transitions, with instructions for handling unknown acronyms via `drive_list_client_folders` / `drive_find_client_folder`).
+  - D.2 the actual `image_save_to_drive` curl call, including `folder_path` / `resolution` / `fellback_to_library` parsing.
+  - D.3 browse / disambiguate before saving (`drive_list_client_folders`, `drive_find_client_folder`).
+  - D.4 Drive vs WordPress disambiguation rule: never default to Drive without an explicit cue.
+- `last_reviewed:` bumped to 2026-04-30.
+
+**Eval status.** `skill-creator` eval not yet run on this edit. Pre-merge check pending — the skill stays Live (substantial-addition note), but eval should pass before the Claude.ai Teams Org panel sync.
+
+**Surfaces affected.**
+
+- Claude Code (Ben): symlink picks up on next session, no action needed.
+- Claude.ai Teams Org panel (Alex's daily rotation): manual upload by Ben after merge per `docs/sync-to-claude-teams.md`. Same-day sync warranted (Alex hit the gap today).
+- Anthropic API Skills library: optional. The `pseo-manage` API test from 2026-04-29 is still unverified, so the panel-sync question remains open.
+
+**Backstory left in memory.** `project_drive_bootstrap_2026_04_30.md` and `project_client_acronyms.md` capture the IDs (Voyager Clients Shared Drive, `_AI Image Library`) and the STF → Smooth Transitions mapping respectively.
+
+---
+
 ## 2026-04-29 — Rename `social-repurpose` → `social`; eval-pass batch (8 skills)
 
 ### Rename + redesign: `social-repurpose` → `social`
