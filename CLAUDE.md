@@ -65,6 +65,66 @@ voyager-skills/
 
 ---
 
+## Architecture — Skills and MCP, two layers
+
+Skills and MCP solve different problems and need to coexist. Misunderstanding the boundary is the most common architectural error.
+
+**Skills** are markdown runbooks. They tell the model HOW to think and act when an intent matches their description. They live in panels/libraries on multiple surfaces and load by description-match, not by explicit invocation.
+
+**MCP tools** are typed functions. They DO one specific operation in the world — call an API, query a database, write to a service. They live on the MCP server (`voyager-mcp-server` Cloudflare Worker for Voyager) and the model invokes them deterministically.
+
+You need both because:
+- A skill orchestrates multi-step workflows: decide which tool, in what order, validate inputs, retry on failure, summarize outputs, apply guardrails.
+- An MCP tool does one specific operation cleanly with a defined schema.
+
+### The propagation asymmetry
+
+| Surface | What lives there | Update propagates how |
+|---|---|---|
+| **Code** (Ben's terminals, eventually Alex's) | `~/.claude/skills/<name>` symlinks to repo | Automatic. `git pull` updates the file behind the symlink. |
+| **Claude.ai Chat Org panel** (Ben + Alex) | Uploaded `.zip` copies | Manual re-upload today. API-driven sync is the open question (`POST /v1/skills` proven to work; whether it bridges to Org panel is being verified). |
+| **Anthropic API library** (Portal jobs, automations) | API-uploaded skills referenced by ID | Scriptable via `POST /v1/skills` with `anthropic-beta: skills-2025-10-02`. |
+| **MCP server** (Voyager Worker) | Tool implementations in TypeScript | Automatic. Cloudflare Worker deploy. Next call from any client (Code, Chat, API, Portal) hits the new version. |
+
+The asymmetry: MCP propagates instantly across all surfaces. Skills don't. Alex hits new MCP tool versions on her next call without doing anything; skill changes require re-upload to her Org panel until automation lands.
+
+### Design principle: thin skills, thick MCP
+
+When deciding whether logic belongs in a skill or in MCP, default to MCP. Skills should be intent-matchers and thinking frameworks. The actual workflow logic should live in composite MCP tools.
+
+**Move into MCP:**
+- Multi-step workflows over services. Example: a `social_create_session(client, intent, topic)` composite that orchestrates calendar check + draft + create.
+- Validation gates and quality checks. Example: the `publish` skill's 800-word + SEO-meta + client-isolation checks belong as a server-side `publish_with_gates(post_id)` function.
+- Multi-phase pipelines. Example: `onboard-client` Step 3c sync filter setup is a discrete operation that belongs as `voyager_set_client_sync_filter(...)`.
+- Anything that involves business logic over multiple service calls.
+
+**Keep in skills:**
+- Brand voice and writing rules. `voyager-voice` is prompt content, not a workflow.
+- Background context that auto-loads. `voyager-team-context` is a context shim, not a tool.
+- Thinking frameworks. `mission`, `voyager-feature-spec`, `voyager-operating-principles` are mental scaffolding.
+- Intent matching. The skill's description IS the value.
+- Pure orchestration that's already minimal: "call this one MCP tool with these args."
+
+When a skill grows past roughly 100 lines of "do this, then this, then this" workflow logic, it's a candidate to refactor into a composite MCP tool. The skill body shrinks to "Call X. Show drafts. Confirm before scheduling." The MCP server holds the actual workflow. The model still picks the skill by intent, but most of the work happens server-side where it can be versioned, tested, and updated without touching upload paths.
+
+### Why this matters
+
+Three reasons it pays off, in priority order:
+
+1. **Alex doesn't change.** Her Chat skills stay thin and stable. Workflow improvements ship via Worker deploys. She never re-uploads to use the latest.
+2. **Less manual upload friction.** A 50-line skill that calls one composite MCP tool needs uploading once. A 500-line skill with embedded workflow logic needs re-uploading every time we change the workflow.
+3. **Versioning lives in code.** MCP server changes go through Git, CI, deploy, with type-checked schemas. Composite logic embedded in skill bodies is harder to version-control across the upload path and easier to drift between surfaces.
+
+### Audit cadence
+
+**When proposing a new skill,** ask first: could this be a composite MCP tool with a thin skill calling it? If yes, build the MCP tool first, then write the skill as a thin wrapper. The skill becomes the intent matcher; the tool does the work.
+
+**For existing skills,** periodic review. Any skill body over ~100 lines of workflow logic is a candidate for the shrink-toward-thin-orchestrator treatment. See `docs/skills-vs-mcp-roadmap.md` once it's written (next session).
+
+**Never refactor brand-voice or thinking-framework skills.** `voyager-voice`, `voyager-team-context`, `mission`, `voyager-feature-spec`, `voyager-operating-principles`, `voyager-seo-approach` are prompt content by design. Their entire value is the skill body itself. Leave them thick.
+
+---
+
 ## Starting a session
 
 If this session was handed off from Chat via `voyager-mission-write`, the first move is always:

@@ -6,6 +6,29 @@ Format: reverse chronological. Date-anchored entries group the work done that da
 
 ---
 
+## 2026-04-29 — Architecture doc: skills vs MCP, two layers
+
+Added the foundational architecture section to `CLAUDE.md` that explains how skills and MCP coexist and where each one's logic should live. The principle: **thin skills, thick MCP**. Skills are intent-matchers and thinking frameworks; MCP holds workflows and service calls. MCP propagates instantly across all surfaces; skills propagate slowly via manual upload to the Chat panel. Default to MCP for workflow logic.
+
+The doc captures the propagation asymmetry that drives the architecture choice — MCP changes hit Alex on her next call, skill changes require a manual re-upload to her Org panel — and the threshold rule for when an existing skill becomes a refactor candidate (~100 lines of "do this then this then this" workflow logic).
+
+**`CLAUDE.md` additions:**
+- New section "Architecture — Skills and MCP, two layers" between "The four rules" and "Starting a session".
+- Propagation asymmetry table (Code / Chat Org panel / API library / MCP server).
+- Design principle: "thin skills, thick MCP" with explicit move-to-MCP and keep-in-skill lists.
+- Audit cadence: when proposing new skills (default to MCP), when reviewing existing (~100 line threshold).
+- Brand-voice/thinking skills explicitly carved out as never-refactor: `voyager-voice`, `voyager-team-context`, `mission`, `voyager-feature-spec`, `voyager-operating-principles`, `voyager-seo-approach`.
+
+**New files:**
+- `docs/audit-skills-vs-mcp.md` — self-contained starter prompt for a fresh session that audits Live skills against the architecture rule and produces a roadmap. Constraint: audit only, no actual refactor work in that session.
+- Memory entry `feedback_skills_vs_mcp.md` (in user's auto-memory) — quick-reference rule for future sessions, points at this CLAUDE.md section as canonical.
+
+**Why now:** the question came up directly during the API testing session. Alex's pain comes from skill upload being manual while MCP propagates instantly. Documenting the architecture made the implicit explicit so future skill-add and skill-edit decisions are consistent.
+
+**Followup:** when a session's available, run the audit prompt at `docs/audit-skills-vs-mcp.md` and produce `docs/skills-vs-mcp-roadmap.md`. Likely candidates ahead of time: `publish` (gates + validation), `onboard-client` (multi-phase), `social` (5 modes), `prospect-audit` (scoring + report rendering).
+
+---
+
 ## 2026-04-29 — Rename `social-repurpose` → `social`; eval-pass batch (8 skills)
 
 ### Rename + redesign: `social-repurpose` → `social`
