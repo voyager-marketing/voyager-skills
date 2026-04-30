@@ -6,6 +6,52 @@ Format: reverse chronological. Date-anchored entries group the work done that da
 
 ---
 
+## 2026-04-30 — Skill-creator eval batch on Tier 1 refactors + 2 safety fixes
+
+Resolved the eval gate that the Tier 1 batch deferred. Six parallel agent evals against the refactored skills using `skill-creator`'s evaluation criteria (description triggering accuracy, body quality, generalization, "explains the why", architecture compliance). Two safety-relevant findings fixed inline.
+
+### Eval results (6/6 PASS-WITH-NOTES, 0 FAIL)
+
+| Skill | Verdict | Triggering | Architecture | Notable finding |
+|---|---|---|---|---|
+| `content-audit` | PASS-WITH-NOTES | 5/5 | ✓ | "How's content doing" misroute risk vs `report` / `content-tracker`. Possible duplication of existing `content_audit` MCP tool — verify before extending. |
+| `prospect-audit` | PASS-WITH-NOTES | 5/5 | ✓ | "Competitor site" trigger phrase over-broad. Routing collision risk with `content-audit` on existing-client domains. |
+| `report` | PASS-WITH-NOTES | 5/5 | ✓ | Slug-mismatch silent-fail risk on partial client names. "Fleet health report" borderline misroute. |
+| `provision-site-data` | PASS-WITH-NOTES | 5/5 | ✓ | Args-shape TODO (line 77, nested vs flat `social`) is the live silent-failure surface. Needs server-side verification against `voyager-orbit/provision-site-data` ability schema. |
+| `onboard-client` | PASS-WITH-NOTES | 5/5 + safety ✓ | ✓ | Step 3c HARD BLOCK preserved cleanly with all 5 sub-checks intact. Unresolved `set-sync-filter` ability TODO + prose-only dry-run check creates a silent-no-op path on the gate. **Fixed inline** (see below). |
+| `voyager-image-editor` | PASS-WITH-NOTES | 5/5 across all 6 mode permutations | ✓ | Client-isolation rule worded as behavior, not assertion. "Save it" follow-up could anchor to prior-turn site context. **Fixed inline** (see below). |
+
+### Safety fixes applied
+
+**`skills/onboard-client/SKILL.md` Step 3c — hard-assertion on dry-run output.**
+The HARD BLOCK gate's effectiveness depended on the operator manually scanning the dry-run output. If the unresolved `set-sync-filter` ability TODO turns out to be a missing slug, the call silently no-ops and the dry-run runs against an unfiltered database. If no other-client content happens to be in that database at that moment, "STOP if other-client content appears" wouldn't fire — and the operator could read the output and consider it passed.
+
+Fix: the dry-run verify now requires the literal substring `Client filter: Client = {page-id}` to appear in the output. Absence of that exact line is treated as failure even when no other-client content is visible. "Do not proceed on the absence of evidence" wording added explicitly. The original "STOP if other-client content appears" check is preserved as the second assertion.
+
+**`skills/voyager-image-editor/SKILL.md` Client-isolation rule — prior-turn context.**
+Eval found a real silent-failure path: a "save it" or "upload it" follow-up after a generation could anchor to a site name from an earlier message in the conversation, bypassing the "ask if ambiguous" rule because the model treats the prior reference as implicit consent.
+
+Fix: added the explicit rule that "Prior-turn context does not count." The user's most recent message must contain the site/drive name verbatim, otherwise ask. Mirrored on `image_save_to_drive` for `drive_folder`.
+
+### Notes deferred (polish, not blockers)
+
+These are real findings but they're routing-accuracy polish or require server-side verification that belongs in Tier 2. Tracking here so they don't get lost:
+
+- **`content-audit`**: tighten description to add "for content (not analytics performance)" qualifier; verify whether the existing `content_audit` MCP tool already supports the `mode: "full"` rollup the skill currently fans out client-side.
+- **`prospect-audit`**: replace "analyze a competitor site" trigger phrase with "analyze a competitor site for a sales pitch" to reduce false-fire on internal competitive research. Add negative-cue line: "For existing-client content audits, use `content-audit` instead."
+- **`report`**: tighten description to "client report (single-client monthly performance)" to disambiguate from fleet-health and other report types. Add Step 1 "why" sentence about slug-mismatch risk. Add explicit "if `client_get_profile` returns >1 match, do NOT proceed" halt.
+- **`provision-site-data`**: resolve line 77 TODO via test against actual ability schema (Tier 2 server-side scope).
+- **`onboard-client`**: resolve line 72 TODO (`set-sync-filter` ability slug confirmation) and line 79 TODO (`pattern_sync_to_site` setting `pattern_cloud_url`) via test (Tier 2 scope). The hard-assertion fix above makes a silent-no-op detectable in the meantime.
+- **`voyager-image-editor`**: add inline TODO for the Tier 2 `image_generate_and_attach` composite that would collapse the multi-step upload+set-featured chain.
+
+### Eval methodology
+
+Six parallel `general-purpose` agents, one per skill. Each agent read `skills/skill-creator/SKILL.md` for criteria, read the target SKILL.md, generated 3 should-fire + 2 should-skip prompts, predicted Claude's routing decision against the description, walked through body quality (imperative form, generalizes, explains the why), checked architecture compliance against the audit recommendation, surfaced the most likely silent-failure mode, and returned a structured verdict.
+
+Sequential single-session re-eval after the safety fixes is deferred — the changes are additive (stronger assertions, explicit rule extension), no behavior was removed.
+
+---
+
 ## 2026-04-30 — Tier 1 thin-skill refactor batch (6 skills) + roadmap doc
 
 Executed the audit prompt at `docs/audit-skills-vs-mcp.md` and shipped Tier 1 of the resulting roadmap (`docs/skills-vs-mcp-roadmap.md`). Tier 1 is the subset of refactor candidates whose target MCP primitives already exist on `voyager-mcp-server`, so the skill rewrite ships in this repo without any Cloudflare Worker deploy. Tier 2 (7 skills needing new or extended composite tools) is staged for a follow-up session on the MCP server repo.

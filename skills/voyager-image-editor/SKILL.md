@@ -61,7 +61,9 @@ Call `image_library_list({ filters })` with prefix, date, or keyword filters. Re
 
 Voyager runs 15+ client sites. **Never infer the destination.** The `site` parameter on `wp_upload_media` is mandatory and must be explicitly named by the user. There is no alphabetical-first fallback. There is no "the obvious one." If the user says "save it to the client site" without a name, ask which client. Cross-client image upload is the worst footgun in this skill.
 
-Same rule for `image_save_to_drive`: `drive_folder` must be explicit.
+**Prior-turn context does not count.** If the user's most recent message does not contain the site or drive name verbatim, ask before calling. A site mentioned three turns ago is not consent for the current upload. This includes any "save it" / "upload it" / "use it as featured" follow-up where the user did not re-state the site.
+
+Same rule for `image_save_to_drive`: `drive_folder` must be explicit, and prior-turn references do not count.
 
 ### Save to client Drive
 

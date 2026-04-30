@@ -70,9 +70,11 @@ Run `wp_execute_ability(site, "voyager-orbit/provision-site-data", { phone, emai
 
 1. Use the Client Profile page ID from Step 1.
 2. Run `wp_execute_ability(site, "voyager-blocks/set-sync-filter", { alias: "content", property: "Client", value: "<client-notion-page-id>", type: "relation" })`. <!-- TODO: confirm ability slug; if not exposed, fall back to wp_run_cli with the update_option pattern from the prior version. -->
-3. **Dry-run verify** with `wp_run_cli(site, "voyager notion sync --database=content --dry-run")`. Output must show `Client filter: Client = {page-id} (relation)` and list only this client's content. If other-client content appears, **STOP and fix before continuing.**
+3. **Dry-run verify** with `wp_run_cli(site, "voyager notion sync --database=content --dry-run")`. **Hard assertion:** the output must contain the literal substring `Client filter: Client = {page-id}` (with the actual page ID). If that exact line is absent — even if no other-client content appears — treat as failure and **STOP**. The set-sync-filter call may have silently no-op'd (ability not exposed, wrong slug, malformed args) and the sync would run unfiltered. Do not proceed on the absence of evidence.
 
-Onboarding is not complete until the dry-run passes.
+If the line IS present, also verify the listed content shows only this client's items. If other-client content appears, **STOP and fix before continuing.**
+
+Onboarding is not complete until the dry-run passes both checks.
 
 ## Step 3d: Verify Pattern Cloud Sync
 
