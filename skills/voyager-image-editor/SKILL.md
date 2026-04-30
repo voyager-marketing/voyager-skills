@@ -1,10 +1,10 @@
 ---
 name: voyager-image-editor
-description: "Generate, edit, or save images via the Voyager MCP server's Gemini-backed image_generate / image_edit tools and wp_upload_media. Use this skill when the user asks to generate, create, draw, design, make a picture of, or render an image; OR when they ask to edit, modify, retouch, remove, replace, change, swap, or adjust something in an existing image; OR when they ask to save the last generated image to the WordPress media library / set it as a featured image. Handles the full flow end-to-end: invokes the MCP tool, downloads the output, previews inline, and optionally persists to WP media."
+description: "Generate, edit, or save images via the Voyager MCP server's Gemini-backed image_generate / image_edit tools, wp_upload_media (WordPress), and image_save_to_drive (Google Drive). Use this skill when the user asks to generate, create, draw, design, make a picture of, or render an image; OR when they ask to edit, modify, retouch, remove, replace, change, swap, or adjust something in an existing image; OR when they ask to save the last generated image to a WordPress media library, set it as a featured image, or drop it into a Google Drive folder (client folder or AI Image Library). Handles the full flow end-to-end: invokes the MCP tool, downloads the output, previews inline, and optionally persists to WP media or Drive."
 argument-hint: "[prompt]"
 user-invocable: true
 owner: Ben
-last_reviewed: 2026-04-29
+last_reviewed: 2026-04-30
 ---
 
 # Voyager Image Editor
@@ -20,7 +20,8 @@ Pick one based on the user's intent:
 
 - **`image_generate`** — they want something new, from a description. Phrases: "generate", "create", "draw", "design", "render", "make an image of", "picture of", "illustration of".
 - **`image_edit`** — they want to change something that already exists. Phrases: "edit", "modify", "remove", "replace", "change", "swap", "add [X] to [this]", "make [X] [different]", "retouch", "fix".
-- **`save`** — they want to keep the *last-generated* image permanently. Phrases: "save that", "keep this one", "upload that to the media library", "use that as the featured image for [post]", "save as hero for [post]". See Flow C.
+- **`save to WordPress`** — they want to keep the *last-generated* image in a client's WordPress media library or set it as a featured image. Phrases: "upload that to the media library", "save as featured image for [post]", "save as hero for [post]". See Flow C.
+- **`save to Drive`** — they want the image in the Voyager Drive workspace (a client folder or the shared AI Image Library). Phrases: "save to Drive", "drop it in [client]'s folder", "add to the AI image library", "save these for STF", "save the May social batch". See Flow D.
 
 If the user attached an image in the conversation and is asking something, default to `image_edit` — the attachment is a strong signal.
 
@@ -271,6 +272,91 @@ curl -s https://voyager-mcp-server.ben-f3a.workers.dev/mcp \
 ### C.4 — Don't save?
 
 If the user is iterating and hasn't said save, leave it alone. The local `/tmp/voyager-image-*.png` persists until system reboot, and the R2 object is good for 24h. Regenerating is cheap ($0.039 flash).
+
+## Flow D — Save to Google Drive
+
+Use `image_save_to_drive` when the user wants the image in their Voyager Drive workspace, not a client's WordPress site. Common phrases: *"save that to Drive"*, *"drop it in [client]'s folder"*, *"add to the AI image library"*, *"save these for STF"*, *"save the May social batch"*.
+
+The MCP tool resolves the destination folder using this priority:
+
+1. **Explicit `folder_id`** (override). Use only when the user gave you a literal Drive folder ID.
+2. **`client` argument.** The tool fuzzy-matches against the Voyager Clients Shared Drive, then finds-or-creates `<Client>/AI Images/` inside the matched folder.
+3. **Fallback** to `_AI Image Library` at the root of Voyager Clients when no `client` is given or no match is found.
+
+The response includes `folder_path` (e.g. `Smooth Transitions/AI Images`), `resolution` (one of `explicit`, `client_match`, `fallback_no_client`, `fallback_no_match`), and `fellback_to_library: true` when the fallback path was used.
+
+### D.1 — Acronym translation (do this before calling)
+
+Voyager uses internal acronyms in chat. Drive folder names use prose. Translate the acronym to the prose name **before** calling `image_save_to_drive`, otherwise the tool will fall back to `_AI Image Library`.
+
+| Acronym | Drive folder name |
+|---|---|
+| STF | Smooth Transitions |
+
+If the user gives an acronym that is not in this table:
+
+1. Try the literal acronym first. If the response sets `fellback_to_library: true`, the lookup missed.
+2. Ask the user what client they meant, or call `drive_list_client_folders` (returns 70+ folders) and let them pick. `drive_find_client_folder({ client: "..." })` is faster when you have a guess — it returns one of `match: "exact" | "unique" | "ambiguous" | "none"`.
+3. After resolving, mention the mapping so it gets added to this table next time the skill is updated.
+
+### D.2 — Save call
+
+```bash
+TOKEN="${VOYAGER_MCP_TOKEN:-$(cat ~/.voyager-mcp-token 2>/dev/null)}"
+URL=$(cat /tmp/last_image_url.txt)
+TITLE="meaningful-filename.png"
+CLIENT="smooth transitions"  # translate any acronym FIRST (e.g. STF → "smooth transitions")
+
+cat > /tmp/drive_save_req.json <<EOF
+{"jsonrpc":"2.0","id":5,"method":"tools/call","params":{"name":"image_save_to_drive","arguments":{
+  "signed_url": "$URL",
+  "title": "$TITLE",
+  "client": "$CLIENT"
+}}}
+EOF
+
+RESP=$(curl -s https://voyager-mcp-server.ben-f3a.workers.dev/mcp \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Accept: application/json, text/event-stream" \
+  -d @/tmp/drive_save_req.json)
+
+python3 -c "
+import json, sys
+d = json.load(sys.stdin)
+p = json.loads(d['result']['content'][0]['text'])
+data = p.get('data', {})
+print('Saved to:', data.get('folder_path'))
+print('View URL:', data.get('view_url'))
+print('Resolution:', data.get('resolution'))
+if data.get('fellback_to_library'):
+    print('NOTE: fell back to _AI Image Library — the client argument did not match a folder')
+" <<< "$RESP"
+```
+
+`signed_url` and `r2_key` are interchangeable inputs — the tool extracts the R2 key from a signed URL. Don't pass both.
+
+### D.3 — Browse / find before saving
+
+When the user asks *"what clients do we have folders for?"* or you need to disambiguate a name, call `drive_list_client_folders`. It hides infrastructure folders (anything prefixed `_`) automatically.
+
+```bash
+curl -s https://voyager-mcp-server.ben-f3a.workers.dev/mcp \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Accept: application/json, text/event-stream" \
+  -d '{"jsonrpc":"2.0","id":6,"method":"tools/call","params":{"name":"drive_list_client_folders","arguments":{}}}'
+```
+
+For a single fuzzy lookup, prefer `drive_find_client_folder({ client: "..." })`. Handle the four match shapes:
+
+- `match: "exact"` or `"unique"` — use `folder.id` directly as `folder_id` on the save call.
+- `match: "ambiguous"` — show the candidates to the user and ask which one. Don't guess.
+- `match: "none"` — fall back to the `client` argument with `fellback_to_library: true` accepted, OR ask the user for the right name.
+
+### D.4 — Drive vs WordPress?
+
+If the user says *"save that"* without specifying, prefer Flow C.1 (R2 library URL, already persisted). Drive saves are explicit only — never default to Drive without a clear "save to Drive" / "in [client]'s folder" / "AI image library" cue.
 
 ## Response shape (both tools)
 
