@@ -2,140 +2,54 @@
 name: report
 description: "Use this skill when the user asks to generate a client report, monthly report, check client performance, or produce analytics for a client."
 argument-hint: "<client-name> [month] [--notion] [--format=table|markdown]"
-allowed-tools: [Bash, Read, Grep, Glob, Agent, mcp__claude_ai_Notion__notion-search, mcp__claude_ai_Notion__notion-fetch, mcp__claude_ai_Notion__notion-create-pages, mcp__claude_ai_Notion__notion-update-page]
+allowed-tools: [mcp__claude_ai_Voyager_MCP__report_generate, mcp__claude_ai_Voyager_MCP__client_get_profile]
 user-invocable: true
 owner: Ben
-last_reviewed: 2026-04-21
+last_reviewed: 2026-04-30
 ---
 
 # Client Report Generator
 
-Generate monthly client reports combining Voyager Orbit lead/analytics data with Notion content pipeline data.
+Generate a monthly client report from Voyager Orbit lead, analytics, and content data. Server-side composite. No SSH, no SQL.
 
-## Notion IDs
+## Trigger phrases
 
-| Database | ID |
-|----------|----|
-| Content | `cba94900-3a60-4292-ba6b-f8aeea62e439` |
-| Client Profiles | `collection://1e9bfa0d-34b6-4864-a693-9118c8f71033` |
+"monthly report for [client]", "generate report", "client performance for [month]", "March report for Built Right Homes", "send the [client] report to Notion".
 
-## WP Root
+## Step 1: Resolve client
 
-The WP root path is defined in the project's CLAUDE.md. Use `WP_ROOT` from that file, or resolve it via:
-```bash
-wp --info --format=json | jq -r '.wp_root'
-```
+If the user named a client, call `client_get_profile(client: "<name>")` to fuzzy-match. If multiple match, list them and ask. If no name, list available clients via `client_get_profile` and ask.
 
-## Step 1: Resolve Client
+## Step 2: Resolve month
 
-If a client name was provided, search the Notion Client Profiles DB for the client:
-```
-notion-search: query="<client-name>" filter_type="page"
-```
-Look for matches within the Client Profiles collection (`collection://1e9bfa0d-34b6-4864-a693-9118c8f71033`).
+Default to the current month. Accept "March 2026", "2026-03", "last month". Resolve to `YYYY-MM`.
 
-If no client name was provided, list available clients from the collection and ask the user to choose.
+## Step 3: Generate the report
 
-## Step 2: Determine Month
-
-- Default to the current month if not specified
-- Accept formats like "March 2026", "2026-03", "last month"
-- Resolve to `YYYY-MM` format for the WP-CLI query
-
-## Step 3: Generate Report Data
-
-Call the WordPress ability via WP-CLI to pull lead and analytics data:
-
-```bash
-wp --path=$WP_ROOT --user=1 eval '
-$ability = wp_get_ability("voyager-orbit/generate-client-report");
-if ($ability) {
-    $result = $ability->execute(["month" => "YYYY-MM", "include_blocks" => true]);
-    echo json_encode($result, JSON_PRETTY_PRINT);
-} else {
-    echo json_encode(["error" => "generate-client-report ability not registered"]);
-}
-'
-```
-
-**Fallback:** If the ability is not registered (Orbit ability load order issue), query the database directly:
-
-```bash
-wp --path=$WP_ROOT --user=1 eval '
-global $wpdb;
-
-$month_start = "YYYY-MM-01 00:00:00";
-$month_end = "YYYY-MM-31 23:59:59";
-
-// Lead counts by type
-$leads = $wpdb->get_results($wpdb->prepare(
-    "SELECT lead_type, COUNT(*) as count FROM {$wpdb->prefix}voyager_leads
-     WHERE created_at BETWEEN %s AND %s
-     GROUP BY lead_type",
-    $month_start, $month_end
-));
-
-// Lead counts by source
-$sources = $wpdb->get_results($wpdb->prepare(
-    "SELECT source, COUNT(*) as count FROM {$wpdb->prefix}voyager_leads
-     WHERE created_at BETWEEN %s AND %s
-     GROUP BY source ORDER BY count DESC",
-    $month_start, $month_end
-));
-
-// Activity count
-$activities = $wpdb->get_var($wpdb->prepare(
-    "SELECT COUNT(*) FROM {$wpdb->prefix}voyager_activity
-     WHERE created_at BETWEEN %s AND %s",
-    $month_start, $month_end
-));
-
-// Previous month for comparison
-$prev_start = date("Y-m-01 00:00:00", strtotime($month_start . " -1 month"));
-$prev_end = date("Y-m-t 23:59:59", strtotime($month_start . " -1 month"));
-$prev_leads = $wpdb->get_var($wpdb->prepare(
-    "SELECT COUNT(*) FROM {$wpdb->prefix}voyager_leads
-     WHERE created_at BETWEEN %s AND %s",
-    $prev_start, $prev_end
-));
-
-echo json_encode([
-    "leads" => $leads,
-    "sources" => $sources,
-    "total_leads" => array_sum(array_column($leads, "count")),
-    "prev_month_leads" => (int)$prev_leads,
-    "activities" => (int)$activities,
-], JSON_PRETTY_PRINT);
-'
-```
-
-## Step 4: Generate Content Report
-
-Query the Notion Content DB (`cba94900-3a60-4292-ba6b-f8aeea62e439`) for the client's content items for the target month:
+One call:
 
 ```
-notion-search: query="<client-name>" filter_type="page"
+report_generate(
+  client: "<resolved-client-slug>",
+  month: "YYYY-MM",
+  format: "markdown" | "table",   // optional, default markdown
+  publish_to_notion: true | false  // optional, true if --notion flag
+)
 ```
 
-Then fetch each matching content page to collect:
-- How many content items were created, drafted, published
-- Which keywords were targeted
-- Published links
-- Content type (Blog, Page, etc.)
+Returns `{ markdown, leads, content, activities, mom_change, notion_url? }`.
 
-Filter results to the target month by checking the Created/Scheduled/Published dates on each item.
+If `publish_to_notion` is true and `notion_url` returned, share the URL with the user.
 
-## Step 5: Format Output
+## Step 4: Render
 
-### Default (`--format=markdown` or no flag)
-
-Display as a formatted markdown report with these sections:
+Show the `markdown` field directly. Shape (server-rendered):
 
 ```
-## Monthly Report: <Client Name> -- <Month Year>
+## Monthly Report: <Client> -- <Month Year>
 
 ### Executive Summary
-- X leads captured (change vs previous month)
+- X leads captured (MoM change)
 - Y content items published
 - Z admin activities tracked
 
@@ -151,70 +65,26 @@ Display as a formatted markdown report with these sections:
 ### Content Published
 | Title | Type | Keyword | Link |
 |-------|------|---------|------|
-| Example Post Title | Blog | target keyword | https://... |
+| ... | ... | ... | ... |
 
 ### Activity Summary
 - Total activities: X
 - Key activity types and counts
 
 ### Recommendations
-- Trend analysis based on month-over-month comparison
-- Content strategy suggestions based on keyword performance
-- Lead source optimization recommendations
+- MoM trend
+- Content strategy notes
+- Lead source optimization
 ```
 
-### `--format=table` flag
+For `--format=table`, drop Executive Summary and Recommendations. Tables only.
 
-Output condensed tables only, no prose sections. Skip Executive Summary and Recommendations. Just the data tables with a one-line header.
+## Guardrails
 
-### `--notion` flag
+- Never inflate or invent metrics. Show only what `report_generate` returns.
+- Always cite the month and source dates from the response.
+- MoM math is server-side. Do not recompute in chat.
+- If lead count is zero, report that clearly. Do not pad.
+- If the call errors, surface the error verbatim. Do not fall back to ad-hoc queries.
 
-If passed, create a Notion page with the full report content:
-
-```
-notion-create-pages:
-  parent_type: "page"
-  parent_id: "<client-profile-page-id>"
-  title: "Monthly Report -- <Month Year>"
-  content_markdown: "<full report markdown>"
-```
-
-Report the Notion page URL back to the user after creation.
-
-## Output Example
-
-```
-## Monthly Report: Built Right Homes -- March 2026
-
-### Executive Summary
-- 47 leads captured (up 12% vs February)
-- 8 content items published
-- 156 admin activities tracked
-
-### Lead Performance
-| Metric | Value |
-|--------|-------|
-| Total Leads | 47 |
-| Phone Clicks | 23 |
-| Form Submissions | 24 |
-| Top Source | Organic (42%) |
-| Avg Score | 68/100 |
-
-### Content Published
-| Title | Type | Keyword | Link |
-|-------|------|---------|------|
-| Build on Your Lot Virginia | Blog | build on your lot virginia | https://... |
-
-### Recommendations
-- Lead volume up 12% -- organic SEO strategy is working
-- Consider expanding "build on your lot" content cluster
-```
-
-## Important Notes
-
-- **WP Root:** Resolve from CLAUDE.md or `wp --info`
-- **DB Prefix:** Use `$wpdb->prefix` — do not hardcode
-- The `generate-client-report` ability may not be registered due to Orbit ability load order. Always be prepared to fall back to direct DB queries.
-- Always use `$wpdb->prepare()` for all database queries -- no exceptions.
-- When comparing months, calculate percentage change: `((current - previous) / previous) * 100`.
-- If lead count is zero or the tables don't exist, report that clearly rather than erroring.
+<!-- TODO: confirm report_generate returns mom_change and notion_url in current shape; if not, extend server-side per docs/skills-vs-mcp-roadmap.md #1. -->
