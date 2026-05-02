@@ -6,6 +6,21 @@ Format: reverse chronological. Date-anchored entries group the work done that da
 
 ---
 
+## 2026-05-02 — Bridge Mode tools cataloged (TK-1761)
+
+Four new tools shipped on `voyager-mcp-server` (TK-1757–1760, PRs #32 / #33 / #35 / #36 merged to main; smoke tests + catalog drift coverage in PR #37 / TK-1761). Cosmetic + visualization layer — purely MCP-side, no skill changes in this repo. Cataloged in the canonical [MCP Tools DB](https://www.notion.so/ae2cad4639a74f189e3e2d9af3121ecc).
+
+| Tool | Purpose |
+|---|---|
+| `bridge_engage` | Engage ships-computer persona for the rest of the session. Returns instruction text per intensity (`subtle` / `full` / `dramatic`). |
+| `bridge_disengage` | Drop the persona and return to standard Voyager voice. |
+| `bridge_starmap` | SVG constellation map of the fleet. Stars sized by retainer tier, brightness by health, sector grouping by industry. Three themes, optional legend, capped under 50KB. |
+| `bridge_logbook` | Stardate-formatted (`YYYY.DDD`) ship's log narrative over `today` / `yesterday` / `week` / `month` windows in `formal` / `dramatic` / `wry` tones. Pulls from Portal client list; Notion Tasks DB and Stripe payment data are stubbed pending separate Portal endpoints. |
+
+All four are `Server: Voyager MCP`, `Auth: OAuth`, `Status: Live`, `Cost per call: Free`. No skills in this repo invoke them yet — they're cosmetic and user-triggered. The original TK-1761 spec referenced a markdown "Skills & MCP Map" doc that doesn't exist in this repo (the live "🗺️ Voyager Skills & MCP Map" Notion page is under Archived Databases and predates the catalog DB split). Per Rule 1 in `CLAUDE.md`, the canonical catalog for MCP tools is the Notion DB — that's what got the four new rows.
+
+---
+
 ## 2026-04-30 — Skill-creator eval batch on Tier 1 refactors + 2 safety fixes
 
 Resolved the eval gate that the Tier 1 batch deferred. Six parallel agent evals against the refactored skills using `skill-creator`'s evaluation criteria (description triggering accuracy, body quality, generalization, "explains the why", architecture compliance). Two safety-relevant findings fixed inline.
