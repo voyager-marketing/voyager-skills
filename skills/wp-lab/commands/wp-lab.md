@@ -12,10 +12,16 @@ The user wants to spin up a WordPress development environment. Use $ARGUMENTS to
 ### Mode detection logic
 
 - If $ARGUMENTS contains `--preset` or a preset name: load the preset, use its mode
-- If $ARGUMENTS contains `ephemeral`, `quick`, `test`, `poke`, `explore`: use ephemeral
-- If $ARGUMENTS contains `dev`, `develop`, `continuous`, `project`, `ongoing`: use continuous
-- If just a plugin slug with no other context: default to ephemeral
+- If $ARGUMENTS contains `ephemeral`, `quick`, `test`, `poke`, `explore`: use ephemeral (throwaway)
+- If $ARGUMENTS is a path to a real project dir (theme/plugin repo): use ephemeral but
+  spawn wp-now **from that dir** so DB persists at `~/.wp-now/wp-content/<hash>/` —
+  this is the non-Docker continuous workflow.
+- If $ARGUMENTS contains `dev`, `develop`, `continuous`, `ongoing` AND Docker is available
+  AND a multi-plugin stack is needed: use continuous (wp-env)
+- If just a plugin slug with no other context: default to ephemeral throwaway
 - If a `.wp-env.json` already exists in the current directory: use continuous
+
+Default PHP version: **8.4**. Override with `--php=<version>`.
 
 ### Execution steps
 
@@ -29,7 +35,7 @@ The user wants to spin up a WordPress development environment. Use $ARGUMENTS to
    - **Local path:** validate it exists, use directly
    - **Preset:** read the preset JSON from `skills/wp-lab/presets/<name>.json`
 4. Launch:
-   - **Ephemeral:** `cd <target-dir> && npx @wp-now/wp-now start`
+   - **Ephemeral:** `cd <target-dir> && npx @wp-now/wp-now start --php=8.4`
    - **Continuous:** generate `.wp-env.json` from preset or target, then `npx @wordpress/env start`
 5. Report:
    - Local URL and port

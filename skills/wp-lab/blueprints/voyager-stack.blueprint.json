@@ -1,0 +1,83 @@
+{
+  "$schema": "https://playground.wordpress.net/blueprint-schema.json",
+  "meta": {
+    "title": "Voyager Standard Stack",
+    "description": "Drop into the root of a Voyager child-theme repo as 'blueprint.json' so wp-now picks it up on start. Boots a full Voyager environment: parent block theme + core/blocks/orbit plugin suite, with the cwd activated as the child theme. Companion to skills/wp-lab/presets/voyager-stack.json.",
+    "author": "Voyager Marketing",
+    "categories": ["voyager", "client-build"]
+  },
+  "preferredVersions": {
+    "php": "8.4",
+    "wp": "latest"
+  },
+  "phpExtensionBundles": ["kitchen-sink"],
+  "features": {
+    "networking": true
+  },
+  "landingPage": "/wp-admin/site-editor.php",
+  "login": true,
+  "steps": [
+    {
+      "step": "defineWpConfigConsts",
+      "consts": {
+        "WP_DEBUG": true,
+        "WP_DEBUG_LOG": true,
+        "SCRIPT_DEBUG": true,
+        "WP_ENVIRONMENT_TYPE": "development",
+        "WP_DEVELOPMENT_MODE": "theme",
+        "DISALLOW_FILE_EDIT": true
+      }
+    },
+    {
+      "step": "installTheme",
+      "themeData": {
+        "resource": "git:directory",
+        "url": "https://github.com/voyager-marketing/voyager-block-theme.git",
+        "ref": "main",
+        "path": "/"
+      },
+      "options": { "activate": false },
+      "_comment": "Parent theme. Replace with {resource: 'literal', files: {...}} or a 'literal' filesystem mount if working offline. wp-now resolves git: resources via Playground when online."
+    },
+    {
+      "step": "installPlugin",
+      "pluginData": {
+        "resource": "git:directory",
+        "url": "https://github.com/voyager-marketing/voyager-core.git",
+        "ref": "main",
+        "path": "/"
+      },
+      "options": { "activate": true }
+    },
+    {
+      "step": "installPlugin",
+      "pluginData": {
+        "resource": "git:directory",
+        "url": "https://github.com/voyager-marketing/voyager-blocks.git",
+        "ref": "main",
+        "path": "/"
+      },
+      "options": { "activate": true }
+    },
+    {
+      "step": "installPlugin",
+      "pluginData": {
+        "resource": "git:directory",
+        "url": "https://github.com/voyager-marketing/voyager-orbit.git",
+        "ref": "main",
+        "path": "/"
+      },
+      "options": { "activate": true }
+    },
+    {
+      "step": "activateTheme",
+      "themeFolderName": "${CHILD_THEME_SLUG}",
+      "_comment": "wp-now mounts the cwd at /wp-content/themes/<basename>. The active child theme is whatever directory you launch wp-now from. Replace ${CHILD_THEME_SLUG} or remove this step and activate manually post-boot via: npx wp-now wp theme activate <slug>."
+    },
+    {
+      "step": "runWpCli",
+      "command": "wp option update blogname 'Voyager Dev — local'",
+      "_comment": "Cosmetic. Override per-client."
+    }
+  ]
+}

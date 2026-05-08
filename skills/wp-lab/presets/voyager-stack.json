@@ -1,0 +1,73 @@
+{
+  "name": "voyager-stack",
+  "description": "Standard Voyager build environment: voyager-block-theme parent + core/blocks/orbit plugin suite. Run from a Voyager child-theme repo (e.g. va-exteriors) and wp-now mounts the cwd as the active theme. Run from any other dir and the preset scaffolds a fresh voyager-blank-child as the active theme.",
+  "mode": "ephemeral",
+  "persist_via": "project-dir",
+  "wp_version": "latest",
+  "php_version": "8.3",
+  "plugins": [
+    {
+      "source": "voyager-core",
+      "type": "local",
+      "path": "${VOYAGER_DEV_ROOT}/voyager-core",
+      "github": "https://github.com/voyager-marketing/voyager-core",
+      "note": "CPTs, meta fields, taxonomies, feature toggles. Required by orbit + blocks."
+    },
+    {
+      "source": "voyager-blocks",
+      "type": "local",
+      "path": "${VOYAGER_DEV_ROOT}/voyager-blocks",
+      "github": "https://github.com/voyager-marketing/voyager-blocks",
+      "note": "Reusable block library. Now consolidated under VOYAGER_DEV_ROOT (was at F:/dev/voyager/voyager-blocks until 2026-05-07)."
+    },
+    {
+      "source": "voyager-orbit",
+      "type": "local",
+      "path": "${VOYAGER_DEV_ROOT}/voyager-orbit",
+      "github": "https://github.com/voyager-marketing/voyager-orbit",
+      "note": "WP Abilities + MCP bridge + Portal sync. Pairs with voyager-core."
+    }
+  ],
+  "themes": [
+    {
+      "source": "voyager-block-theme",
+      "type": "local",
+      "path": "${VOYAGER_DEV_ROOT}/voyager-block-theme",
+      "github": "https://github.com/voyager-marketing/voyager-block-theme",
+      "slug": "voyager",
+      "note": "Parent theme. Slug 'voyager'. Required by every Voyager child theme via Template: voyager."
+    },
+    {
+      "source": "active-child",
+      "type": "cwd-or-scaffold",
+      "scaffold_from": "voyager-blank-child",
+      "scaffold_repo": "https://github.com/voyager-marketing/voyager-blank-child",
+      "note": "If cwd has style.css with 'Template: voyager', mount cwd as active theme. Otherwise clone voyager-blank-child into ./voyager-child-scratch and mount that. Activate via: npx wp-now wp theme activate <slug>"
+    }
+  ],
+  "config": {
+    "WP_DEBUG": true,
+    "WP_DEBUG_LOG": true,
+    "SCRIPT_DEBUG": true,
+    "WP_ENVIRONMENT_TYPE": "development",
+    "WP_DEVELOPMENT_MODE": "theme",
+    "DISALLOW_FILE_EDIT": true
+  },
+  "env_vars": {
+    "VOYAGER_DEV_ROOT": "${VOYAGER_DEV_ROOT:-F:/dev/voyager/wordpress}",
+    "VOYAGER_DIST_ROOT": "${VOYAGER_DIST_ROOT:-$HOME/.voyager-dist}"
+  },
+  "source_resolution": {
+    "default": "Prefer ~/.voyager-dist/<component>/latest if present, fall back to $VOYAGER_DEV_ROOT/<component> working tree.",
+    "--use-dev": "Force working trees, skip ~/.voyager-dist resolution. Use when actively editing core/blocks/orbit source.",
+    "sync": "Run scripts/voyager-dist-sync.sh sync to populate ~/.voyager-dist/ from GitHub Releases."
+  },
+  "post_start": [
+    "wp theme activate ${ACTIVE_CHILD_SLUG}",
+    "wp plugin activate voyager-core voyager-blocks voyager-orbit"
+  ],
+  "tier1_provision": {
+    "enabled": false,
+    "note": "After Tier 1 site data is added to Notion, run /provision-site-data <client> to push phone/email/address/hours/social URLs. Out of scope for local dev — only relevant on the SpinupWP dev/staging site."
+  }
+}

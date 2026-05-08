@@ -3,7 +3,7 @@
   "description": "Vanilla WordPress with no plugins or customizations",
   "mode": "ephemeral",
   "wp_version": "latest",
-  "php_version": "8.2",
+  "php_version": "8.3",
   "plugins": [],
   "themes": [],
   "config": {
