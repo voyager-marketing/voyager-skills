@@ -116,6 +116,22 @@ Or manually:
 2. Create `skills/my-skill/commands/my-skill.md` — slash command wrapper
 3. Run `./install.sh` to pick it up globally
 
+## Governance
+
+Validate skill frontmatter:
+
+```bash
+npm run validate
+```
+
+Print the private/imported/public inventory:
+
+```bash
+npm run inventory
+```
+
+Current direction: consume community skills aggressively, publish Voyager skills selectively, and keep private execution in Voyager MCP. See `docs/voyager-ai-os-roadmap.md` and `docs/community-skill-intake.md`.
+
 ---
 
 ## Directory Structure

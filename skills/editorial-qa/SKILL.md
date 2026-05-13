@@ -9,6 +9,11 @@ description: >
   "make this better", "punch this up".
 owner: Ben
 last_reviewed: 2026-04-21
+distribution: internal
+origin: voyager
+mcp_requirement: none
+logic_type: voice
+surface: all
 ---
 
 # Editorial QA

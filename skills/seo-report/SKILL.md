@@ -5,6 +5,11 @@ argument-hint: "[cluster 'topic'] [schema post_id] [ab 'headline'] [report]"
 user-invocable: true
 owner: Ben
 last_reviewed: 2026-04-21
+distribution: internal
+origin: voyager
+mcp_requirement: required
+logic_type: tool-wrapper
+surface: all
 ---
 
 # SEO Report — Analysis, Planning & Optimization

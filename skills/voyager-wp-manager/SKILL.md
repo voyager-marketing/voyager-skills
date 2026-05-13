@@ -6,6 +6,11 @@ allowed-tools: [mcp__claude_ai_Notion__notion-search, mcp__claude_ai_Notion__not
 user-invocable: true
 owner: Ben
 last_reviewed: 2026-04-21
+distribution: internal
+origin: voyager
+mcp_requirement: required
+logic_type: tool-wrapper
+surface: all
 ---
 
 # voyager-wp-manager

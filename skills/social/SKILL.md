@@ -13,6 +13,11 @@ description: >
   from [URL]", "how is social performing for [client]".
 owner: Ben
 last_reviewed: 2026-04-29
+distribution: internal
+origin: voyager
+mcp_requirement: required
+logic_type: workflow
+surface: all
 ---
 
 # Social

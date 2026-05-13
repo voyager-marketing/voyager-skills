@@ -5,6 +5,11 @@ argument-hint: "<client-name> [--verify-only] [--site=domain]"
 user-invocable: true
 owner: Ben
 last_reviewed: 2026-04-30
+distribution: internal
+origin: voyager
+mcp_requirement: required
+logic_type: workflow
+surface: all
 ---
 
 # Onboard Client

@@ -10,6 +10,11 @@ description: >
   when the user wants to tear down or clean up WordPress dev environments.
 owner: Ben
 last_reviewed: 2026-05-07
+distribution: internal
+origin: voyager
+mcp_requirement: none
+logic_type: workflow
+surface: claude-code
 ---
 
 # wp-lab

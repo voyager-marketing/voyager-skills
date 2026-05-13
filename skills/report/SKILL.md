@@ -6,6 +6,11 @@ allowed-tools: [mcp__claude_ai_Voyager_MCP__report_generate, mcp__claude_ai_Voya
 user-invocable: true
 owner: Ben
 last_reviewed: 2026-04-30
+distribution: internal
+origin: voyager
+mcp_requirement: required
+logic_type: tool-wrapper
+surface: all
 ---
 
 # Client Report Generator

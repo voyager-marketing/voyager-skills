@@ -8,6 +8,11 @@ description: >
   write about", "content calendar", "blog plan", "content pillars", "keyword research for content".
 owner: Ben
 last_reviewed: 2026-04-21
+distribution: internal
+origin: voyager
+mcp_requirement: required
+logic_type: workflow
+surface: all
 ---
 
 # Content Strategy

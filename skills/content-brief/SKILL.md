@@ -8,6 +8,11 @@ description: >
   "what should we write about", "content calendar for".
 owner: Ben
 last_reviewed: 2026-04-21
+distribution: internal
+origin: voyager
+mcp_requirement: required
+logic_type: workflow
+surface: all
 ---
 
 # Content Brief

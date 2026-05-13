@@ -6,6 +6,11 @@ allowed-tools: [Read, Write, mcp__claude_ai_Voyager_MCP__content_prospect_audit]
 user-invocable: true
 owner: Ben
 last_reviewed: 2026-04-30
+distribution: internal
+origin: voyager
+mcp_requirement: required
+logic_type: tool-wrapper
+surface: all
 ---
 
 # Prospect SEO Audit — Branded Sales Tool

@@ -5,6 +5,11 @@ argument-hint: "[client] [--mode freshness|images|gaps|performance|full] [--mont
 user-invocable: true
 owner: Ben
 last_reviewed: 2026-04-30
+distribution: internal
+origin: voyager
+mcp_requirement: required
+logic_type: tool-wrapper
+surface: all
 ---
 
 # Content Audit

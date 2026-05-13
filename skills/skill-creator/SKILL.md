@@ -3,6 +3,11 @@ name: skill-creator
 description: Create new skills, modify and improve existing skills, and measure skill performance. Use when users want to create a skill from scratch, edit, or optimize an existing skill, run evals to test a skill, benchmark skill performance with variance analysis, or optimize a skill's description for better triggering accuracy.
 owner: Anthropic (vendored)
 last_reviewed: 2026-04-29
+distribution: forked
+origin: vendor
+mcp_requirement: none
+logic_type: reference
+surface: claude-code
 ---
 
 # Skill Creator

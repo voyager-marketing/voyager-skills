@@ -6,6 +6,11 @@ allowed-tools: [Bash, Read, Grep, Glob, Agent, TodoWrite]
 user-invocable: true
 owner: Ben
 last_reviewed: 2026-04-22
+distribution: internal
+origin: voyager
+mcp_requirement: required
+logic_type: workflow
+surface: all
 ---
 
 # Content Hero Image

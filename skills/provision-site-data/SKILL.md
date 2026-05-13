@@ -3,6 +3,11 @@ name: provision-site-data
 description: Use when pushing Tier 1 site data (phone, email, address, hours, social URLs) to a Voyager-managed WordPress site after build-kickoff. Pulls known fields from the Notion Clients row, asks for the missing ones (hours + social), then runs the voyager-orbit/provision-site-data ability and verifies the voyager_site_* options. Trigger phrases include "provision site data for [name]", "push contact info to [name]", "set up site options for [slug]", "run tier 1 bindings for [name]", "/provision-site-data [name]". Halts if the client has no Websites row or required fields are missing. Do NOT use before voyager-build-kickoff has completed.
 owner: Ben
 last_reviewed: 2026-04-30
+distribution: internal
+origin: voyager
+mcp_requirement: required
+logic_type: workflow
+surface: claude-code
 ---
 
 # Provision Site Data
