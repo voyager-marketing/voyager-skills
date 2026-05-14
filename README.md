@@ -124,10 +124,16 @@ Validate skill frontmatter:
 npm run validate
 ```
 
-Print the private/imported/public inventory:
+Print the private/imported/public inventory across `skills/`, `wordpress/`, `shared/`, and `diagnostics/`:
 
 ```bash
 npm run inventory
+```
+
+Fail if any scanned skill is missing governance metadata:
+
+```bash
+npm run inventory -- --check
 ```
 
 Current direction: consume community skills aggressively, publish Voyager skills selectively, and keep private execution in Voyager MCP. See `docs/voyager-ai-os-roadmap.md` and `docs/community-skill-intake.md`.

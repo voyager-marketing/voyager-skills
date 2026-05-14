@@ -1,6 +1,13 @@
 ---
 name: site-dna
 description: "Structured analysis of a WordPress site's technical fingerprint — theme, plugins, builder, content shape, WP/PHP versions, and hosting signals. Use to understand a site before proposing changes."
+owner: Ben
+last_reviewed: 2026-05-14
+distribution: internal
+origin: voyager
+mcp_requirement: none
+logic_type: workflow
+surface: claude-code
 compatibility: "Any WordPress site with WP-CLI or REST API access."
 ---
 

@@ -9,15 +9,18 @@
  */
 
 import path from 'node:path';
+import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 import { GOVERNANCE_FIELDS, buildSkillInventory, summarizeInventory } from './skill-governance.mjs';
 
 const ROOT = path.resolve(fileURLToPath(new URL('..', import.meta.url)));
-const SKILLS_DIR = path.join(ROOT, 'skills');
+const SKILL_ROOTS = ['skills', 'wordpress', 'shared', 'diagnostics']
+  .map((dir) => path.join(ROOT, dir))
+  .filter((dir) => fs.existsSync(dir));
 const args = new Set(process.argv.slice(2));
 
-const rows = buildSkillInventory(SKILLS_DIR);
+const rows = buildSkillInventory(SKILL_ROOTS);
 const summary = summarizeInventory(rows);
 
 if (args.has('--json')) {
@@ -42,11 +45,11 @@ for (const field of Object.keys(GOVERNANCE_FIELDS)) {
 }
 
 console.log('\n## Skills\n');
-console.log('| Skill | Distribution | Origin | MCP | Logic | Surface | Owner | Tools |');
-console.log('|---|---|---|---|---|---|---|---:|');
+console.log('| Root | Skill | Distribution | Origin | MCP | Logic | Surface | Owner | Tools |');
+console.log('|---|---|---|---|---|---|---|---|---:|');
 for (const row of rows) {
   console.log(
-    `| ${row.name} | ${row.distribution || 'missing'} | ${row.origin || 'missing'} | ${
+    `| ${row.root} | ${row.name} | ${row.distribution || 'missing'} | ${row.origin || 'missing'} | ${
       row.mcp_requirement || 'missing'
     } | ${row.logic_type || 'missing'} | ${row.surface || 'missing'} | ${row.owner || 'missing'} | ${
       row.allowed_tools.length

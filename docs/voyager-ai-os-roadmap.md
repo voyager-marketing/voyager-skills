@@ -1,7 +1,7 @@
 # Voyager AI OS Roadmap
 
 Status: active direction  
-Last updated: 2026-05-12
+Last updated: 2026-05-14
 
 ## Core Direction
 
@@ -20,7 +20,7 @@ Skills are the distribution and thinking layer. MCP is the execution layer. Publ
 
 ## Governance Taxonomy
 
-Every root skill in `skills/` now carries these fields:
+Every scanned skill under `skills/`, `wordpress/`, `shared/`, and `diagnostics/` now carries these fields:
 
 ```yaml
 distribution: internal | imported | forked | public | client
@@ -46,11 +46,11 @@ npm run inventory
 
 Current baseline:
 
-- 49 root skills classified.
-- 48 internal Voyager skills.
+- 66 scanned skills classified.
+- 65 internal Voyager skills.
 - 1 forked/vendor skill: `skill-creator`.
 - 27 skills require MCP.
-- 20 skills require no MCP.
+- 37 skills require no MCP.
 - 2 skills have optional MCP.
 
 ## Roadmap
@@ -65,10 +65,11 @@ Completed:
 - Added inventory generation.
 - Added validation for bad governance values.
 - Populated all root skills with initial classifications.
+- Extended inventory coverage to `wordpress/`, `shared/`, and `diagnostics/`.
+- Populated non-root skill governance metadata.
 
 Next:
 
-- Extend inventory coverage to `wordpress/`, `shared/`, and `diagnostics/`.
 - Decide whether deprecated root `.skill` files should be archived or classified separately.
 
 ### Phase 2: Community Skill Intake

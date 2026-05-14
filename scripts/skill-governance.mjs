@@ -45,33 +45,39 @@ export function validateGovernanceMetadata(skillName, fm, options = {}) {
   return { errors, warnings };
 }
 
-export function buildSkillInventory(skillsDir) {
+export function buildSkillInventory(skillsDirs) {
   const rows = [];
-  const dirs = fs
-    .readdirSync(skillsDir, { withFileTypes: true })
-    .filter((entry) => entry.isDirectory())
-    .sort((a, b) => a.name.localeCompare(b.name));
+  const rootDirs = Array.isArray(skillsDirs) ? skillsDirs : [skillsDirs];
 
-  for (const dir of dirs) {
-    const mdPath = path.join(skillsDir, dir.name, 'SKILL.md');
-    if (!fs.existsSync(mdPath)) continue;
+  for (const rootDir of rootDirs) {
+    const rootName = path.basename(rootDir);
+    const dirs = fs
+      .readdirSync(rootDir, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .sort((a, b) => a.name.localeCompare(b.name));
 
-    const { fm, reason } = readFrontmatter(mdPath);
-    if (!fm) {
-      throw new Error(`${dir.name}: ${reason}`);
+    for (const dir of dirs) {
+      const mdPath = path.join(rootDir, dir.name, 'SKILL.md');
+      if (!fs.existsSync(mdPath)) continue;
+
+      const { fm, reason } = readFrontmatter(mdPath);
+      if (!fm) {
+        throw new Error(`${dir.name}: ${reason}`);
+      }
+
+      rows.push({
+        root: rootName,
+        name: fm.name ?? dir.name,
+        path: mdPath,
+        owner: fm.owner ?? '',
+        distribution: fm.distribution ?? '',
+        origin: fm.origin ?? '',
+        mcp_requirement: fm.mcp_requirement ?? '',
+        logic_type: fm.logic_type ?? '',
+        surface: fm.surface ?? '',
+        allowed_tools: Array.isArray(fm['allowed-tools']) ? fm['allowed-tools'] : [],
+      });
     }
-
-    rows.push({
-      name: fm.name ?? dir.name,
-      path: mdPath,
-      owner: fm.owner ?? '',
-      distribution: fm.distribution ?? '',
-      origin: fm.origin ?? '',
-      mcp_requirement: fm.mcp_requirement ?? '',
-      logic_type: fm.logic_type ?? '',
-      surface: fm.surface ?? '',
-      allowed_tools: Array.isArray(fm['allowed-tools']) ? fm['allowed-tools'] : [],
-    });
   }
 
   return rows;

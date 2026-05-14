@@ -1,6 +1,13 @@
 ---
 name: wp-voyager-conventions
 description: "Shared conventions across all Voyager WordPress repos — naming, auth, API patterns, commit format, release process, and dependency relationships."
+owner: Ben
+last_reviewed: 2026-05-14
+distribution: internal
+origin: voyager
+mcp_requirement: none
+logic_type: reference
+surface: claude-code
 compatibility: "All Voyager WordPress projects."
 ---
 

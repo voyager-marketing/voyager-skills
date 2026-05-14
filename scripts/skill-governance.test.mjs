@@ -90,6 +90,7 @@ allowed-tools: [mcp__claude_ai_Voyager_MCP__report_generate]
 
   assert.deepEqual(rows, [
     {
+      root: 'skills',
       name: 'report',
       path: path.join(skillsDir, 'report', 'SKILL.md'),
       owner: 'Ben',
@@ -101,6 +102,48 @@ allowed-tools: [mcp__claude_ai_Voyager_MCP__report_generate]
       allowed_tools: ['mcp__claude_ai_Voyager_MCP__report_generate'],
     },
   ]);
+});
+
+test('buildSkillInventory scans multiple Voyager skill roots', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'voyager-skill-roots-'));
+  for (const rootName of ['skills', 'wordpress', 'shared', 'diagnostics']) {
+    const skillDir = path.join(root, rootName, `${rootName}-sample`);
+    fs.mkdirSync(skillDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(skillDir, 'SKILL.md'),
+      `---
+name: ${rootName}-sample
+description: Use when testing ${rootName}.
+owner: Ben
+last_reviewed: 2026-05-12
+distribution: internal
+origin: voyager
+mcp_requirement: none
+logic_type: reference
+surface: all
+---
+
+# ${rootName}
+`,
+    );
+  }
+
+  const rows = buildSkillInventory([
+    path.join(root, 'skills'),
+    path.join(root, 'wordpress'),
+    path.join(root, 'shared'),
+    path.join(root, 'diagnostics'),
+  ]);
+
+  assert.deepEqual(
+    rows.map((row) => `${row.root}:${row.name}`),
+    [
+      'skills:skills-sample',
+      'wordpress:wordpress-sample',
+      'shared:shared-sample',
+      'diagnostics:diagnostics-sample',
+    ],
+  );
 });
 
 test('summarizeInventory counts governance values and surfaces missing metadata', () => {

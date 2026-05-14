@@ -1,6 +1,13 @@
 ---
 name: wp-interactivity
 description: "Use when building or debugging WordPress Interactivity API features — data-wp-* directives, @wordpress/interactivity stores, viewScriptModule, server-side rendering, and hydration in Voyager blocks."
+owner: Ben
+last_reviewed: 2026-05-14
+distribution: internal
+origin: voyager
+mcp_requirement: none
+logic_type: reference
+surface: claude-code
 compatibility: "WordPress 6.5+ (Interactivity API stable), @wordpress/scripts 27+."
 ---
 

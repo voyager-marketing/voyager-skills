@@ -1,6 +1,13 @@
 ---
 name: accessibility-audit
 description: "WCAG 2.1 AA accessibility audit for WordPress sites — heading structure, alt text, link quality, color contrast, form labels, keyboard navigation, and ARIA usage. Produces a structured report with remediation steps."
+owner: Ben
+last_reviewed: 2026-05-14
+distribution: internal
+origin: voyager
+mcp_requirement: none
+logic_type: workflow
+surface: claude-code
 compatibility: "Any WordPress site. Best with WP-CLI + browser access for visual checks."
 ---
 

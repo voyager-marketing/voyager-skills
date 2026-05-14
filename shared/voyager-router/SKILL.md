@@ -1,6 +1,13 @@
 ---
 name: voyager-router
 description: "Classifies a Voyager repo by type and recommends which skills to load. Run first in any new session to determine the project context."
+owner: Ben
+last_reviewed: 2026-05-14
+distribution: internal
+origin: voyager
+mcp_requirement: none
+logic_type: router
+surface: claude-code
 compatibility: "Any Voyager WordPress project — theme, plugin, or block library."
 ---
 

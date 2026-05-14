@@ -1,6 +1,13 @@
 ---
 name: technical-debt-audit
 description: "Structured audit of technical debt in a WordPress project — code quality, dependency health, database bloat, security posture, and upgrade readiness. Produces a prioritized remediation plan."
+owner: Ben
+last_reviewed: 2026-05-14
+distribution: internal
+origin: voyager
+mcp_requirement: none
+logic_type: workflow
+surface: claude-code
 compatibility: "Any WordPress site with filesystem and WP-CLI access."
 ---
 

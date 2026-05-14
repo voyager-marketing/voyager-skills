@@ -1,6 +1,13 @@
 ---
 name: wp-debug
 description: "Use this skill when the user asks to debug, check errors, view debug log, check PHP errors, troubleshoot, or investigate WordPress issues on a Voyager project."
+owner: Ben
+last_reviewed: 2026-05-14
+distribution: internal
+origin: voyager
+mcp_requirement: none
+logic_type: workflow
+surface: claude-code
 argument-hint: "[--tail] [--errors-only] [--block=slug]"
 allowed-tools: [Bash, Read, Grep, Glob]
 user-invocable: true

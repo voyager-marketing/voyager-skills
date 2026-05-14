@@ -28,7 +28,7 @@
 - Modify: `F:\dev\voyager\AI Tools\voyager-skills\scripts\skill-governance.test.mjs`
 - Modify: `F:\dev\voyager\AI Tools\voyager-skills\README.md`
 
-- [ ] **Step 1: Write a failing test for multiple skill roots**
+- [x] **Step 1: Write a failing test for multiple skill roots**
 
 Add a test that creates `skills/`, `wordpress/`, `shared/`, and `diagnostics/` directories in a temp root and verifies inventory rows include a `root` field.
 
@@ -76,7 +76,7 @@ surface: all
 });
 ```
 
-- [ ] **Step 2: Run the test and confirm it fails**
+- [x] **Step 2: Run the test and confirm it fails**
 
 Run:
 
@@ -86,7 +86,7 @@ npm test
 
 Expected: fail because `buildSkillInventory` currently accepts one directory path and does not attach `root`.
 
-- [ ] **Step 3: Implement multi-root inventory scanning**
+- [x] **Step 3: Implement multi-root inventory scanning**
 
 Change `buildSkillInventory(skillsDir)` to accept either a string or an array of directories. For each row, add:
 
@@ -100,7 +100,7 @@ Keep backward compatibility by wrapping string input:
 const rootDirs = Array.isArray(skillsDirs) ? skillsDirs : [skillsDirs];
 ```
 
-- [ ] **Step 4: Update inventory CLI roots**
+- [x] **Step 4: Update inventory CLI roots**
 
 In `scripts/inventory-skills.mjs`, scan these roots:
 
@@ -112,7 +112,7 @@ const SKILL_ROOTS = ['skills', 'wordpress', 'shared', 'diagnostics']
 
 Update the markdown table to include a `Root` column.
 
-- [ ] **Step 5: Run verification**
+- [x] **Step 5: Run verification**
 
 Run:
 
@@ -129,11 +129,11 @@ Expected:
 - Inventory includes root-level and non-root skill folders.
 - Governance gaps are visible for non-root skills until metadata is added.
 
-- [ ] **Step 6: Add metadata to non-root skills or document exclusions**
+- [x] **Step 6: Add metadata to non-root skills or document exclusions**
 
 If the inventory reports missing fields for `wordpress/`, `shared/`, or `diagnostics/`, add the same five governance fields to those `SKILL.md` files. If any directory is intentionally excluded, document the exclusion in `README.md` and update `SKILL_ROOTS` accordingly.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add README.md scripts/skill-governance.mjs scripts/inventory-skills.mjs scripts/skill-governance.test.mjs wordpress shared diagnostics
