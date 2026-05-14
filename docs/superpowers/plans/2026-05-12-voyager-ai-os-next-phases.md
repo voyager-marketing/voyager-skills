@@ -150,7 +150,7 @@ git commit -m "feat: expand skill governance inventory"
 - Modify: `F:\dev\voyager\AI Tools\voyager-skills\package.json`
 - Modify: `F:\dev\voyager\AI Tools\voyager-skills\docs\community-skill-intake.md`
 
-- [ ] **Step 1: Write a failing test for intake manifest validation**
+- [x] **Step 1: Write a failing test for intake manifest validation**
 
 Create `scripts/validate-community-intake.test.mjs` with a `node:test` case that validates this row shape:
 
@@ -170,7 +170,7 @@ Allowed `status`: `discovered`, `reviewing`, `sandboxed`, `forked`, `promoted`, 
 
 Allowed `decision`: `sandbox`, `fork`, `promote`, `reject`, `defer`.
 
-- [ ] **Step 2: Run the test and confirm it fails**
+- [x] **Step 2: Run the test and confirm it fails**
 
 Run:
 
@@ -180,7 +180,7 @@ node --test scripts/validate-community-intake.test.mjs
 
 Expected: fail because the validator does not exist.
 
-- [ ] **Step 3: Implement `validate-community-intake.mjs`**
+- [x] **Step 3: Implement `validate-community-intake.mjs`**
 
 Implement:
 
@@ -200,7 +200,7 @@ node scripts/validate-community-intake.mjs
 
 Reads `community/intake.json`, prints errors, exits `1` on invalid rows.
 
-- [ ] **Step 4: Add initial manifest**
+- [x] **Step 4: Add initial manifest**
 
 Create `community/intake.json`:
 
@@ -210,7 +210,7 @@ Create `community/intake.json`:
 
 Create `community/README.md` explaining that raw community skills go through intake before becoming `imported`, `forked`, or `internal`.
 
-- [ ] **Step 5: Wire package script**
+- [x] **Step 5: Wire package script**
 
 Add:
 
@@ -218,7 +218,7 @@ Add:
 "validate:community": "node scripts/validate-community-intake.mjs"
 ```
 
-- [ ] **Step 6: Run verification**
+- [x] **Step 6: Run verification**
 
 Run:
 
@@ -230,7 +230,7 @@ npm run validate
 
 Expected: all commands exit `0`.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add community docs/community-skill-intake.md package.json scripts/validate-community-intake.mjs scripts/validate-community-intake.test.mjs

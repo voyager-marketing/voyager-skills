@@ -76,11 +76,13 @@ Next:
 
 Goal: benefit from open-source skills without weakening Voyager's private operating system.
 
-Build:
+Completed:
 
 - Intake checklist for imported/forked skills.
 - Review criteria for safety, quality, licensing, and tool access.
 - A clear path from `imported` to `forked` to `internal`.
+- `community/intake.json` manifest for candidate tracking.
+- `npm run validate:community` manifest validation.
 
 Principle:
 

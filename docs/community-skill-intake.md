@@ -1,7 +1,7 @@
 # Community Skill Intake
 
 Status: active process  
-Last updated: 2026-05-12
+Last updated: 2026-05-14
 
 ## Purpose
 
@@ -11,6 +11,47 @@ The intake path is:
 
 ```text
 discover -> review -> sandbox -> fork/adapt -> classify -> validate -> promote
+```
+
+## Intake Manifest
+
+Track candidates in `community/intake.json` before copying any `SKILL.md` into Voyager skill roots.
+
+Required row shape:
+
+```json
+{
+  "name": "example-community-skill",
+  "source_url": "https://github.com/example/repo/tree/main/skills/example-community-skill",
+  "license": "MIT",
+  "status": "reviewing",
+  "owner": "Ben",
+  "reviewed_on": "2026-05-14",
+  "decision": "sandbox"
+}
+```
+
+Allowed `status` values:
+
+- `discovered`
+- `reviewing`
+- `sandboxed`
+- `forked`
+- `promoted`
+- `rejected`
+
+Allowed `decision` values:
+
+- `sandbox`
+- `fork`
+- `promote`
+- `reject`
+- `defer`
+
+Validate the manifest:
+
+```bash
+npm run validate:community
 ```
 
 ## Classification

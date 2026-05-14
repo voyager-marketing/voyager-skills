@@ -136,6 +136,12 @@ Fail if any scanned skill is missing governance metadata:
 npm run inventory -- --check
 ```
 
+Validate the community skill intake manifest:
+
+```bash
+npm run validate:community
+```
+
 Current direction: consume community skills aggressively, publish Voyager skills selectively, and keep private execution in Voyager MCP. See `docs/voyager-ai-os-roadmap.md` and `docs/community-skill-intake.md`.
 
 ---
