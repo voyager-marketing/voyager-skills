@@ -1,6 +1,13 @@
 ---
 name: wp-phpstan
 description: "Use when configuring, running, or fixing PHPStan static analysis in Voyager Orbit — phpstan.neon setup, baselines, WordPress-specific typing, and handling third-party plugin classes."
+owner: Ben
+last_reviewed: 2026-05-14
+distribution: internal
+origin: voyager
+mcp_requirement: none
+logic_type: tool-wrapper
+surface: claude-code
 compatibility: "PHP 8.1+, Composer-based PHPStan, szepeviktor/phpstan-wordpress stubs."
 ---
 

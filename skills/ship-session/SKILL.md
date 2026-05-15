@@ -4,6 +4,11 @@ description: "Use at the end of a work session to commit changes, sync skill mir
 user-invocable: true
 owner: Ben
 last_reviewed: 2026-04-21
+distribution: internal
+origin: voyager
+mcp_requirement: optional
+logic_type: workflow
+surface: claude-code
 ---
 
 # Ship Session — End-of-Session Checklist

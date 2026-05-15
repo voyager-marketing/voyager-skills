@@ -1,6 +1,13 @@
 ---
 name: wp-block-dev
 description: "Use when creating, modifying, or debugging Voyager Gutenberg blocks. Covers block.json metadata, edit/save components, GSAP frontend scripts, deprecations, and the @wordpress/scripts build pipeline."
+owner: Ben
+last_reviewed: 2026-05-14
+distribution: internal
+origin: voyager
+mcp_requirement: none
+logic_type: reference
+surface: claude-code
 compatibility: "WordPress 6.0+, PHP 7.4+, @wordpress/scripts 27+, GSAP 3.13 (provided by Voyager Core)."
 ---
 

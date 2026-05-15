@@ -5,7 +5,12 @@ argument-hint: "<client-name> [month] [--notion] [--format=table|markdown]"
 allowed-tools: [mcp__claude_ai_Voyager_MCP__report_generate, mcp__claude_ai_Voyager_MCP__client_get_profile]
 user-invocable: true
 owner: Ben
-last_reviewed: 2026-04-30
+last_reviewed: 2026-05-15
+distribution: internal
+origin: voyager
+mcp_requirement: required
+logic_type: tool-wrapper
+surface: all
 ---
 
 # Client Report Generator
@@ -18,7 +23,7 @@ Generate a monthly client report from Voyager Orbit lead, analytics, and content
 
 ## Step 1: Resolve client
 
-If the user named a client, call `client_get_profile(client: "<name>")` to fuzzy-match. If multiple match, list them and ask. If no name, list available clients via `client_get_profile` and ask.
+If the user named a client, call `client_get_profile(client: "<name>")` to fuzzy-match. If multiple match, list them and ask. If no name, list available clients via `client_get_profile` and ask. Use the resolved primary site/domain for the report call.
 
 ## Step 2: Resolve month
 
@@ -30,16 +35,16 @@ One call:
 
 ```
 report_generate(
-  client: "<resolved-client-slug>",
+  site: "<resolved-site-domain>",
   month: "YYYY-MM",
   format: "markdown" | "table",   // optional, default markdown
-  publish_to_notion: true | false  // optional, true if --notion flag
+  publish_to_notion: true | false  // optional; currently returns a warning until Portal sync support lands
 )
 ```
 
-Returns `{ markdown, leads, content, activities, mom_change, notion_url? }`.
+Returns `{ markdown, leads, content, activities, mom_change, warnings? }`.
 
-If `publish_to_notion` is true and `notion_url` returned, share the URL with the user.
+If `publish_to_notion` is true and the response includes `warnings`, show the warning plainly. Do not claim it was saved to Notion unless `notion_url` is present.
 
 ## Step 4: Render
 
@@ -86,5 +91,3 @@ For `--format=table`, drop Executive Summary and Recommendations. Tables only.
 - MoM math is server-side. Do not recompute in chat.
 - If lead count is zero, report that clearly. Do not pad.
 - If the call errors, surface the error verbatim. Do not fall back to ad-hoc queries.
-
-<!-- TODO: confirm report_generate returns mom_change and notion_url in current shape; if not, extend server-side per docs/skills-vs-mcp-roadmap.md #1. -->

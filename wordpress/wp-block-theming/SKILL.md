@@ -1,6 +1,13 @@
 ---
 name: wp-block-theming
 description: "Use when editing theme.json, templates, template parts, patterns, style variations, or functions.php in the voyagermark block child theme. Covers FSE architecture, design tokens, pattern registration, and the parent/child theme relationship."
+owner: Ben
+last_reviewed: 2026-05-14
+distribution: internal
+origin: voyager
+mcp_requirement: none
+logic_type: reference
+surface: claude-code
 compatibility: "WordPress 7.0+, PHP 8.1+, theme.json version 3, parent theme: voyager-block-theme."
 ---
 

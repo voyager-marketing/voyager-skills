@@ -3,7 +3,7 @@
   "description": "Gutenberg block development environment with Voyager Blocks",
   "mode": "continuous",
   "wp_version": "latest",
-  "php_version": "8.2",
+  "php_version": "8.3",
   "plugins": [
     {
       "source": "gutenberg",

@@ -8,6 +8,11 @@ description: >
   we target", "SEO audit", "how is [domain] doing in search", "ranking report".
 owner: Ben
 last_reviewed: 2026-04-21
+distribution: internal
+origin: voyager
+mcp_requirement: required
+logic_type: router
+surface: all
 ---
 
 # SEO Research

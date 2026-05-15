@@ -6,6 +6,10 @@
   "description": "Governance + automation for Voyager skills. The skills themselves live in skills/; this package.json exists only for the CI tooling in scripts/.",
   "scripts": {
     "validate": "node scripts/validate-skills.mjs",
+    "validate:community": "node scripts/validate-community-intake.mjs",
+    "inventory": "node scripts/inventory-skills.mjs",
+    "check:mcp-contracts": "node scripts/check-mcp-contracts.mjs --mcp-repo ../voyager-mcp-server",
+    "test": "node --test scripts/*.test.mjs",
     "build-zips": "node scripts/build-zips.mjs",
     "sync-notion": "node scripts/sync-to-notion.mjs",
     "check-api": "node scripts/check-v1-skills-api.mjs"

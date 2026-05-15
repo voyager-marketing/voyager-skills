@@ -11,6 +11,11 @@ triggers:
   - "refresh recommendations for"
 owner: Ben
 last_reviewed: 2026-04-21
+distribution: internal
+origin: voyager
+mcp_requirement: required
+logic_type: tool-wrapper
+surface: all
 ---
 
 # Content Tracker Skill — Phase 7

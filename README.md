@@ -116,6 +116,40 @@ Or manually:
 2. Create `skills/my-skill/commands/my-skill.md` — slash command wrapper
 3. Run `./install.sh` to pick it up globally
 
+## Governance
+
+Validate skill frontmatter:
+
+```bash
+npm run validate
+```
+
+Print the private/imported/public inventory across `skills/`, `wordpress/`, `shared/`, and `diagnostics/`:
+
+```bash
+npm run inventory
+```
+
+Fail if any scanned skill is missing governance metadata:
+
+```bash
+npm run inventory -- --check
+```
+
+Validate the community skill intake manifest:
+
+```bash
+npm run validate:community
+```
+
+Check skill `allowed-tools` references against the local Voyager MCP catalog:
+
+```bash
+npm run check:mcp-contracts
+```
+
+Current direction: consume community skills aggressively, publish Voyager skills selectively, and keep private execution in Voyager MCP. See `docs/voyager-ai-os-roadmap.md` and `docs/community-skill-intake.md`.
+
 ---
 
 ## Directory Structure

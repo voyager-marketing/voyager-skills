@@ -6,6 +6,11 @@ allowed-tools: [Bash, Read, Grep, Glob, Agent, TodoWrite, mcp__wordpress__mcp-ad
 user-invocable: true
 owner: Ben
 last_reviewed: 2026-04-21
+distribution: internal
+origin: voyager
+mcp_requirement: required
+logic_type: tool-wrapper
+surface: all
 ---
 
 # Pattern Cloud — Managed Pattern Library

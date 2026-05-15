@@ -1,6 +1,13 @@
 ---
 name: wp-preflight
 description: "Use this skill when the user asks to check PHP, lint PHP, run preflight checks, validate PHP code, or check for security issues before committing on a Voyager project."
+owner: Ben
+last_reviewed: 2026-05-14
+distribution: internal
+origin: voyager
+mcp_requirement: none
+logic_type: tool-wrapper
+surface: claude-code
 argument-hint: "[--security] [--all]"
 allowed-tools: [Bash, Grep, Glob, Read]
 user-invocable: true

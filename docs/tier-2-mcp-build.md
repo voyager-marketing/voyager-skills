@@ -1,5 +1,7 @@
 # Tier 2 — MCP composite build prompt
 
+Update 2026-05-15: the `report_generate` monthly WordPress compatibility path has shipped in `voyager-mcp-server`; the `report` skill now calls it directly. No `voyager-report` work is required for that path. Only build Portal-side report support later if `publish_to_notion` should create a durable Notion/PDF artifact.
+
 Self-contained starter prompt for a fresh Claude Code session. Tier 2 of the skills-vs-mcp roadmap: build the seven composite MCP tools that the corresponding skills need before they can be refactored to thin orchestrators. After each tool ships, refactor the matching skill in the `voyager-skills` repo.
 
 Pre-read the architecture rule in `voyager-skills/CLAUDE.md` ("Architecture — Skills and MCP, two layers") and the per-composite signatures in `voyager-skills/docs/skills-vs-mcp-roadmap.md`. The Tier 1 batch already shipped (commit 85b4c1d on `voyager-skills/main`) so you can read those refactored skills as reference for the thin-orchestrator shape.
@@ -32,11 +34,10 @@ Read first:
   (tools-content.ts, tools-fleet.ts, tools-reporting.ts, etc.). DO NOT
   create new files unless a domain genuinely doesn't have one yet.
 
-Build sequence (priority order, smallest validation-of-pattern first
-to highest scope last):
+Build sequence (priority order after the report/content-audit proof points):
 
-  1. wp_fleet_health (extends existing wp_fleet_status, ~3h MCP)
-  2. content_publish_with_gates (net-new, ~6h MCP)
+  1. content_publish_with_gates (net-new, ~6h MCP)
+  2. wp_fleet_health (extends existing wp_fleet_status, ~3h MCP)
   3. content_track_portfolio (net-new, ~4h MCP)
   4. content_generate_hero_image (net-new, ~4h MCP)
   5. content_research_keywords (net-new, ~5h MCP)
@@ -75,7 +76,7 @@ For each composite, the per-PR cycle is:
        skills/onboard-client, etc.) are the reference shape.
      - Update last_reviewed: YYYY-MM-DD in frontmatter.
      - Resolve any TODO comments left by Tier 1 if this composite
-       addresses them (e.g., the report_generate mom_change TODO).
+       addresses them.
 
   e. Run skill-creator eval against the refactored skill (hard gate
      per voyager-skills/CLAUDE.md). Eval result goes in CHANGELOG.
@@ -98,11 +99,11 @@ not parallel — let each one validate before starting the next.
 Constraints:
 
 - DO NOT change existing tool signatures. The Tier 1 refactors call
-  several existing tools (report_generate, content_prospect_audit,
+  several existing tools (content_prospect_audit,
   wp_verify_setup, etc.) and assumed their current shapes. Breaking
   them silently breaks Tier 1.
 - DO add fields to existing tool returns where the Tier 1 TODOs flag
-  them (report_generate.mom_change, content_prospect_audit.cwv,
+  them (content_prospect_audit.cwv,
   wp_execute_ability arg shape for voyager-orbit/provision-site-data).
   Additive changes are fine.
 - The wp_provision_site composite needs an SSH executor primitive
@@ -118,9 +119,9 @@ Constraints:
   wp_fleet_health must not break existing schedule wiring.
 
 Time budget: this is a multi-session build, NOT a single session.
-~60-80h total. Plan per-session scope realistically. The first session
-should land #1 (wp_fleet_health) end-to-end as proof-of-pattern, then
-stop and review with Ben before continuing.
+~60-80h total. Plan per-session scope realistically. The next session
+should land #1 (`content_publish_with_gates`) end-to-end, then stop and
+review with Ben before continuing.
 
 Deliverables per composite:
 - voyager-mcp-server PR (tool implementation + tests + deploy)
@@ -139,7 +140,7 @@ a stale skill copy.
 
 ## Per-composite spec summary
 
-These are condensed signatures from `docs/skills-vs-mcp-roadmap.md`. Use the roadmap doc for the full spec. This table is for quick reference during the build.
+These are condensed signatures from `docs/skills-vs-mcp-roadmap.md`. Use the roadmap doc for the full spec and the build sequence above as the canonical execution order. This table is for quick reference during the build.
 
 ### 1. `wp_fleet_health` (extend `wp_fleet_status`)
 

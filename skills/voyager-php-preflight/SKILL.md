@@ -6,6 +6,11 @@ allowed-tools: [Bash, Grep, Glob, Read]
 user-invocable: true
 owner: Ben
 last_reviewed: 2026-04-29
+distribution: internal
+origin: voyager
+mcp_requirement: none
+logic_type: tool-wrapper
+surface: claude-code
 ---
 
 # PHP Preflight Checks

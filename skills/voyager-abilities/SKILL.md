@@ -4,6 +4,11 @@ description: "Create and register WordPress Abilities for Voyager Orbit — sche
 compatibility: "PHP 8.1+, WordPress 6.9+ (Abilities API), MCP Adapter 0.5+"
 owner: Ben
 last_reviewed: 2026-04-21
+distribution: internal
+origin: voyager
+mcp_requirement: none
+logic_type: reference
+surface: claude-code
 ---
 
 # Voyager Abilities Development

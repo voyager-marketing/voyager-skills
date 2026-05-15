@@ -7,6 +7,11 @@ description: >
   "meeting prep", "call prep for", "catch me up on [client]", "before my call with".
 owner: Ben
 last_reviewed: 2026-04-21
+distribution: internal
+origin: voyager
+mcp_requirement: required
+logic_type: workflow
+surface: claude-chat
 ---
 
 # Client Prep

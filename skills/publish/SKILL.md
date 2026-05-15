@@ -5,6 +5,11 @@ argument-hint: "[--dry-run] [--status] [content-item-url]"
 user-invocable: true
 owner: Ben
 last_reviewed: 2026-04-29
+distribution: internal
+origin: voyager
+mcp_requirement: required
+logic_type: tool-wrapper
+surface: all
 ---
 
 # Notion -> WordPress Publisher

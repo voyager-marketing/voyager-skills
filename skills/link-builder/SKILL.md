@@ -5,6 +5,11 @@ argument-hint: "[post_id] [--all] [--limit 10]"
 user-invocable: true
 owner: Ben
 last_reviewed: 2026-04-21
+distribution: internal
+origin: voyager
+mcp_requirement: required
+logic_type: tool-wrapper
+surface: all
 ---
 
 # Link Builder — Internal Linking Analysis

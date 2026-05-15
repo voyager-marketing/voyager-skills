@@ -3,7 +3,7 @@
   "description": "Standard Voyager agency client stack",
   "mode": "continuous",
   "wp_version": "latest",
-  "php_version": "8.2",
+  "php_version": "8.3",
   "plugins": [
     {
       "source": "acf-pro",

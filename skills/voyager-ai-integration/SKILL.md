@@ -4,6 +4,11 @@ description: "AI integration patterns in Voyager Orbit — WP AI Client, model p
 compatibility: "PHP 8.1+, WordPress 7.0+ (AI Client in core), AI Provider for Anthropic 1.0+"
 owner: Ben
 last_reviewed: 2026-04-21
+distribution: internal
+origin: voyager
+mcp_requirement: none
+logic_type: reference
+surface: claude-code
 ---
 
 # Voyager AI Integration

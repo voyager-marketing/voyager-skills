@@ -1,6 +1,13 @@
 ---
 name: wp-performance
 description: "Use when investigating or improving WordPress performance on Voyager sites: profiling, database optimization, object caching (SpinupWP Redis), Cloudflare rules, GSAP conditional loading, and Core Web Vitals."
+owner: Ben
+last_reviewed: 2026-05-14
+distribution: internal
+origin: voyager
+mcp_requirement: none
+logic_type: workflow
+surface: claude-code
 compatibility: "WordPress 7.0+, PHP 8.1+, SpinupWP hosting with Redis, Cloudflare CDN."
 ---
 

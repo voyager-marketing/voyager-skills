@@ -6,6 +6,11 @@ allowed-tools: [WebSearch, WebFetch, Bash, Read, Grep, Glob]
 user-invocable: true
 owner: Ben
 last_reviewed: 2026-04-29
+distribution: internal
+origin: voyager
+mcp_requirement: none
+logic_type: reference
+surface: claude-code
 ---
 
 # WordPress Ecosystem Research Agent

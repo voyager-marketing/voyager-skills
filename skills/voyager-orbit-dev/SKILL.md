@@ -4,6 +4,11 @@ description: "Development workflow for Voyager Orbit WordPress plugin — module
 compatibility: "PHP 8.1+, WordPress 6.0+, Voyager Orbit 1.30+"
 owner: Ben
 last_reviewed: 2026-04-21
+distribution: internal
+origin: voyager
+mcp_requirement: none
+logic_type: reference
+surface: claude-code
 ---
 
 # Voyager Orbit Development

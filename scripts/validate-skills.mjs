@@ -24,7 +24,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import yaml from 'js-yaml';
+
+import { readFrontmatter, validateGovernanceMetadata } from './skill-governance.mjs';
 
 const ROOT = path.resolve(fileURLToPath(new URL('..', import.meta.url)));
 const SKILLS_DIR = path.join(ROOT, 'skills');
@@ -35,17 +36,6 @@ const STALE_DAYS = 90;
 
 const errors = [];
 const warnings = [];
-
-function readFrontmatter(mdPath) {
-  const content = fs.readFileSync(mdPath, 'utf8');
-  const match = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
-  if (!match) return { fm: null, reason: 'no YAML frontmatter' };
-  try {
-    return { fm: yaml.load(match[1]) ?? {}, reason: null };
-  } catch (e) {
-    return { fm: null, reason: `YAML parse error: ${e.message}` };
-  }
-}
 
 function daysSince(iso) {
   const ms = Date.now() - new Date(iso).getTime();
@@ -112,6 +102,10 @@ function validate(skillDir) {
       }
     }
   }
+
+  const governance = validateGovernanceMetadata(skillName, fm, { requireFields: false });
+  errors.push(...governance.errors);
+  warnings.push(...governance.warnings);
 }
 
 const target = process.argv[2];

@@ -1,6 +1,13 @@
 ---
 name: wp-plugin-dev
 description: "Use when developing Voyager Orbit — adding modules, REST endpoints, services, form integrations, or abilities. Covers the modular architecture, HMAC auth, REST patterns, security model, and release process."
+owner: Ben
+last_reviewed: 2026-05-14
+distribution: internal
+origin: voyager
+mcp_requirement: none
+logic_type: reference
+surface: claude-code
 compatibility: "WordPress 6.0+, PHP 8.1+, Composer with PSR-4 autoloading."
 ---
 

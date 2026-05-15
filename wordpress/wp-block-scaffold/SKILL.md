@@ -1,6 +1,13 @@
 ---
 name: wp-block-scaffold
 description: "Use this skill when the user asks to scaffold a block, create a new block, add a block, or generate block boilerplate for the Voyager Blocks plugin."
+owner: Ben
+last_reviewed: 2026-05-14
+distribution: internal
+origin: voyager
+mcp_requirement: none
+logic_type: workflow
+surface: claude-code
 argument-hint: "<block-slug> [--no-gsap] [--dynamic]"
 allowed-tools: [Read, Write, Edit, Glob, Grep, Bash]
 user-invocable: true

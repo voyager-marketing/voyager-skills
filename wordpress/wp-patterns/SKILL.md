@@ -1,6 +1,13 @@
 ---
 name: wp-patterns
 description: "Use this skill when the user asks to create a new pattern, add a block pattern, make a pattern, or generate a page section pattern for the Voyager Blocks plugin."
+owner: Ben
+last_reviewed: 2026-05-14
+distribution: internal
+origin: voyager
+mcp_requirement: none
+logic_type: workflow
+surface: claude-code
 argument-hint: "<pattern-slug> [--category=voyager-hero]"
 allowed-tools: [Read, Write, Edit, Glob, Grep]
 user-invocable: true
