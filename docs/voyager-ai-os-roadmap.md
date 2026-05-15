@@ -92,10 +92,13 @@ Principle:
 
 Goal: stop skill/MCP drift.
 
-Build:
+Completed:
 
 - MCP tool catalog export from `voyager-mcp-server`.
 - Skill-side contract check that verifies referenced MCP tools exist.
+
+Next:
+
 - Optional `used_by_skills` metadata on MCP tools.
 
 Result:

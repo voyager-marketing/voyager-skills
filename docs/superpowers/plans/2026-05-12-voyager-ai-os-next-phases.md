@@ -245,7 +245,7 @@ git commit -m "feat: add community skill intake tracking"
 - Modify: `F:\dev\voyager\AI Tools\voyager-mcp-server\package.json`
 - Modify: `F:\dev\voyager\AI Tools\voyager-mcp-server\scripts\preflight.sh`
 
-- [ ] **Step 1: Write a failing extractor test**
+- [x] **Step 1: Write a failing extractor test**
 
 Create `scripts/list-tools.test.mjs` using a temp TypeScript file:
 
@@ -272,7 +272,7 @@ Expected extractor output:
 ]
 ```
 
-- [ ] **Step 2: Run the test and confirm it fails**
+- [x] **Step 2: Run the test and confirm it fails**
 
 Run from `voyager-mcp-server`:
 
@@ -282,7 +282,7 @@ node --test scripts/list-tools.test.mjs
 
 Expected: fail because the extractor does not exist.
 
-- [ ] **Step 3: Implement static tool extraction**
+- [x] **Step 3: Implement static tool extraction**
 
 Implement `extractToolRecords(files)` in `scripts/list-tools.mjs` using the same rule as `scripts/preflight.sh`: a `server.registerTool(` or `server.tool(` call has the quoted tool name on the next line.
 
@@ -295,7 +295,7 @@ node scripts/list-tools.mjs --markdown
 
 Default to markdown.
 
-- [ ] **Step 4: Add package script**
+- [x] **Step 4: Add package script**
 
 Add:
 
@@ -303,11 +303,11 @@ Add:
 "tools:list": "node scripts/list-tools.mjs --markdown"
 ```
 
-- [ ] **Step 5: Use extractor in preflight or document parity**
+- [x] **Step 5: Use extractor in preflight or document parity**
 
 Either replace the duplicated shell extraction in `scripts/preflight.sh` with `node scripts/list-tools.mjs --json`, or leave preflight as-is and add a comment that both extraction rules must stay in sync. Prefer replacing duplication if the Node script is stable on Windows and Linux.
 
-- [ ] **Step 6: Run verification**
+- [x] **Step 6: Run verification**
 
 Run from `voyager-mcp-server`:
 
@@ -323,7 +323,7 @@ Expected:
 - Tool catalog prints current MCP tools.
 - Preflight passes.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add package.json scripts/list-tools.mjs scripts/list-tools.test.mjs scripts/preflight.sh
@@ -338,7 +338,7 @@ git commit -m "feat: export mcp tool catalog"
 - Modify: `F:\dev\voyager\AI Tools\voyager-skills\package.json`
 - Modify: `F:\dev\voyager\AI Tools\voyager-skills\README.md`
 
-- [ ] **Step 1: Write a failing contract test**
+- [x] **Step 1: Write a failing contract test**
 
 Test input:
 
@@ -369,7 +369,7 @@ Expected error:
 report: references missing Voyager MCP tool report_generate
 ```
 
-- [ ] **Step 2: Run the test and confirm it fails**
+- [x] **Step 2: Run the test and confirm it fails**
 
 Run:
 
@@ -379,7 +379,7 @@ node --test scripts/check-mcp-contracts.test.mjs
 
 Expected: fail because the contract checker does not exist.
 
-- [ ] **Step 3: Implement checker**
+- [x] **Step 3: Implement checker**
 
 Rules:
 
@@ -394,7 +394,7 @@ CLI:
 node scripts/check-mcp-contracts.mjs --mcp-catalog "../voyager-mcp-server/dist/tool-catalog.json"
 ```
 
-- [ ] **Step 4: Add MCP catalog output target**
+- [x] **Step 4: Add MCP catalog output target**
 
 In Task 3, make `voyager-mcp-server` support:
 
@@ -404,7 +404,7 @@ node scripts/list-tools.mjs --json > dist/tool-catalog.json
 
 If `dist/` is gitignored, regenerate this file during contract checks rather than committing it.
 
-- [ ] **Step 5: Wire package script**
+- [x] **Step 5: Wire package script**
 
 Add:
 
@@ -414,7 +414,7 @@ Add:
 
 The checker should run the MCP repo's `tools:list` JSON command internally so users do not need to manage a generated file.
 
-- [ ] **Step 6: Run verification**
+- [x] **Step 6: Run verification**
 
 Run from `voyager-skills`:
 
@@ -426,7 +426,7 @@ npm run validate
 
 Expected: tests pass and contract checker either passes or reports real missing tool names that must be fixed before commit.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add README.md package.json scripts/check-mcp-contracts.mjs scripts/check-mcp-contracts.test.mjs

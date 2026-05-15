@@ -142,6 +142,12 @@ Validate the community skill intake manifest:
 npm run validate:community
 ```
 
+Check skill `allowed-tools` references against the local Voyager MCP catalog:
+
+```bash
+npm run check:mcp-contracts
+```
+
 Current direction: consume community skills aggressively, publish Voyager skills selectively, and keep private execution in Voyager MCP. See `docs/voyager-ai-os-roadmap.md` and `docs/community-skill-intake.md`.
 
 ---
