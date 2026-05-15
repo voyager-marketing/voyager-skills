@@ -6,6 +6,22 @@ Format: reverse chronological. Date-anchored entries group the work done that da
 
 ---
 
+## 2026-05-15 — Report skill + MCP contract alignment
+
+Aligned `skills/report/SKILL.md` with the new `report_generate` monthly WordPress compatibility path on `voyager-mcp-server`.
+
+**What changed:**
+- `report_generate(site|client, month, format?, publish_to_notion?)` is now the documented report skill contract.
+- The skill no longer expects Chat to compute MoM or assemble SQL-backed report sections.
+- `publish_to_notion` is explicitly treated as pending Portal support; the skill surfaces warnings and only claims a save when `notion_url` exists.
+- Roadmap docs now mark the report refactor shipped and move the next recommended work to `publish`.
+
+**Eval / validation:**
+- Repo validator and MCP contract check required before merge.
+- Formal pressure-scenario skill eval is deferred because this session did not use delegated subagents; the change is a contract update against a verified MCP test path.
+
+---
+
 ## 2026-04-30 — Skill-creator eval batch on Tier 1 refactors + 2 safety fixes
 
 Resolved the eval gate that the Tier 1 batch deferred. Six parallel agent evals against the refactored skills using `skill-creator`'s evaluation criteria (description triggering accuracy, body quality, generalization, "explains the why", architecture compliance). Two safety-relevant findings fixed inline.

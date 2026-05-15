@@ -1,7 +1,7 @@
 # Voyager AI OS Roadmap
 
 Status: active direction  
-Last updated: 2026-05-14
+Last updated: 2026-05-15
 
 ## Core Direction
 
@@ -111,16 +111,20 @@ Goal: move risky, repeated, or service-heavy workflow logic into MCP.
 
 Completed:
 
+- `report`: `report_generate` now has a skill-facing monthly WordPress report mode (`site`/`client` + `month` + `format`) that returns rendered markdown, lead/activity data, and MoM change while preserving the existing Portal Reports V2 async path for `client_id`/`template_id`/`date_range`.
 - `content-audit`: `content_audit` now supports `mode: "full"` as an MCP composite with per-mode partial-failure reporting, while the skill only selects mode and formats the response.
 
 Recommended order:
 
-1. `report`: high business value, makes Chat reporting more reliable.
-2. `publish`: highest safety value, moves gates server-side.
-3. `prospect-audit`: deterministic scoring in MCP, branded framing in skill.
-4. `fleet-health`: server-side fanout across sites.
-5. `social`: MCP drafts sessions, skill handles approval and voice.
-6. `content-hero-image` and `voyager-image-editor`: one generate/save/attach path.
+1. `publish`: highest safety value, moves gates server-side.
+2. `prospect-audit`: deterministic scoring in MCP, branded framing in skill.
+3. `fleet-health`: server-side fanout across sites.
+4. `social`: MCP drafts sessions, skill handles approval and voice.
+5. `content-hero-image` and `voyager-image-editor`: one generate/save/attach path.
+
+Portal follow-up:
+
+- No `voyager-report` work is required for the current WordPress monthly report path. If we later want `publish_to_notion` to create a Portal/Notion artifact or PDF, add a synchronous Portal endpoint/mode that accepts `{ clientId, month, format, publishToNotion }` and returns `{ markdown, leads, content, activities, mom_change, report_url?, notion_url? }` without breaking existing Reports V2 async jobs.
 
 Rule:
 

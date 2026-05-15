@@ -27,11 +27,13 @@ Priority is set by Alex frequency × user-visible improvement. Alex is Voyager's
 
 ---
 
-### #1 — `report` (REFACTOR, ~9h)
+### #1 — `report` (REFACTOR, shipped 2026-05-15)
+
+**Status.** The MCP-side compatibility path is implemented: `report_generate(site|client, month, format?, publish_to_notion?)` now renders a monthly WordPress report from Orbit and returns `markdown`, `leads`, `content`, `activities`, `mom_change`, and optional `warnings`. The old Portal Reports V2 path remains intact for `client_id` + `template_id` + `date_range`.
 
 **Why first.** Alex literally cannot run monthly client reports from Chat today. The skill calls `wp --path=$WP_ROOT --user=1 eval` with raw `$wpdb->prepare()` SQL, which requires shell access on Ben's machine. This is the architecture asymmetry made acute: the workflow lives in skill-body-as-shell-script, so it propagates to Code only. Refactoring unblocks Alex from depending on Ben for any client report.
 
-**a. Composite MCP tool.** Existing `report_generate` already exists in the catalog — extend rather than build new.
+**a. Composite MCP tool.** Existing `report_generate` already exists in the catalog — extended rather than rebuilt.
 ```
 report_generate(
   client: string,
@@ -47,11 +49,11 @@ report_generate(
   notion_url?: string
 }
 ```
-Verify the existing primitive returns this shape. If not (likely missing the MoM comparison and the Notion-publish path), extend it server-side. Drop the SSH+wp-eval+raw-SQL pattern entirely.
+The WordPress monthly path now returns this shape. `publish_to_notion` currently returns a warning instead of claiming a save; true Notion/PDF publishing is a future Portal-side enhancement, not a blocker for Chat reporting.
 
 **b. Skill body shrinks to ~50 lines.** Frontmatter + intent matching + fuzzy client resolution + one MCP call with month/format/notion flags + output template + guardrails.
 
-**c. Effort.** MCP 4–6h (verify shape, add ability-load-order resilience, Notion publish flag) + skill rewrite 2h + testing 2h.
+**c. Remaining effort.** Optional Portal enhancement only: add synchronous Portal/Notion publish support if the agency wants `publish_to_notion` to create durable report artifacts.
 
 **d. User-visible improvement.** "Monthly report for Built Right Homes — March 2026 — push to Notion" runs from Chat in ~10s. Today Alex can't run it from Chat at all.
 
@@ -463,7 +465,7 @@ These are running parallel with replacements per CLAUDE.md ("two-week verificati
 
 | Skill | Class | Effort |
 |---|---|---|
-| #1 report | REFACTOR | 9h |
+| #1 report | REFACTOR | Shipped 2026-05-15 (Portal publish optional) |
 | #2 publish | REFACTOR | 10h |
 | #3 content-audit | HYBRID | 3–4h |
 | #4 prospect-audit | HYBRID | 5h |
@@ -494,4 +496,4 @@ If the API path doesn't bridge, the audit becomes higher priority because every 
 
 After this roadmap exists, individual refactor PRs follow the ordinary skill-edit flow per CLAUDE.md (edit on branch → eval pass → CHANGELOG entry → merge). Each refactor is its own PR scoped to one skill + its corresponding new/extended MCP tool.
 
-Suggested first PR: `content-audit` (smallest effort, removes Alex's shell dependency, validates the pattern).
+Suggested next PR: `publish` if prioritizing safety gates, or `prospect-audit` if prioritizing sales/reporting speed.
