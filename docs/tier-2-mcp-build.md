@@ -163,20 +163,35 @@ Fans out across the fleet via the existing AbilityBridge. Keeps `wp_fleet_status
 
 ### 2. `content_publish_with_gates`
 
+Status: shipped 2026-05-15 with one deliberate boundary change. The MCP owns WordPress-side gates and writes, while the publish skill keeps Notion lookup/writeback because the MCP server does not currently own a Notion credential path.
+
 ```ts
 content_publish_with_gates(
+  site: string,
   notion_page_id: string,
+  client_page_id: string,
+  title: string,
+  html: string,
+  publish_datetime: string,
+  keyword: string,
+  post_type?: "post" | "page",
+  slug?: string,
+  meta_title?: string,
+  meta_description?: string,
+  schema_type?: string,
+  categories?: string[],
+  tags?: string[],
+  featured_image_url?: string,
   dry_run?: boolean,
-  force?: boolean
 ) -> {
-  status: "scheduled" | "blocked" | "error",
+  status: "ready" | "scheduled" | "blocked" | "error",
   gate_results: {
     client_isolation: { passed: boolean, expected: string, actual: string },
     word_count: { passed: boolean, count: number, minimum: 800 },
-    seo_meta: { passed: boolean, missing_fields: string[] },
+    seo_meta: { passed: boolean, generated_fields: string[] },
     internal_links: { passed: boolean, count: number },
-    cta: { passed: boolean, found: boolean },
-    og_meta: { passed: boolean, missing_fields: string[] }
+    cta: { passed: boolean, found: boolean, appended: boolean },
+    og_meta: { passed: boolean, fields: object }
   },
   wp_post_id?: number,
   permalink?: string,
@@ -185,9 +200,9 @@ content_publish_with_gates(
 }
 ```
 
-Internally orchestrates `wp_get_post` + sync-filter lookup + `wp_upsert_content` (status=future, hardcoded server-side, never exposed to caller) + `wp_set_seo_meta` + Notion writeback. Gate failures are structured envelopes the skill renders as a table.
+Internally orchestrates existing post lookup + sync-filter lookup + WordPress scheduled upsert + SEO meta write. Gate failures are structured envelopes the skill renders as a table. Notion writeback remains in the skill until the MCP has a secure Notion credential strategy.
 
-**File:** `src/tools-content.ts`. **Skill to refactor:** `voyager-skills/skills/publish/SKILL.md`. **Critical:** the skill must never see `status=publish` — that value never leaves the server.
+**File:** `src/tools.ts`. **Skill refactored:** `voyager-skills/skills/publish/SKILL.md`. **Critical:** the skill must never see `status=publish`; that value is not accepted by the tool.
 
 ---
 

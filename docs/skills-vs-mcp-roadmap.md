@@ -59,18 +59,24 @@ The WordPress monthly path now returns this shape. `publish_to_notion` currently
 
 ---
 
-### #2 — `publish` (REFACTOR, ~10h)
+### #2 — `publish` (SHIPPED 2026-05-15)
 
 **Why second.** Architecture doc explicitly names this as a known REFACTOR candidate. Two HARD BLOCK gates — client-isolation (Notion `Client` page ID vs site `sync_filter_value`) and content-quality (800-word min, SEO meta, links, CTA, OG) — are data-integrity-critical. They cannot be allowed to drift between an Alex-uploaded skill copy and Ben's. Server enforcement is the only safe place.
 
-**a. Composite MCP tool.** Net-new — no existing primitive matches the gate logic.
+**a. Composite MCP tool.** Shipped as `content_publish_with_gates`.
 ```
 content_publish_with_gates(
+  site: string,
   notion_page_id: string,
+  client_page_id: string,
+  title: string,
+  html: string,
+  publish_datetime: string,
+  keyword: string,
+  post_type?: "post" | "page",
   dry_run?: boolean,
-  force?: boolean
 ) -> {
-  status: "scheduled" | "blocked" | "error",
+  status: "ready" | "scheduled" | "blocked" | "error",
   gate_results: { client_isolation, word_count, seo_meta, internal_links, cta, og_meta },
   wp_post_id?: number,
   permalink?: string,
@@ -78,11 +84,11 @@ content_publish_with_gates(
   errors: string[]
 }
 ```
-Internally orchestrates `wp_get_post` + sync-filter lookup + `wp_upsert_content` (status=future, hardcoded server-side) + `wp_set_seo_meta` + Notion writeback. The skill never sees `status=publish` because the tool never exposes it. Gate failures return structured envelopes the skill can render as a table.
+Internally orchestrates existing post lookup + sync-filter lookup + scheduled WordPress upsert + SEO meta write. The skill never sees `status=publish` because the tool does not accept it. Gate failures return structured envelopes the skill can render as a table. Notion lookup/writeback remains in the skill until the MCP has a secure Notion credential strategy.
 
-**b. Skill body shrinks to ~45 lines.** Frontmatter + trigger phrases + one tool call + dry-run mode flag + user confirmation prompt + 3-line guardrails ("never override --force without explicit OK; always show gate report; refuse cross-client").
+**b. Skill body shrunk.** The skill now handles Notion field collection, one MCP call, dry-run mode, user confirmation, and Notion writeback.
 
-**c. Effort.** MCP 6h (gate logic + SQL replacement via existing site-option lookup + dry-run + error envelope) + skill 1h + testing 3h.
+**c. Remaining effort.** Add a Notion credential strategy only if we want MCP-side Notion writeback later.
 
 **d. User-visible improvement.** Cross-client violations become structurally impossible. Server-enforced gates can never be bypassed by a stale skill copy.
 
@@ -466,7 +472,7 @@ These are running parallel with replacements per CLAUDE.md ("two-week verificati
 | Skill | Class | Effort |
 |---|---|---|
 | #1 report | REFACTOR | Shipped 2026-05-15 (Portal publish optional) |
-| #2 publish | REFACTOR | 10h |
+| #2 publish | REFACTOR | Shipped 2026-05-15 (Notion writeback remains skill-side) |
 | #3 content-audit | HYBRID | 3–4h |
 | #4 prospect-audit | HYBRID | 5h |
 | #5 fleet-health | HYBRID | 6h |
@@ -496,4 +502,4 @@ If the API path doesn't bridge, the audit becomes higher priority because every 
 
 After this roadmap exists, individual refactor PRs follow the ordinary skill-edit flow per CLAUDE.md (edit on branch → eval pass → CHANGELOG entry → merge). Each refactor is its own PR scoped to one skill + its corresponding new/extended MCP tool.
 
-Suggested next PR: `publish` if prioritizing safety gates, or `prospect-audit` if prioritizing sales/reporting speed.
+Suggested next PR: `prospect-audit` if prioritizing sales/reporting speed, or `fleet-health` if prioritizing operational visibility.

@@ -113,14 +113,14 @@ Completed:
 
 - `report`: `report_generate` now has a skill-facing monthly WordPress report mode (`site`/`client` + `month` + `format`) that returns rendered markdown, lead/activity data, and MoM change while preserving the existing Portal Reports V2 async path for `client_id`/`template_id`/`date_range`.
 - `content-audit`: `content_audit` now supports `mode: "full"` as an MCP composite with per-mode partial-failure reporting, while the skill only selects mode and formats the response.
+- `publish`: `content_publish_with_gates` now owns client isolation, content quality gates, scheduled WordPress upsert, and SEO metadata writes. The skill stays thin around Notion lookup, approval checks, and Notion writeback.
 
 Recommended order:
 
-1. `publish`: highest safety value, moves gates server-side.
-2. `prospect-audit`: deterministic scoring in MCP, branded framing in skill.
-3. `fleet-health`: server-side fanout across sites.
-4. `social`: MCP drafts sessions, skill handles approval and voice.
-5. `content-hero-image` and `voyager-image-editor`: one generate/save/attach path.
+1. `prospect-audit`: deterministic scoring in MCP, branded framing in skill.
+2. `fleet-health`: server-side fanout across sites.
+3. `social`: MCP drafts sessions, skill handles approval and voice.
+4. `content-hero-image` and `voyager-image-editor`: one generate/save/attach path.
 
 Portal follow-up:
 
@@ -148,6 +148,10 @@ Voyager Agency OS
 ```
 
 Private package first. Public/community package only after the internal system is stable and there is a clear reason to publish.
+
+### Future Expansion Backlog
+
+Operating Audit, Browser Reality, and Fleet Intelligence are captured in `docs/future-mcp-expansion-backlog.md`. Treat them as future product modules, not the current execution lane. Browser Reality should prove the browser runtime first; Operating Audit should build on that foundation; Fleet Intelligence remains blocked until Sentry ingestion exists.
 
 ## Decision Rule
 

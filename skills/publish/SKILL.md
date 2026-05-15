@@ -4,7 +4,7 @@ description: "Use when asked to publish content to WordPress, schedule content f
 argument-hint: "[--dry-run] [--status] [content-item-url]"
 user-invocable: true
 owner: Ben
-last_reviewed: 2026-04-29
+last_reviewed: 2026-05-15
 distribution: internal
 origin: voyager
 mcp_requirement: required
@@ -14,9 +14,9 @@ surface: all
 
 # Notion -> WordPress Publisher
 
-Schedule content from the Notion Content DB to WordPress via the Voyager MCP Server.
+Schedule approved Notion content to WordPress through Voyager MCP.
 
-**CRITICAL POLICY: NEVER set status=publish. Always status=future. WordPress cron handles go-live.**
+Critical policy: never set `status=publish`. The MCP tool `content_publish_with_gates` schedules only; WordPress cron handles go-live.
 
 ## Notion IDs
 
@@ -28,143 +28,115 @@ Schedule content from the Notion Content DB to WordPress via the Voyager MCP Ser
 
 ## Modes
 
-- `--status`: Query Content DB for items ready to schedule. Show table.
-- `--dry-run`: Full pipeline simulation — no WP calls, no Notion writeback.
-- **default**: Schedule all qualifying items (or specific item if URL provided).
+- `--status`: Query the Content DB for items ready to schedule. Show a table only.
+- `--dry-run`: Run Notion lookup plus MCP gates with `dry_run=true`. No WordPress writes and no Notion writeback.
+- Default: Schedule qualifying items, or the specific item when a content URL is provided.
 
-## Pipeline Gates (ALL must pass before publishing)
+## Thin Pipeline
 
-- [ ] Status = "Scheduled"
-- [ ] Approved = checked (human gate — NEVER skip)
-- [ ] Type = "Blog" or "Page"
-- [ ] HTML property not empty
-- [ ] Keyword property set
-- [ ] Scheduled date set
-- [ ] Client relation set
-- [ ] **Client Isolation Check passes** (Client relation matches site's `sync_filter_value`)
-- [ ] **Content Quality Gate passes** (word count, SEO meta, internal links, CTA, OG meta)
+### Step 1: Query Notion
 
-Fail any gate -> skip with clear error message. Client isolation and quality gates are HARD BLOCKS, not warnings.
+Use `notion-query-database-view` on Content DB `cba94900-3a60-4292-ba6b-f8aeea62e439`.
 
-## Pipeline Steps
+Filter for:
 
-### Step 1: Validate Gates
-Query via `notion-query-database-view` on Content DB `cba94900-3a60-4292-ba6b-f8aeea62e439`.
-Filter: Status = "Scheduled" + Approved = true + Type in ["Blog", "Page"].
+- `Status = Scheduled`
+- `Approved = true`
+- `Type in ["Blog", "Page"]`
 
-**Client Isolation Gate (CRITICAL — HARD BLOCK):**
-Before publishing any content item, verify the Client relation page ID matches the target site's configured sync filter value. Read the `voyager_notion_databases` option to get the expected client page ID:
+For each item, collect:
 
-```bash
-wp --path=$WP_ROOT eval '
-$dbs = get_option("voyager_notion_databases", []);
-foreach ($dbs as $db) {
-    if (($db["alias"] ?? "") === "content") {
-        echo $db["sync_filter_value"] ?? "NOT SET";
-    }
-}
-'
-```
+- Notion page ID
+- Client relation page ID
+- Target site domain from the related Website record
+- Name/title
+- HTML
+- Type (`Blog` -> `post`, `Page` -> `page`)
+- Scheduled date as ISO-8601
+- Keyword
+- SEO Meta Title, if present
+- SEO Meta Description, if present
+- Featured Image URL, if present
+- Categories/tags from client defaults, if configured
 
-Compare against the content item's `Client` relation page ID from Notion. If they don't match, **HARD BLOCK** and skip with error: `"Client mismatch: content belongs to {actual_client_id}, site expects {expected_client_id}. REFUSING to publish cross-client content."` This is a fatal gate, not a warning. It cannot be overridden.
+If any of the basic Notion fields are missing, skip before calling MCP and report the missing field.
 
-If the site has NO sync filter configured, **HARD BLOCK** all items: `"No client filter configured. Run /onboard-client Step 3c to set up client isolation before publishing."`
+### Step 2: Call MCP
 
-### Step 2: Check for existing post
-```
-wp_get_post(site, notion_id=notion_page_id)
-```
-If found, update. If not found, create.
+For each item that passes the Notion field gate, call:
 
-### Step 2.5: Content Quality Gate
-
-Verify all quality requirements before scheduling. In `--dry-run`, report failures. In default mode, auto-fix what's possible and HARD BLOCK on the rest.
-
-1. **Word count minimum (HARD BLOCK):** Post HTML content must be 800+ words (strip tags, count words). If under 800, skip with error: `"Content too short ({n} words, minimum 800)"`. Do not auto-expand.
-
-2. **SEO meta required:** RankMath title, description, and focus keyword must all be set (from Notion `SEO Meta Title`, `SEO Meta Description`, `Keyword`). If any missing, generate fallbacks:
-   - **Title fallback:** `{Post title} | Voyager Marketing` (truncate to under 60 chars)
-   - **Description fallback:** First 150 characters of post content (plain text, strip tags), word-boundary-cut, append `...`
-   - **Focus keyword fallback:** Use the Notion `Keyword` property (already a Step 1 gate, so this should always exist)
-
-3. **Internal links minimum:** Post HTML must contain at least 2 internal links (`<a href="https://{site}/...">`). If fewer than 2, suggest relevant links based on topic. Report missing links as a warning, do not block.
-
-4. **CTA paragraph:** Post must end with a call-to-action paragraph linking to `/contact/`. If missing, append:
-   ```html
-   <p><strong>Ready to get started? <a href="https://{site}/contact/">Contact us</a> today to discuss your project.</strong></p>
-   ```
-
-5. **Open Graph meta:** Ensure `og:title`, `og:description`, `og:type` are prepared for Step 4. Set via RankMath social fields:
-   - `og:title` = RankMath title (or fallback from rule 2)
-   - `og:description` = RankMath description (or fallback from rule 2)
-   - `og:type` = `article`
-
-### Step 3: Schedule on WordPress
-```
-wp_upsert_content(
-  site,               # client's site domain (from Websites DB)
-  post_type,          # "post" for Blog, "page" for Page
-  title,              # from Notion Name property
-  html,               # from Notion HTML property
-  publish_datetime,   # ISO-8601 from Notion Scheduled date
-  notion_id,          # Notion page ID (idempotency key)
-  categories,         # from client's default_categories config
-  tags,               # from client's default_tags config
-  featured_image_url  # from Notion Featured Image URL (optional)
-)
-```
-**Always status=future — never status=publish.**
-
-### Step 4: Set SEO metadata
-```
-wp_set_seo_meta(
+```ts
+content_publish_with_gates({
   site,
-  post_id,
-  focus_keyword,      # from Notion Keyword property
-  meta_title,         # from Notion SEO Meta Title (max 60 chars)
-  meta_description,   # from Notion SEO Meta Description (max 155 chars)
-  schema_type         # Article | BlogPosting | HowTo | FAQ
-)
+  notion_page_id,
+  client_page_id,
+  title,
+  html,
+  publish_datetime,
+  keyword,
+  post_type,
+  slug,
+  meta_title,
+  meta_description,
+  schema_type: "Article",
+  categories,
+  tags,
+  featured_image_url,
+  dry_run
+})
 ```
-Auto-detects RankMath or Yoast and maps to correct meta keys.
 
-### Step 5: Write back to Notion
-On SUCCESS:
-```
+The MCP owns:
+
+- Client isolation against the site's `voyager_notion_databases` content `sync_filter_value`
+- Existing post lookup by `notion_id`
+- 800+ word count hard block
+- SEO meta fallback generation
+- Internal link count warning
+- CTA append
+- Open Graph field preparation
+- WordPress scheduled upsert
+- SEO metadata write
+
+Gate failures return `status="blocked"` with structured `gate_results` and `errors`. Treat blocked results as fatal for that item.
+
+### Step 3: Write Back to Notion
+
+Only in default mode, after MCP returns `status="scheduled"`:
+
+```yaml
 notion-update-page:
   page_id: {notion_page_id}
   properties:
-    "WP Post ID": {post_id}
+    "WP Post ID": {wp_post_id}
     "Published Link": {permalink}
 ```
-Do NOT change Status — leave as "Scheduled". Status moves to "Published" only after WP cron publishes.
 
-On ERROR: write "Publish Error" property with actionable message. Don't change other fields.
+Do not change `Status`. Leave it as `Scheduled`; it moves to `Published` only after WordPress cron publishes.
+
+On MCP error or blocked result, write `Publish Error` with the actionable error message when that property exists. Do not retry blindly.
 
 ## Output
 
-```
+```md
 ## Scheduling Results
 | # | Title | Client | Result | WP Post ID | Scheduled For |
-|---|-------|--------|--------|-----------|---------------|
+|---|-------|--------|--------|------------|---------------|
 | 1 | Blog Title | Client | Scheduled | 92 | 2026-04-15 09:00 |
-| 2 | Page Title | Client | Error: HTML empty | — | — |
+| 2 | Page Title | Client | Blocked: Content too short | - | - |
 
-Scheduled: 1 | Skipped: 0 | Errors: 1
+Scheduled: 1 | Blocked: 1 | Errors: 0
 ```
+
+For `--dry-run`, show `status`, gate summary, generated SEO fields, warnings, and whether a CTA would be appended.
 
 ## Guardrails
 
-1. **NEVER set post_status to "publish"** — always "future" (scheduled). WP cron handles go-live.
-2. **NEVER run without ✅ Approved checked** — human gate, no exceptions.
-3. **NEVER run without HTML** — the HTML property must be non-empty.
-4. **NEVER run without Scheduled date** — required for future status.
-5. **Always write back WP Post ID** — idempotency for next run.
-6. **Status stays "Scheduled" in Notion** — don't move to Published. WP cron does that.
-7. **On failure, write Publish Error** — don't retry blindly.
-8. **Confirm with user before running** — unless `--force` flag.
-9. **NEVER publish content under 800 words** — content quality gate, HARD BLOCK.
-10. **NEVER publish without SEO meta** — title, description, focus keyword required (auto-generate fallbacks if missing from Notion).
-11. **Always set Open Graph meta** — og:title, og:description, og:type=article via RankMath social fields.
-12. **Always include CTA** — post must end with a contact CTA paragraph.
-13. **NEVER publish content from another client** — verify Client relation page ID matches the site's `sync_filter_value`. HARD BLOCK, not a warning. Cross-client content publication is a data integrity violation.
+1. Never expose or pass a publish status; the MCP schedules only.
+2. Never run without `Approved=true`; this is the human gate.
+3. Never run without HTML, scheduled date, keyword, client relation, and target site.
+4. Never bypass `content_publish_with_gates` for WordPress writes.
+5. Always write back WP Post ID and Published Link after success.
+6. Keep Notion `Status` as `Scheduled`.
+7. On failure, write `Publish Error` when available.
+8. Confirm with the user before scheduling unless a force/automation context explicitly authorizes execution.
