@@ -5,7 +5,7 @@ argument-hint: "<domain> [--deep] [--pages /about,/services]"
 allowed-tools: [Read, Write, mcp__claude_ai_Voyager_MCP__content_prospect_audit]
 user-invocable: true
 owner: Ben
-last_reviewed: 2026-04-30
+last_reviewed: 2026-05-15
 distribution: internal
 origin: voyager
 mcp_requirement: required
@@ -25,14 +25,14 @@ Generate a branded Voyager Marketing SEO audit for a prospect's website. One MCP
 
 ## Run the audit
 
-Call `content_prospect_audit(domain, deep?, pages?)`. It returns:
+Call `content_prospect_audit(domain, deep?, pages?, industry?, location?, competitor_domains?)`. It returns:
 
 - `scores`: on_page, technical, page_speed, content_quality, overall, grade
 - `findings`: per-category observations with specifics
-- `pagespeed`: mobile + desktop Core Web Vitals
+- `pagespeed`: mobile + desktop scores plus Core Web Vitals (`fcp_ms`, `lcp_ms`, `tbt_ms`, `cls`, `si_ms`)
 - `recommendations`: prioritized actions
 
-<!-- TODO: extend content_prospect_audit if PageSpeed CWV breakdown (FCP/LCP/TBT/CLS/SI) isn't in pagespeed payload -->
+If `--deep` or `--pages` is provided, pass those directly to the MCP tool. Do not manually fetch pages or calculate scores in the skill.
 
 ## Report
 

@@ -116,11 +116,11 @@ For "full audit mode" the server runs the 3–4 modes in parallel and merges. Ve
 
 ---
 
-### #4 — `prospect-audit` (HYBRID, ~5h)
+### #4 — `prospect-audit` (SHIPPED 2026-05-15)
 
 **Why fourth.** Daily-ish sales motion. The composite already exists (`content_prospect_audit`); the skill is currently re-implementing gather-score-report logic in 109 lines of body. Branded report shape and "Voyager Marketing" framing stay — that's brand IP — but data gathering and scoring math become one MCP call.
 
-**a. Composite MCP tool.** Existing — extend if shape doesn't match.
+**a. Composite MCP tool.** Existing tool hardened with deep/page controls and normalized PageSpeed CWV fields.
 ```
 content_prospect_audit(
   domain: string,
@@ -133,11 +133,11 @@ content_prospect_audit(
   recommendations: Recommendation[]
 }
 ```
-Verify the existing tool returns this shape. If it returns less (e.g., no PageSpeed CWV breakdown), extend rather than build new.
+The tool preserves the existing payload and adds normalized `pagespeed.mobile.cwv` / `pagespeed.desktop.cwv` fields for `fcp_ms`, `lcp_ms`, `tbt_ms`, `cls`, and `si_ms`.
 
-**b. Skill body shrinks to ~50 lines.** Frontmatter + trigger phrases + one MCP call + branded markdown template (the "Prepared by Voyager Marketing" report shape stays) + honesty/specificity guardrails.
+**b. Skill body stays thin.** Frontmatter + trigger phrases + one MCP call + branded markdown template (the "Prepared by Voyager Marketing" report shape stays) + honesty/specificity guardrails.
 
-**c. Effort.** MCP 2–4h (verify/extend existing tool) + skill 1h + testing 1h.
+**c. Remaining effort.** None for the current thin-skill/thick-MCP pass. Future work belongs in the larger Operating Audit module if we want competitor/local/brand sections.
 
 **d. User-visible improvement.** Audit results in seconds with deterministic scoring. Today the math is in-prompt and occasionally drifts; WebFetch chains take 30–60s.
 
@@ -474,7 +474,7 @@ These are running parallel with replacements per CLAUDE.md ("two-week verificati
 | #1 report | REFACTOR | Shipped 2026-05-15 (Portal publish optional) |
 | #2 publish | REFACTOR | Shipped 2026-05-15 (Notion writeback remains skill-side) |
 | #3 content-audit | HYBRID | 3–4h |
-| #4 prospect-audit | HYBRID | 5h |
+| #4 prospect-audit | HYBRID | Shipped 2026-05-15 |
 | #5 fleet-health | HYBRID | 6h |
 | #6 social | REFACTOR | 14h |
 | #7 content-brief | HYBRID | 9h |

@@ -114,13 +114,13 @@ Completed:
 - `report`: `report_generate` now has a skill-facing monthly WordPress report mode (`site`/`client` + `month` + `format`) that returns rendered markdown, lead/activity data, and MoM change while preserving the existing Portal Reports V2 async path for `client_id`/`template_id`/`date_range`.
 - `content-audit`: `content_audit` now supports `mode: "full"` as an MCP composite with per-mode partial-failure reporting, while the skill only selects mode and formats the response.
 - `publish`: `content_publish_with_gates` now owns client isolation, content quality gates, scheduled WordPress upsert, and SEO metadata writes. The skill stays thin around Notion lookup, approval checks, and Notion writeback.
+- `prospect-audit`: `content_prospect_audit` now exposes deep/page controls and normalizes PageSpeed Core Web Vitals. The skill keeps the branded Voyager sales report framing.
 
 Recommended order:
 
-1. `prospect-audit`: deterministic scoring in MCP, branded framing in skill.
-2. `fleet-health`: server-side fanout across sites.
-3. `social`: MCP drafts sessions, skill handles approval and voice.
-4. `content-hero-image` and `voyager-image-editor`: one generate/save/attach path.
+1. `fleet-health`: server-side fanout across sites.
+2. `social`: MCP drafts sessions, skill handles approval and voice.
+3. `content-hero-image` and `voyager-image-editor`: one generate/save/attach path.
 
 Portal follow-up:
 
