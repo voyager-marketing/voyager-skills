@@ -201,29 +201,31 @@ Wraps existing context, calendar, research, repurpose, and analytics primitives.
 
 ---
 
-### #7 — `content-brief` (HYBRID, ~9h)
+### #7 — `content-brief` (SHIPPED 2026-05-15)
 
 **Why seventh.** Weekly cadence. Mixes Ahrefs research workflow (Phase 1: 6 Ahrefs MCP calls + gap analysis + target volume/KD profile) with brief-quality rules and client config checklist (Phase 2: thinking framework). Phase 1 is workflow; Phase 2 stays. Centralizes Ahrefs credit tracking server-side instead of duplicating it across every skill that hits Ahrefs.
 
-**a. Composite MCP tool.** Net-new research orchestrator.
+**a. Composite MCP tool.** Shipped as `content_research_keywords`.
 ```
 content_research_keywords(
   client_id: string,
   seed_keywords?: string[],
+  client_domain?: string,
   competitor_domains?: string[],
   min_volume?: number,    // default 100
   max_kd?: number          // default 40
 ) -> {
-  opportunities: { keyword, volume, kd, client_rank, gap, intent }[],
+  opportunities: { keyword, volume, kd, gap, intent, source, priority_score }[],
   existing_briefs: Brief[],   // wraps content_get_briefs internally for dedup
-  ahrefs_credits_used: number
+  filtered_out: { duplicate_keywords, below_volume, above_kd },
+  ahrefs_calls_estimated: number
 }
 ```
-Wraps the 6 Ahrefs MCP calls + `content_get_briefs` for dedup. Returns the canonical research table the skill currently builds by hand.
+Wraps `content_get_briefs`, Ahrefs-backed seed expansion, optional competitor gap analysis, volume/KD filtering, duplicate detection, and ranked opportunity output.
 
-**b. Skill body shrinks to ~60 lines.** Frontmatter + trigger phrases + one MCP call + Phase 2 brief quality rules (kept) + brief field list + client config checklist + `content_trigger_brief` handoff (existing primitive) + constraints. The 6-tool Ahrefs procedure disappears.
+**b. Skill body shrunk.** Frontmatter + trigger phrases + one MCP research call + brief quality rules + brief field list + approval flow + `content_trigger_brief` handoff.
 
-**c. Effort.** MCP 5h (Ahrefs orchestration + credit tracking + dedup join) + skill 2h + testing 2h.
+**c. Remaining effort.** None for current research/dedup scope. Deeper client config auto-loading can be added later if Portal exposes a richer content-machine config endpoint.
 
 **d. User-visible improvement.** "Plan content for [client]" returns the opportunities table in one round-trip. Brief generation reasoning stays in chat where Alex can iterate.
 
@@ -477,7 +479,7 @@ These are running parallel with replacements per CLAUDE.md ("two-week verificati
 | #4 prospect-audit | HYBRID | Shipped 2026-05-15 |
 | #5 fleet-health | HYBRID | Shipped 2026-05-15 |
 | #6 social | REFACTOR | Shipped 2026-05-15 |
-| #7 content-brief | HYBRID | 9h |
+| #7 content-brief | HYBRID | Shipped 2026-05-15 |
 | #8 content-tracker | HYBRID | 7h |
 | #9 content-hero-image | HYBRID | Shipped 2026-05-15 |
 | #10 voyager-image-editor | HYBRID | 7–8h |
@@ -486,7 +488,7 @@ These are running parallel with replacements per CLAUDE.md ("two-week verificati
 | #13 voyager-build-kickoff | REFACTOR | 20–24h |
 | **Total** | | **~110–130h** |
 
-Quick wins at the top have mostly shipped: `content-audit`, `prospect-audit`, `fleet-health`, `social`, and `content-hero-image` now validate the thick-MCP/thin-skill architecture across reporting, publishing, sales, operations, social, and image workflows.
+Quick wins at the top have mostly shipped: `content-audit`, `prospect-audit`, `fleet-health`, `social`, `content-hero-image`, and `content-brief` now validate the thick-MCP/thin-skill architecture across reporting, publishing, sales, operations, social, image, and SEO research workflows.
 
 ---
 
@@ -502,4 +504,4 @@ If the API path doesn't bridge, the audit becomes higher priority because every 
 
 After this roadmap exists, individual refactor PRs follow the ordinary skill-edit flow per CLAUDE.md (edit on branch → eval pass → CHANGELOG entry → merge). Each refactor is its own PR scoped to one skill + its corresponding new/extended MCP tool.
 
-Suggested next PR: `content-brief` if prioritizing SEO production leverage, or `content-tracker` if prioritizing refresh recommendations for existing content.
+Suggested next PR: `content-tracker` if prioritizing refresh recommendations for existing content, or `voyager-image-editor` if prioritizing cleanup of the remaining non-hero image edit/save routes.

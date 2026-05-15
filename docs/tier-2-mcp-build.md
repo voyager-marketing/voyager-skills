@@ -262,23 +262,27 @@ Conditional chain: stops after generation/reuse if no `post_id`; adds Drive step
 
 ### 5. `content_research_keywords`
 
+Status: shipped 2026-05-15 as a new additive research composite in `src/tools-content.ts`. Existing SEO and content primitives remain unchanged.
+
 ```ts
 content_research_keywords(
   client_id: string,
   seed_keywords?: string[],
+  client_domain?: string,
   competitor_domains?: string[],
   min_volume?: number,    // default 100
   max_kd?: number          // default 40
 ) -> {
-  opportunities: { keyword: string, volume: number, kd: number, client_rank?: number, gap: string, intent: string }[],
+  opportunities: { keyword: string, volume: number, kd: number, gap: boolean, intent: string, source: string[], priority_score: number }[],
   existing_briefs: { id: string, title: string, status: string }[],
-  ahrefs_credits_used: number
+  filtered_out: { duplicate_keywords: string[], below_volume: string[], above_kd: string[] },
+  ahrefs_calls_estimated: number
 }
 ```
 
-Wraps the 6 Ahrefs MCP calls + `content_get_briefs` for dedup. Returns the canonical research table. Credit tracking is centralized server-side.
+Wraps `content_get_briefs`, Ahrefs-backed seed expansion, optional competitor gap analysis, volume/KD filtering, duplicate detection, and ranked opportunity output. Estimated Ahrefs call count is returned for budget visibility.
 
-**File:** `src/tools-content.ts`. **Skill to refactor:** `voyager-skills/skills/content-brief/SKILL.md`. Note: Ahrefs is on a separate MCP server — the composite calls the Ahrefs server's tools internally.
+**File:** `src/tools-content.ts`. **Skill refactored:** `voyager-skills/skills/content-brief/SKILL.md`.
 
 ---
 

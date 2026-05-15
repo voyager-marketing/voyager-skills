@@ -6,6 +6,21 @@ Format: reverse chronological. Date-anchored entries group the work done that da
 
 ---
 
+## 2026-05-15 - Content brief keyword research composite
+
+Refactored `skills/content-brief/SKILL.md` around the new `content_research_keywords` MCP composite.
+
+**What changed:**
+- `content_research_keywords(client_id, seed_keywords?, client_domain?, competitor_domains?, min_volume?, max_kd?)` is now the documented research contract.
+- Existing brief dedup, Ahrefs seed expansion, optional competitor-gap analysis, volume/KD filtering, source attribution, and estimated Ahrefs call counting moved into MCP.
+- The skill now keeps client config judgment, pillar fit, intent matching, seasonal timing, brief shaping, and approval before `content_trigger_brief`.
+
+**Eval / validation:**
+- Repo validator, skill tests, and MCP contract check required before merge.
+- Formal skill-creator eval is deferred; this change removes repeated Ahrefs orchestration while preserving strategy judgment.
+
+---
+
 ## 2026-05-15 - Hero image MCP composite
 
 Refactored `skills/content-hero-image/SKILL.md` around the new `content_generate_hero_image` MCP composite.
