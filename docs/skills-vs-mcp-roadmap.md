@@ -168,11 +168,11 @@ Fans out the relevant abilities across every fleet site via the existing Ability
 
 ---
 
-### #6 — `social` (REFACTOR, ~14h)
+### #6 — `social` (SHIPPED 2026-05-15)
 
 **Why sixth.** Architecture doc names `social_create_session(client, intent, topic)` as the canonical example. Skill is a 5-mode router with workflow per mode (resolve client + voice + platform → calendar check → research → drafts → batch create). Most mode logic belongs server-side; the platform-playbook brand-voice rules and approval flow stay in skill. Daily for Alex, but bigger effort than the higher-priority items above and lower data-integrity stakes than `publish`.
 
-**a. Composite MCP tool.** Net-new — existing `social_*` primitives are atomic.
+**a. Composite MCP tool.** Shipped as `social_create_session`; existing `social_*` primitives remain atomic for compatibility.
 ```
 social_create_session(
   client: string,
@@ -191,11 +191,11 @@ social_create_session(
   analytics?: AnalyticsSummary
 }
 ```
-Wraps existing `social_get_calendar` + `social_research_topics` + `social_repurpose_url` + `social_trigger_from_blog` + `social_get_analytics`. Returns drafts ready for review — does NOT call `social_create_post` until skill confirms approval.
+Wraps existing context, calendar, research, repurpose, and analytics primitives. Returns an ephemeral session with `persisted:false`, `writes_performed:false`, and drafts ready for review. It does NOT call `social_create_post`, `social_update_post`, schedule tools, or approval tools.
 
-**b. Skill body shrinks to ~50 lines.** Frontmatter + trigger phrases + intent picker (5 modes one-line each) + one tool call + show drafts → approve → call `social_create_post` (existing) + retain `references/platform-playbook.md` pointer + 10 hard guardrails kept verbatim (those are voice/policy, not workflow).
+**b. Skill body shrunk.** Frontmatter + trigger phrases + intent picker + one `social_create_session` call + show drafts -> approve -> call `social_create_post` only after approval + retain `references/platform-playbook.md` pointer + 10 hard guardrails.
 
-**c. Effort.** MCP 8h (5 mode branches, calendar dedup, return-not-create semantics) + skill 2h + testing 4h.
+**c. Remaining effort.** None for current social-session scope. Future improvements can add richer platform-specific draft scoring, but the skill/MCP boundary is now in place.
 
 **d. User-visible improvement.** "Fill [client]'s social calendar this week" gives one server round-trip with full plan returned, not 5 chained calls visible in chat.
 
@@ -476,7 +476,7 @@ These are running parallel with replacements per CLAUDE.md ("two-week verificati
 | #3 content-audit | HYBRID | 3–4h |
 | #4 prospect-audit | HYBRID | Shipped 2026-05-15 |
 | #5 fleet-health | HYBRID | Shipped 2026-05-15 |
-| #6 social | REFACTOR | 14h |
+| #6 social | REFACTOR | Shipped 2026-05-15 |
 | #7 content-brief | HYBRID | 9h |
 | #8 content-tracker | HYBRID | 7h |
 | #9 content-hero-image | HYBRID | 7h |
@@ -486,7 +486,7 @@ These are running parallel with replacements per CLAUDE.md ("two-week verificati
 | #13 voyager-build-kickoff | REFACTOR | 20–24h |
 | **Total** | | **~110–130h** |
 
-Quick wins (under 6h) at the top: `content-audit`, `prospect-audit`, `fleet-health`. These three together (~14–15h) deliver outsized leverage for Alex and validate the architecture pattern before committing to the bigger refactors.
+Quick wins at the top have mostly shipped: `content-audit`, `prospect-audit`, `fleet-health`, and `social` now validate the thick-MCP/thin-skill architecture across reporting, publishing, sales, operations, and social workflows. Next highest leverage is the image path because it collapses a costly multi-tool chain into one governed composite.
 
 ---
 
@@ -502,4 +502,4 @@ If the API path doesn't bridge, the audit becomes higher priority because every 
 
 After this roadmap exists, individual refactor PRs follow the ordinary skill-edit flow per CLAUDE.md (edit on branch → eval pass → CHANGELOG entry → merge). Each refactor is its own PR scoped to one skill + its corresponding new/extended MCP tool.
 
-Suggested next PR: `prospect-audit` if prioritizing sales/reporting speed, or `fleet-health` if prioritizing operational visibility.
+Suggested next PR: `content-hero-image` if prioritizing content production speed, with `voyager-image-editor` adjacent if the generate/save/attach path should land as one slice.

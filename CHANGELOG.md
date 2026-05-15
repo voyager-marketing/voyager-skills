@@ -6,6 +6,22 @@ Format: reverse chronological. Date-anchored entries group the work done that da
 
 ---
 
+## 2026-05-15 - Social session MCP composite
+
+Refactored `skills/social/SKILL.md` around the new `social_create_session` MCP composite.
+
+**What changed:**
+- `social_create_session(client, intent, topic?, source_url?, platforms?, timeframe_days?)` is now the documented social planning contract.
+- Client context, calendar conflicts, topic research, repurpose drafts, analytics reads, and draft session assembly moved into MCP.
+- The skill now handles intent selection, platform judgment, output rendering, approval gates, and post-approval `social_create_post` calls.
+- `references/platform-playbook.md` was cleaned up to point at the new composite boundary while preserving platform rules and hard guardrails.
+
+**Eval / validation:**
+- Repo validator, skill tests, and MCP contract check required before merge.
+- Formal skill-creator eval is deferred; this change removes workflow logic and preserves the approval/publishing safety rules.
+
+---
+
 ## 2026-05-15 — Fleet health MCP composite
 
 Refactored `skills/fleet-health/SKILL.md` around the new `wp_fleet_health` MCP composite.

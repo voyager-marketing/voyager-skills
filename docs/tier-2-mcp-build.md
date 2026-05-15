@@ -282,6 +282,8 @@ Wraps the 6 Ahrefs MCP calls + `content_get_briefs` for dedup. Returns the canon
 
 ### 6. `social_create_session`
 
+Status: shipped 2026-05-15 as a new additive social-session composite. The existing create/update/schedule primitives remain unchanged.
+
 ```ts
 social_create_session(
   client: string,
@@ -301,9 +303,9 @@ social_create_session(
 }
 ```
 
-Wraps existing `social_get_calendar` + `social_research_topics` + `social_repurpose_url` + `social_trigger_from_blog` + `social_get_analytics`. Returns drafts ready for review — does NOT call `social_create_post` until the skill confirms approval.
+Wraps existing context, calendar, research, repurpose, and analytics primitives. Returns an ephemeral review session with `persisted:false`, `writes_performed:false`, and `created_posts:[]`. It does NOT call `social_create_post`, `social_update_post`, schedule tools, or approval tools; those remain skill-side after explicit user approval.
 
-**File:** wherever social_* lives (probably `src/tools-content.ts` or a dedicated `tools-social.ts` if it exists; grep first). **Skill to refactor:** `voyager-skills/skills/social/SKILL.md`.
+**File:** `src/tools-social.ts`. **Skill refactored:** `voyager-skills/skills/social/SKILL.md`.
 
 ---
 

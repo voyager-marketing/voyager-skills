@@ -116,11 +116,12 @@ Completed:
 - `publish`: `content_publish_with_gates` now owns client isolation, content quality gates, scheduled WordPress upsert, and SEO metadata writes. The skill stays thin around Notion lookup, approval checks, and Notion writeback.
 - `prospect-audit`: `content_prospect_audit` now exposes deep/page controls and normalizes PageSpeed Core Web Vitals. The skill keeps the branded Voyager sales report framing.
 - `fleet-health`: `wp_fleet_health` now runs server-side fleet fanout for infra and binding health, applies thresholds, and returns one graded fleet view. The skill keeps formatting, Slack notification, and scheduled-agent guidance.
+- `social`: `social_create_session` now gathers client context, calendar conflicts, topic research, repurpose drafts, and analytics without creating posts. The skill keeps platform judgment, approval gates, and draft creation after explicit approval.
 
 Recommended order:
 
-1. `social`: MCP drafts sessions, skill handles approval and voice.
-2. `content-hero-image` and `voyager-image-editor`: one generate/save/attach path.
+1. `content-hero-image` and `voyager-image-editor`: one generate/save/attach path.
+2. `content-brief`: one Ahrefs-backed research composite with dedup and credit tracking.
 
 Portal follow-up:
 
