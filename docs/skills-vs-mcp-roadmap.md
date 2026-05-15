@@ -258,11 +258,11 @@ Internally calls `content_get_briefs(status="published")` + `content_pipeline_st
 
 ---
 
-### #9 — `content-hero-image` (HYBRID, ~7h)
+### #9 — `content-hero-image` (SHIPPED 2026-05-15)
 
 **Why ninth.** Per-post frequency. Mixes a 4-tool chain (`image_generate` → `image_save_to_drive` → `wp_upload_media` → `wp_set_featured_image`) — pure orchestration — with prompt-writing guidelines, model-choice rules, and aspect-ratio guidance which are thinking-framework content. Chain becomes composite; prompt craft stays.
 
-**a. Composite MCP tool.** Net-new — atomic primitives exist but no orchestrator.
+**a. Composite MCP tool.** Shipped as `content_generate_hero_image`; atomic primitives remain unchanged.
 ```
 content_generate_hero_image(
   prompt: string,
@@ -281,11 +281,11 @@ content_generate_hero_image(
   wp_attachment?: { id, media_url, featured_on_post_id, permalink }
 }
 ```
-Conditional chain: stops after `image_generate` if no `post_id`; adds Drive step if `save_to_drive`; runs full 4-step chain when `post_id` + `alt_text` provided. The optional `r2_key` allows `content-image-library` to reuse existing images via the same composite (no separate refactor needed).
+Conditional chain: stops after generation/reuse if no `post_id`; adds Drive step if `save_to_drive`; runs full WordPress upload + featured-image attach when `post_id`, explicit `site`, and `alt_text` are provided. The optional `r2_key` / `signed_url` path lets `content-image-library` reuse existing images through the same composite.
 
-**b. Skill body shrinks to ~60 lines.** Frontmatter + when-to-use / when-not-to-use + 7 prompt-writing rules (kept — thinking framework) + good/bad prompt examples (kept) + one tool call + guardrails (pro-cost confirmation, 3-attempt cap).
+**b. Skill body shrunk.** Frontmatter + when-to-use / when-not-to-use + 7 prompt-writing rules + good prompt example + one tool call + guardrails (pro-cost confirmation, 3-attempt cap, explicit site/alt text).
 
-**c. Effort.** MCP 4h (conditional chain + alt-text validation + pro-cost guard + r2_key reuse path) + skill 1h + testing 2h.
+**c. Remaining effort.** None for current hero image scope. `voyager-image-editor` still has broader edit/browse routing, but generated/reused hero attach flows now route through this composite.
 
 **d. User-visible improvement.** "Generate hero for post 123" runs the chain in one call. Skill keeps its prompt-craft value.
 
@@ -479,14 +479,14 @@ These are running parallel with replacements per CLAUDE.md ("two-week verificati
 | #6 social | REFACTOR | Shipped 2026-05-15 |
 | #7 content-brief | HYBRID | 9h |
 | #8 content-tracker | HYBRID | 7h |
-| #9 content-hero-image | HYBRID | 7h |
+| #9 content-hero-image | HYBRID | Shipped 2026-05-15 |
 | #10 voyager-image-editor | HYBRID | 7–8h |
 | #11 onboard-client | HYBRID | 8–10h |
 | #12 provision-site-data | HYBRID | 4.5–5.5h |
 | #13 voyager-build-kickoff | REFACTOR | 20–24h |
 | **Total** | | **~110–130h** |
 
-Quick wins at the top have mostly shipped: `content-audit`, `prospect-audit`, `fleet-health`, and `social` now validate the thick-MCP/thin-skill architecture across reporting, publishing, sales, operations, and social workflows. Next highest leverage is the image path because it collapses a costly multi-tool chain into one governed composite.
+Quick wins at the top have mostly shipped: `content-audit`, `prospect-audit`, `fleet-health`, `social`, and `content-hero-image` now validate the thick-MCP/thin-skill architecture across reporting, publishing, sales, operations, social, and image workflows.
 
 ---
 
@@ -502,4 +502,4 @@ If the API path doesn't bridge, the audit becomes higher priority because every 
 
 After this roadmap exists, individual refactor PRs follow the ordinary skill-edit flow per CLAUDE.md (edit on branch → eval pass → CHANGELOG entry → merge). Each refactor is its own PR scoped to one skill + its corresponding new/extended MCP tool.
 
-Suggested next PR: `content-hero-image` if prioritizing content production speed, with `voyager-image-editor` adjacent if the generate/save/attach path should land as one slice.
+Suggested next PR: `content-brief` if prioritizing SEO production leverage, or `content-tracker` if prioritizing refresh recommendations for existing content.

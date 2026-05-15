@@ -31,7 +31,7 @@ Read first:
   HMAC auth, Cloudflare Worker deploy flow, test harness.
 - voyager-mcp-server/src/tools-*.ts — the existing tool files. The new
   composites should live in the file that matches their domain
-  (tools-content.ts, tools-fleet.ts, tools-reporting.ts, etc.). DO NOT
+  (tools-content.ts, tools-fleet.ts, tools-reporting.ts, tools-images.ts, etc.). DO NOT
   create new files unless a domain genuinely doesn't have one yet.
 
 Build sequence (priority order after the report/content-audit proof points):
@@ -233,6 +233,8 @@ Internally calls `content_get_briefs(status="published")` + `content_pipeline_st
 
 ### 4. `content_generate_hero_image`
 
+Status: shipped 2026-05-15 as a new additive image composite in `src/tools-images.ts`. Existing `image_generate`, `image_save_to_drive`, `wp_upload_media`, and `wp_set_featured_image` remain unchanged.
+
 ```ts
 content_generate_hero_image(
   prompt: string,
@@ -252,9 +254,9 @@ content_generate_hero_image(
 }
 ```
 
-Conditional chain: stops after `image_generate` if no `post_id`; adds Drive step if `save_to_drive`; runs full chain when `post_id` + `alt_text` provided. The `r2_key` input lets the existing `content-image-library` skill route through the same composite for reuse.
+Conditional chain: stops after generation/reuse if no `post_id`; adds Drive step if `save_to_drive`; runs full WordPress upload + featured-image attach when `post_id`, explicit `site`, and `alt_text` are provided. The `r2_key` / `signed_url` inputs let `content-image-library` reuse existing images through the same composite.
 
-**File:** `src/tools-content.ts` (or wherever image_* lives — check first). **Skill to refactor:** `voyager-skills/skills/content-hero-image/SKILL.md`. Bonus: this also collapses the manual chain in `voyager-skills/skills/voyager-image-editor/SKILL.md` for the upload-after-generate path (Tier 1 left that as a multi-call chain).
+**File:** `src/tools-images.ts`. **Skill refactored:** `voyager-skills/skills/content-hero-image/SKILL.md`. Related skills updated: `voyager-image-editor`, `content-image-library`.
 
 ---
 

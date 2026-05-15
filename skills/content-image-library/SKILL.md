@@ -2,10 +2,13 @@
 name: content-image-library
 description: "Use when you need an image for a post or page and want to search the Voyager R2 image library before generating a new one. Saves a generation cost when a previously-made image fits. Pairs with content-hero-image (which generates new). Triggers on: 'find an image for', 'search the image library', 'do we have an image of', 'show me our generated images', 'reuse an image', 'browse the image library'."
 argument-hint: "[--prefix images/2026-04] [--limit 50] [--save-drive] [--post-id 123] [--site domain.com]"
-allowed-tools: [Bash, Read, Grep, Glob, Agent, TodoWrite]
+allowed-tools:
+  - mcp__claude_ai_Voyager_MCP__image_library_list
+  - mcp__claude_ai_Voyager_MCP__image_save_to_drive
+  - mcp__claude_ai_Voyager_MCP__content_generate_hero_image
 user-invocable: true
 owner: Ben
-last_reviewed: 2026-04-21
+last_reviewed: 2026-05-15
 distribution: internal
 origin: voyager
 mcp_requirement: required
@@ -39,7 +42,7 @@ image_library_list  →  (user picks)  →  optional reuse path
 Reuse paths:
 - **Just preview** — return the signed URL, stop.
 - **Save to Drive** — `image_save_to_drive` with the chosen R2 key.
-- **Upload to WordPress** — `wp_upload_media` → optional `wp_set_featured_image`.
+- **Upload/featured image** — prefer `content_generate_hero_image` with the chosen `r2_key` or `signed_url`, `site`, `post_id`, and `alt_text`.
 
 ## Procedure
 
@@ -83,9 +86,7 @@ Branch on what the user asked for:
 - `title`: build a descriptive filename like `{topic}-reuse-{YYYY-MM-DD}.jpg`.
 - `folder_id`: leave default (Voyager AI Image Library folder).
 
-**C. Upload to WordPress (`--post-id`)** — two calls:
-1. `wp_upload_media` with the signed URL and a descriptive `alt_text`.
-2. If the user asked to set it as featured: `wp_set_featured_image` with the attachment ID from step 1.
+**C. Upload to WordPress (`--post-id`)** — call `content_generate_hero_image` with the selected `r2_key` or `signed_url`. Include explicit `site` and descriptive `alt_text`; the MCP handles WordPress upload and featured-image attach.
 
 ### Step 5 — Confirm
 

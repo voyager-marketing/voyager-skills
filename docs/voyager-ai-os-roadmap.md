@@ -117,11 +117,12 @@ Completed:
 - `prospect-audit`: `content_prospect_audit` now exposes deep/page controls and normalizes PageSpeed Core Web Vitals. The skill keeps the branded Voyager sales report framing.
 - `fleet-health`: `wp_fleet_health` now runs server-side fleet fanout for infra and binding health, applies thresholds, and returns one graded fleet view. The skill keeps formatting, Slack notification, and scheduled-agent guidance.
 - `social`: `social_create_session` now gathers client context, calendar conflicts, topic research, repurpose drafts, and analytics without creating posts. The skill keeps platform judgment, approval gates, and draft creation after explicit approval.
+- `content-hero-image`: `content_generate_hero_image` now owns image generation/reuse, R2 signing, optional Drive save, WordPress upload, and featured-image attach. The skill keeps prompt craft, model/cost judgment, and live-post safety gates.
 
 Recommended order:
 
-1. `content-hero-image` and `voyager-image-editor`: one generate/save/attach path.
-2. `content-brief`: one Ahrefs-backed research composite with dedup and credit tracking.
+1. `content-brief`: one Ahrefs-backed research composite with dedup and credit tracking.
+2. `content-tracker`: server-side refresh thresholds and recommendations.
 
 Portal follow-up:
 

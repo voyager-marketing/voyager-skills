@@ -6,6 +6,22 @@ Format: reverse chronological. Date-anchored entries group the work done that da
 
 ---
 
+## 2026-05-15 - Hero image MCP composite
+
+Refactored `skills/content-hero-image/SKILL.md` around the new `content_generate_hero_image` MCP composite.
+
+**What changed:**
+- `content_generate_hero_image(prompt, aspect_ratio?, model?, post_id?, site?, save_to_drive?, alt_text?, r2_key?, signed_url?)` is now the documented hero image contract.
+- Image generation/reuse, R2 signing, optional Drive save, WordPress media upload, and featured-image attachment moved into MCP.
+- The skill now keeps prompt craft, aspect/model judgment, cost confirmation, alt-text requirements, and live-post safety gates.
+- `voyager-image-editor` and `content-image-library` now route generated/reused hero attach flows through the composite.
+
+**Eval / validation:**
+- Repo validator, skill tests, and MCP contract check required before merge.
+- Formal skill-creator eval is deferred; this change removes brittle multi-tool orchestration and preserves creative/safety guidance.
+
+---
+
 ## 2026-05-15 - Social session MCP composite
 
 Refactored `skills/social/SKILL.md` around the new `social_create_session` MCP composite.
