@@ -441,7 +441,7 @@ git commit -m "feat: check voyager mcp tool contracts"
 - Inspect: `F:\dev\voyager\AI Tools\voyager-mcp-server\src\tools-seo-orbit.ts`
 - Modify only after designing the exact server-side tool shape.
 
-- [ ] **Step 1: Confirm current MCP tool names**
+- [x] **Step 1: Confirm current MCP tool names**
 
 Run:
 
@@ -458,7 +458,7 @@ Look for:
 - `seo_predict_performance`
 - existing `content_audit` or equivalent composite
 
-- [ ] **Step 2: Decide whether this is a new composite or an extension**
+- [x] **Step 2: Decide whether this is a new composite or an extension**
 
 If `content_audit` already exists, extend it with `mode: "full"`. If it does not exist, add:
 
@@ -480,11 +480,11 @@ content_audit(
 }
 ```
 
-- [ ] **Step 3: Write failing MCP tests**
+- [x] **Step 3: Write failing MCP tests**
 
 Use existing test style in `voyager-mcp-server` if available. The key test should verify `mode: "full"` orchestrates freshness, images, and performance paths and returns one merged response shape.
 
-- [ ] **Step 4: Implement minimal MCP composite**
+- [x] **Step 4: Implement minimal MCP composite**
 
 Keep the first version boring:
 
@@ -493,7 +493,7 @@ Keep the first version boring:
 - Return structured errors per mode rather than failing the entire audit when one mode fails.
 - Do not add publishing, writes, or destructive actions.
 
-- [ ] **Step 5: Thin the skill only after MCP tests pass**
+- [x] **Step 5: Thin the skill only after MCP tests pass**
 
 Update `skills/content-audit/SKILL.md` so it calls the composite where available and keeps only:
 
@@ -503,7 +503,7 @@ Update `skills/content-audit/SKILL.md` so it calls the composite where available
 - honesty/specificity rules
 - handoff phrases
 
-- [ ] **Step 6: Run cross-repo verification**
+- [x] **Step 6: Run cross-repo verification**
 
 Run from `voyager-mcp-server`:
 
@@ -520,7 +520,7 @@ npm run validate
 npm run check:mcp-contracts
 ```
 
-- [ ] **Step 7: Commit MCP and skill changes**
+- [x] **Step 7: Commit MCP and skill changes**
 
 Commit in the relevant repo or repos:
 

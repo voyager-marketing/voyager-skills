@@ -109,15 +109,18 @@ Result:
 
 Goal: move risky, repeated, or service-heavy workflow logic into MCP.
 
+Completed:
+
+- `content-audit`: `content_audit` now supports `mode: "full"` as an MCP composite with per-mode partial-failure reporting, while the skill only selects mode and formats the response.
+
 Recommended order:
 
-1. `content-audit`: smallest refactor, validates the pattern.
-2. `report`: high business value, makes Chat reporting more reliable.
-3. `publish`: highest safety value, moves gates server-side.
-4. `prospect-audit`: deterministic scoring in MCP, branded framing in skill.
-5. `fleet-health`: server-side fanout across sites.
-6. `social`: MCP drafts sessions, skill handles approval and voice.
-7. `content-hero-image` and `voyager-image-editor`: one generate/save/attach path.
+1. `report`: high business value, makes Chat reporting more reliable.
+2. `publish`: highest safety value, moves gates server-side.
+3. `prospect-audit`: deterministic scoring in MCP, branded framing in skill.
+4. `fleet-health`: server-side fanout across sites.
+5. `social`: MCP drafts sessions, skill handles approval and voice.
+6. `content-hero-image` and `voyager-image-editor`: one generate/save/attach path.
 
 Rule:
 

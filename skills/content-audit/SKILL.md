@@ -4,7 +4,7 @@ description: "Use when asked to audit content quality, check for stale content, 
 argument-hint: "[client] [--mode freshness|images|gaps|performance|full] [--months 6] [--keyword 'topic'] [--post-id 123] [--limit 20]"
 user-invocable: true
 owner: Ben
-last_reviewed: 2026-04-30
+last_reviewed: 2026-05-14
 distribution: internal
 origin: voyager
 mcp_requirement: required
@@ -14,21 +14,19 @@ surface: all
 
 # Content Audit
 
-Identify stale content, thin pages, image SEO issues, content gaps, and post-level performance risk for a Voyager client site. One MCP call per mode. No shell, no SSH, no `wp eval`.
+Identify stale content, thin pages, image SEO issues, content gaps, and post-level performance risk for a Voyager client site. Call the `content_audit` MCP tool once with the selected mode. No shell, no SSH, no `wp eval`.
 
 ## Mode switch
 
 Pick a single mode from the user's intent. If unclear, ask once before running.
 
-| Intent phrase | Mode | Tool |
+| Intent phrase | Mode | Tool call |
 |---|---|---|
-| "audit content", "content health", "full audit", "complete audit" | `full` | run `freshness` + `images` + `performance` in parallel, merge findings |
-| "stale content", "freshness", "old posts", "needs updating" | `freshness` | `seo_audit_freshness` |
-| "image SEO", "alt text", "missing alts", "oversized images" | `images` | `seo_audit_images` |
-| "content gaps for X", "missing content on X", "what should we write about X" | `gaps` | `content_analyze_gaps` (requires `keyword`) |
-| "score this post", "predict performance for post N", "is this post going to rank" | `performance` | `seo_predict_performance` (requires `post_id`) |
-
-<!-- TODO: no `mode: "full"` exists on `content_audit` today; this skill calls the three sub-tools serially or in parallel and merges client-side. Roll up into a server-side full mode when the catalog supports it. -->
+| "audit content", "content health", "full audit", "complete audit" | `full` | `content_audit` with `mode: "full"` |
+| "stale content", "freshness", "old posts", "needs updating" | `freshness` | `content_audit` with `mode: "freshness"` |
+| "image SEO", "alt text", "missing alts", "oversized images" | `images` | `content_audit` with `mode: "images"` |
+| "content gaps for X", "missing content on X", "what should we write about X" | `gaps` | `content_audit` with `mode: "gaps"` and `keyword` |
+| "score this post", "predict performance for post N", "is this post going to rank" | `performance` | `content_audit` with `mode: "performance"` and `post_id` |
 
 ## Inputs
 
@@ -40,6 +38,10 @@ Pick a single mode from the user's intent. If unclear, ask once before running.
 - `limit` (default 20 freshness, 50 images)
 
 If `client_site` is missing, ask once. Don't guess.
+
+## Tool contract
+
+Use `content_audit` as the single MCP entrypoint. The MCP owns orchestration and error isolation. In `full` mode, read each returned mode result and report partial failures clearly instead of retrying sub-tools from the skill.
 
 ## Output
 
