@@ -143,11 +143,11 @@ The tool preserves the existing payload and adds normalized `pagespeed.mobile.cw
 
 ---
 
-### #5 — `fleet-health` (HYBRID, ~6h)
+### #5 — `fleet-health` (SHIPPED 2026-05-15)
 
 **Why fifth.** Alex-runnable ad-hoc ("how's the fleet?") AND it's the skill behind two scheduled agents (Monday 9am infra, Wednesday 10am bindings). Already mostly thin at 151 lines, but moving the fan-out (per-site loop) server-side means scheduled jobs become one MCP call instead of orchestrating N abilities × M sites in chat context.
 
-**a. Composite MCP tool.** Extend existing `wp_fleet_status`.
+**a. Composite MCP tool.** Shipped as `wp_fleet_health`; `wp_fleet_status` remains unchanged for compatibility.
 ```
 wp_fleet_health(
   mode: "infra" | "bindings" | "both",
@@ -158,11 +158,11 @@ wp_fleet_health(
   summary: { total, healthy, warning, critical, fleet_fallback_rate_30d }
 }
 ```
-Fans out the relevant abilities across every fleet site via the existing AbilityBridge, grades each per published thresholds, returns one structured fleet view.
+Fans out the relevant abilities across every fleet site via the existing AbilityBridge, grades each per published thresholds, and returns one structured fleet view.
 
-**b. Skill body shrinks to ~50 lines.** Frontmatter + trigger phrases + arg parsing (`--bindings`, `--threshold`, `--site`, `--notify`) + one tool call + output table formatting + Slack post on `--notify` + scheduled-agent guidance.
+**b. Skill body shrunk.** Frontmatter + trigger phrases + arg parsing (`--bindings`, `--both`, `--threshold`, `--site`, `--notify`) + one tool call + output table formatting + Slack post on `--notify` + scheduled-agent guidance.
 
-**c. Effort.** MCP 3h (extend `wp_fleet_status` + threshold logic) + skill 1h + testing 2h.
+**c. Remaining effort.** None for current fleet-health scope. Fleet Intelligence remains blocked until Sentry ingestion exists.
 
 **d. User-visible improvement.** "Run fleet health" returns one consolidated table in 3–5s instead of streaming per-site progress for 30s+. Scheduled jobs become bulletproof.
 
@@ -475,7 +475,7 @@ These are running parallel with replacements per CLAUDE.md ("two-week verificati
 | #2 publish | REFACTOR | Shipped 2026-05-15 (Notion writeback remains skill-side) |
 | #3 content-audit | HYBRID | 3–4h |
 | #4 prospect-audit | HYBRID | Shipped 2026-05-15 |
-| #5 fleet-health | HYBRID | 6h |
+| #5 fleet-health | HYBRID | Shipped 2026-05-15 |
 | #6 social | REFACTOR | 14h |
 | #7 content-brief | HYBRID | 9h |
 | #8 content-tracker | HYBRID | 7h |

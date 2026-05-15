@@ -6,6 +6,22 @@ Format: reverse chronological. Date-anchored entries group the work done that da
 
 ---
 
+## 2026-05-15 — Fleet health MCP composite
+
+Refactored `skills/fleet-health/SKILL.md` around the new `wp_fleet_health` MCP composite.
+
+**What changed:**
+- `wp_fleet_health(mode, site_filter?, threshold_overrides?)` is now the documented fleet-health contract.
+- Fleet fanout, infra checks, binding checks, grading, and thresholds moved into MCP.
+- The skill now handles argument parsing, report formatting, optional Slack notification, and scheduled-agent guidance.
+- The slash command no longer instructs WP-CLI, WebFetch, or per-ability orchestration.
+
+**Eval / validation:**
+- Repo validator, skill tests, and MCP contract check required before merge.
+- Formal skill-creator eval is deferred; this change removes workflow logic and preserves trigger surface plus scheduled-agent guidance.
+
+---
+
 ## 2026-05-15 — Report skill + MCP contract alignment
 
 Aligned `skills/report/SKILL.md` with the new `report_generate` monthly WordPress compatibility path on `voyager-mcp-server`.

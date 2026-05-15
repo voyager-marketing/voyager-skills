@@ -115,12 +115,12 @@ Completed:
 - `content-audit`: `content_audit` now supports `mode: "full"` as an MCP composite with per-mode partial-failure reporting, while the skill only selects mode and formats the response.
 - `publish`: `content_publish_with_gates` now owns client isolation, content quality gates, scheduled WordPress upsert, and SEO metadata writes. The skill stays thin around Notion lookup, approval checks, and Notion writeback.
 - `prospect-audit`: `content_prospect_audit` now exposes deep/page controls and normalizes PageSpeed Core Web Vitals. The skill keeps the branded Voyager sales report framing.
+- `fleet-health`: `wp_fleet_health` now runs server-side fleet fanout for infra and binding health, applies thresholds, and returns one graded fleet view. The skill keeps formatting, Slack notification, and scheduled-agent guidance.
 
 Recommended order:
 
-1. `fleet-health`: server-side fanout across sites.
-2. `social`: MCP drafts sessions, skill handles approval and voice.
-3. `content-hero-image` and `voyager-image-editor`: one generate/save/attach path.
+1. `social`: MCP drafts sessions, skill handles approval and voice.
+2. `content-hero-image` and `voyager-image-editor`: one generate/save/attach path.
 
 Portal follow-up:
 

@@ -144,6 +144,8 @@ These are condensed signatures from `docs/skills-vs-mcp-roadmap.md`. Use the roa
 
 ### 1. `wp_fleet_health` (extend `wp_fleet_status`)
 
+Status: shipped 2026-05-15 as a new additive tool. `wp_fleet_status` remains unchanged for existing scheduled wiring.
+
 ```ts
 wp_fleet_health(
   mode: "infra" | "bindings" | "both",
@@ -155,9 +157,9 @@ wp_fleet_health(
 }
 ```
 
-Fans out across the fleet via the existing AbilityBridge. Keeps `wp_fleet_status` working — `wp_fleet_health` is the extended version that also handles the bindings-mode + threshold logic the skill currently does client-side.
+Fans out across the fleet via the existing AbilityBridge. Keeps `wp_fleet_status` working; `wp_fleet_health` is the extended version that also handles the bindings-mode + threshold logic the skill previously did client-side.
 
-**File:** `src/tools-fleet.ts`. **Skill to refactor:** `voyager-skills/skills/fleet-health/SKILL.md`.
+**File:** `src/tools-fleet.ts`. **Skill refactored:** `voyager-skills/skills/fleet-health/SKILL.md`.
 
 ---
 

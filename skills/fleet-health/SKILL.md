@@ -1,10 +1,11 @@
 ---
 name: fleet-health
-description: "Use when asked to check fleet health, run fleet monitoring, audit all client sites, check binding health across the fleet, or check site status across the Voyager client fleet. Default mode covers infra (plugins, Portal registration, tier, Pattern Cloud). `--bindings` covers binding-source health (empty fields, fallback rates, Notion connectivity)."
-argument-hint: "[--site=domain] [--bindings] [--threshold=20] [--notify]"
+description: "Use when asked to check fleet health, run fleet monitoring, audit all client sites, check binding health across the fleet, or check site status across the Voyager client fleet. Default mode covers infra. `--bindings` covers binding-source health."
+argument-hint: "[--site=domain] [--bindings|--both] [--threshold=20] [--notify]"
+allowed-tools: [mcp__claude_ai_Voyager_MCP__wp_fleet_health]
 user-invocable: true
 owner: Ben
-last_reviewed: 2026-04-29
+last_reviewed: 2026-05-15
 distribution: internal
 origin: voyager
 mcp_requirement: required
@@ -14,143 +15,96 @@ surface: all
 
 # Fleet Health Sweep
 
-Run health checks across all Voyager client sites. Two modes:
+Run fleet health through the Voyager MCP `wp_fleet_health` composite. The MCP owns site fanout, AbilityBridge calls, health grading, binding thresholds, and partial-failure handling. The skill owns intent routing, report formatting, optional Slack notification, and scheduled-agent guidance.
 
-- **Default (infra mode)** — plugin versions, Portal registration, tier detection, Pattern Cloud, site data status. Uses the `voyager-orbit/fleet-site-status` ability.
-- **`--bindings` mode** — block-binding health: empty required fields, fallback rates, Notion connectivity, pSEO field coverage. Uses three voyager-blocks abilities (formerly the standalone `fleet-binding-audit` skill, merged 2026-04-29).
+## Modes
 
-Both modes run via WP-CLI on the local install and via the Portal MCP / AbilityBridge REST endpoint on remote client sites.
+- Default infra mode: `mode="infra"`. Checks plugin status, Portal registration, tier detection, Pattern Cloud, site data, and binding-source count.
+- `--bindings`: `mode="bindings"`. Checks empty required fields, fallback rates, Notion connectivity, stale binding resolution, and pSEO coverage.
+- `--both`: `mode="both"`. Runs infra and bindings in one server-side sweep.
 
-## What It Checks Per Site
+## Arguments
 
-Uses `voyager-orbit/fleet-site-status` ability which returns:
-- Plugin versions (Orbit, Blocks, Core)
-- Portal registration status
-- Binding sources count + abilities count
-- Pattern Cloud configuration
-- Site data population status
-- CPTs registered
-- Detected tier (tier-1, tier-2, tier-3, unconfigured)
+- `--site=domain`: pass as `site_filter` to check one matching domain/name/site ID.
+- `--threshold=20`: pass as `threshold_overrides.empty_field_critical_pct`. Default critical threshold is 20%.
+- `--notify`: after rendering the report, send the summary to Slack `#fleet-ops` if Slack tools are available.
 
-## For Local Site (WP-CLI)
+## MCP Call
 
-```bash
-wp --path=$WP_ROOT --user=1 eval '
-$ability = wp_get_ability("voyager-orbit/fleet-site-status");
-$result = $ability->execute([]);
-echo json_encode($result, JSON_PRETTY_PRINT);
-'
+```ts
+wp_fleet_health({
+  mode,
+  site_filter,
+  threshold_overrides: {
+    empty_field_critical_pct,
+    fallback_critical_pct
+  }
+})
 ```
 
-## For Remote Client Sites
+Expected return:
 
-Use the Portal Bridge via AbilityBridge REST endpoint:
-`POST /voyager/v1/abilities/execute` with `{"ability": "voyager-orbit/fleet-site-status"}` and HMAC auth.
-
-## Health Grading
-
-| Grade | Criteria |
-|-------|----------|
-| **Healthy** | All plugins active, Portal registered, tier detected, binding sources >= 3 |
-| **Warning** | Missing Pattern Cloud config, site data not populated, outdated plugin version |
-| **Critical** | Portal not registered, Orbit/Blocks/Core missing, 0 binding sources |
-
-## Output Format
-
+```ts
+{
+  summary: {
+    total: number,
+    healthy: number,
+    warning: number,
+    critical: number,
+    fleet_fallback_rate_30d?: number
+  },
+  sites: [{
+    domain: string,
+    name: string,
+    grade: "healthy" | "warning" | "critical",
+    issues: string[],
+    recommendations: string[],
+    infra?: object,
+    bindings?: object
+  }]
+}
 ```
+
+## Output
+
+```md
 ## Fleet Health Report — {date}
 
 ### Summary
-- Total sites: N | Healthy: N | Warning: N | Critical: N
+- Total sites: {total}
+- Healthy: {healthy} | Warning: {warning} | Critical: {critical}
+- Fleet fallback rate: {fleet_fallback_rate_30d}% (bindings/both only)
 
-### Issues Found
-- {site}: {issue description}
+### Sites Needing Attention
+| Site | Grade | Issues | Recommended Action |
+|---|---|---|---|
+| {domain} | {grade} | {top issues} | {top recommendation} |
 
-### Recommendations
-- {actionable recommendation}
+### Healthy Sites
+- {domain}
+```
+
+For `--bindings`, include a second table when fields are present:
+
+```md
+### Binding Coverage
+| Site | Empty Required Fields | Fallback Rate | Notion | Total Resolved 30d |
+|---|---:|---:|---|---:|
 ```
 
 ## Notification
 
-If `--notify` is passed, post summary to Slack #fleet-ops:
-```
-slack_send_message: channel="#fleet-ops", text={summary}
-```
+If `--notify` is passed, post the summary block and the top critical/warning sites to Slack `#fleet-ops`. Do not post raw site payloads.
 
-## `--bindings` mode — binding health audit
+## Scheduled Agent Use
 
-Run when the user asks about binding health, empty pSEO fields, fallback rates, or Notion connectivity. Uses three abilities from `voyager-blocks`:
+- Monday 9:00 AM ET: infra mode. Catches plugin drift, missing configs, stale Pattern Cloud, and onboarding gaps.
+- Wednesday 10:00 AM ET: `--bindings --threshold=20`. Catches stale pSEO data, broken Notion connections, and field drift.
 
-| Ability | What it returns |
-|---|---|
-| `voyager-blocks/audit-binding-health` | Field coverage per CPT, empty required fields per site |
-| `voyager-blocks/get-binding-stats` | Resolution counts, fallback rates over a window |
-| `voyager-blocks/check-notion-health` | Notion API connectivity, cache freshness |
+## Guardrails
 
-### Thresholds
-
-| Metric | Warning | Critical |
-|--------|---------|----------|
-| Empty required fields | >10% | >20% |
-| Fallback rate (null bindings) | >15% | >30% |
-| Notion API unreachable | — | Any |
-| Days since last binding resolution | >7 | >14 |
-
-`--threshold=20` overrides the empty-field critical threshold.
-
-### Local site call
-
-```bash
-wp --path=$WP_ROOT --user=1 eval '
-$audit  = wp_get_ability("voyager-blocks/audit-binding-health");
-$stats  = wp_get_ability("voyager-blocks/get-binding-stats");
-$notion = wp_get_ability("voyager-blocks/check-notion-health");
-
-echo "=== Binding Health ===\n";
-echo json_encode($audit->execute([]), JSON_PRETTY_PRINT);
-
-echo "\n\n=== Binding Stats (30d) ===\n";
-echo json_encode($stats->execute(["days" => 30]), JSON_PRETTY_PRINT);
-
-echo "\n\n=== Notion Health ===\n";
-echo json_encode($notion->execute([]), JSON_PRETTY_PRINT);
-'
-```
-
-### Remote sites
-
-Same three abilities via AbilityBridge REST endpoint:
-`POST /voyager/v1/abilities/execute` with `{"ability": "voyager-blocks/<ability-name>"}`.
-
-### `--bindings` output format
-
-```
-## Fleet Binding Audit — {date}
-
-### Summary
-- Sites audited: {n}
-- Healthy: {n} | Warning: {n} | Critical: {n}
-- Total bindings resolved (30d): {n}
-- Fleet fallback rate: {n}%
-
-### Sites needing attention
-| Site | Issue | Empty Fields | Fallback Rate |
-|---|---|---|---|
-| {domain} | {description} | {n}/{total} | {n}% |
-
-### pSEO coverage
-| Site | Service Areas | Avg Field Coverage | Fully Populated |
-|---|---|---|---|
-| {domain} | {n} pages | {n}% | {n}/{total} |
-
-### Recommendations
-- {site}: Enrich {n} service area pages with missing fields
-- {site}: Notion API token expired — reconfigure
-```
-
-## Scheduled agent use
-
-Two recommended schedules:
-
-- **Monday 9:00 AM ET — infra mode** (default). Catches plugin drift, missing configs, stale Pattern Cloud. Reports to Notion fleet status page + Slack `#fleet-ops`.
-- **Wednesday 10:00 AM ET — `--bindings` mode**. Catches stale pSEO data, broken Notion connections, field drift. Same notification path. Flag sites with >20% empty fields for enrichment.
+1. Do not call WP-CLI or individual abilities from the skill; use `wp_fleet_health`.
+2. Do not change site state. This skill is read-only except optional Slack notification.
+3. Treat `critical` sites as needing human review, not automatic remediation.
+4. If the MCP returns partial failures, show them clearly under the affected site.
+5. Do not hide healthy sites entirely; include a compact healthy count/list so scheduled runs are auditable.
