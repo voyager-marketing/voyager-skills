@@ -1,126 +1,91 @@
 ---
 name: content-tracker
-description: Phase 7 of the Voyager content pipeline — performance tracking, lifecycle management, and refresh recommendations for published blog content.
-triggers:
-  - "content performance for"
-  - "how is the content doing for"
-  - "which posts need refreshing"
-  - "content tracking for"
-  - "content lifecycle for"
-  - "what's performing for"
-  - "refresh recommendations for"
+description: >
+  Use when reviewing published content performance, lifecycle health, refresh
+  recommendations, expansion candidates, archive candidates, or content
+  portfolio status for a Voyager client. Triggers on: "content performance for",
+  "which posts need refreshing", "content tracking for", "content lifecycle for",
+  "what's performing for", "refresh recommendations for".
 owner: Ben
-last_reviewed: 2026-04-21
+last_reviewed: 2026-05-15
 distribution: internal
 origin: voyager
 mcp_requirement: required
 logic_type: tool-wrapper
 surface: all
+allowed-tools:
+  - mcp__claude_ai_Voyager_MCP__content_track_portfolio
 ---
 
-# Content Tracker Skill — Phase 7
+# Content Tracker
 
-You are the performance analyst for Voyager's content pipeline. Your job is to surface insights about published content: what's working, what's declining, and what to do next.
+Review a client's published content portfolio. Use `content_track_portfolio`; MCP owns published-brief lookup, pipeline status, performance summary, lifecycle classification, threshold logic, and refresh/expand/archive recommendations.
 
-## Pipeline Context
+The skill owns interpretation: explain the portfolio health, group actions into a clear next move, and hand off to the right content workflow.
 
-This is Phase 7 of 7. Content arrives here after:
-`brief → production → editorial-qa → publish → social-repurpose → content-tracker`
+## Inputs
 
-## Data Sources
+- `client_id`: required.
+- `client_name`: include when known for display and performance filtering.
+- `month`: default to the current month unless the user asks for another period.
+- `days`: default 30-day performance lookback.
 
-**Notion Content DB** (`cba94900-3a60-4292-ba6b-f8aeea62e439`)
-- Query with `content_get_briefs(client_id, status="published")`
-- `Performance` property: JSON badge written by the tracker task (GA4 + GSC metrics)
+Ask if the client is ambiguous.
 
-**Pipeline status**: `content_pipeline_status(client_id, month)` — stage totals and velocity
+## MCP Call
 
-## Lifecycle Stages
-
-| Stage | Criteria |
-|-------|----------|
-| `fresh` | 0–30 days post-publish |
-| `performing` | 30–180 days, metrics trending up |
-| `evergreen` | 180+ days, holding benchmark metrics |
-| `needs_refresh` | CTR dropped 30%+ OR impressions < 200/mo after 90 days |
-| `archived` | Never performed, no refresh value |
-
-## Performance Benchmarks (at 6 months)
-
-| Metric | Target |
-|--------|--------|
-| Impressions | > 500/mo |
-| Clicks | > 50/mo |
-| CTR | > 3% |
-| Avg position | < 20 |
-| Pageviews | > 200/mo |
-| Avg time on page | > 2 min |
-
-## Workflow
-
-### 1. Pull Portfolio Data
+```ts
+content_track_portfolio({
+  client_id,
+  client_name,
+  month,
+  days
+})
 ```
-content_get_briefs(client_id, status="published")
-content_pipeline_status(client_id, month)
-```
-Parse the `Performance` JSON badge from each Notion record to get current metrics.
 
-### 2. Classify Each Post
-- Calculate days since publish to assign lifecycle stage
-- Flag `needs_refresh` if CTR dropped 30%+ from peak OR impressions < 200/mo after day 90
-- Flag expansion candidates: CTR > 5% with position > 10 (high interest, room to rank higher)
-- Flag archive candidates: < 100 impressions/mo after 180 days, no upward trend
+The MCP returns:
 
-### 3. Generate Output
+- `pipeline_status`: briefs, drafts, review, scheduled, published totals.
+- `posts`: each post with lifecycle stage, metrics, and optional recommendation.
+- `summary`: counts by lifecycle and action type.
+- `recommended_actions`: sorted archive, refresh, and expand actions.
+- `thresholds`: exact deterministic rules used.
 
-```
-## Content Performance — [Client] — [Month]
+## Output
 
-Pipeline Status: X published | Y scheduled | Z in review
+```md
+## Content Performance - {Client} - {Month}
+
+Pipeline: {published} published | {scheduled} scheduled | {in_review} in review
 
 ### Portfolio Health
-| Title | Published | Stage | Impressions | CTR | Position | Status |
-|-------|-----------|-------|-------------|-----|----------|--------|
+| Title | Published | Stage | Impressions | CTR | Position | Action |
+|---|---:|---|---:|---:|---:|---|
 
 ### Needs Attention
-- [Post] — CTR dropped 32% (was 4.2%, now 2.8%) → Recommend: refresh intro + update stats
-- [Post] — 180 days, avg position 24 → Recommend: expand with FAQ section
+- {title}: {reason} -> {action}
 
 ### Wins
-- [Post] → Evergreen (6mo, 800 impressions/mo, 4.1% CTR)
-- [Post] → Performing well, candidate for social repurposing
+- {title}: evergreen or performing signal
 
 ### Recommended Actions
-1. Refresh: [post] — [reason]
-2. Expand: [post] — [angle]
-3. Archive: [post] — [reason]
+1. Archive: {post} - {reason}
+2. Refresh: {post} - {reason}
+3. Expand: {post} - {reason}
 ```
-
-## Recommendation Logic
-
-**Refresh** — use when any of:
-- CTR dropped 30%+ from the 30-day peak
-- Avg position slipped 5+ spots over 60 days
-- Post is 12+ months old with outdated stats or year-specific references
-
-**Expand** — use when:
-- CTR > 5% but position > 10 (searchers want it, not ranking high enough)
-- High impressions but low clicks (title/meta mismatch — expand content depth)
-- Post covers a subtopic that could be its own pillar or cluster hub
-
-**Archive** — use when all of:
-- < 100 impressions/mo after 180 days
-- No clicks in last 60 days
-- Topic is not strategically important for the client
-
-## Triggering a Manual Tracker Run
-
-The `content-tracker` Trigger.dev task normally runs automatically at Day 1, Day 7, and Day 30 post-publish. To force a refresh of GSC/GA4 data for a specific post or client, tell Alex:
-
-> "To manually re-run the tracker, use `content_pipeline_status(client_id)` and look for the tracker task ID, then trigger it via the Trigger.dev dashboard or ask the dev team to invoke `trigger/content-tracker.ts` with the target `briefId`."
 
 ## Handoffs
 
-- Post needs refresh → hand off to `/content-production` to queue a refresh brief
-- Post is expansion candidate → hand off to `/content-brief` for cluster planning
-- Post is performing → hand off to `/social-repurpose` if not yet repurposed
+- `refresh`: hand off to `content-production` to queue a refresh brief.
+- `expand`: hand off to `content-brief` for cluster or supporting-article planning.
+- `archive`: confirm with Alex before removing, noindexing, redirecting, or consolidating.
+- `fresh`: do not judge early performance harshly; wait for more data.
+- `evergreen`: consider social repurpose or internal linking, not rewrite by default.
+
+## Guardrails
+
+1. Never invent metrics. Use only MCP-returned metrics.
+2. Do not recommend deleting/archive actions without explicit user confirmation.
+3. Treat `fresh` content as watchlist unless MCP flags an explicit issue.
+4. Explain why each recommendation exists using the returned reason/threshold.
+5. If performance data is missing, say "insufficient data" rather than guessing.

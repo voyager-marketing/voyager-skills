@@ -119,11 +119,12 @@ Completed:
 - `social`: `social_create_session` now gathers client context, calendar conflicts, topic research, repurpose drafts, and analytics without creating posts. The skill keeps platform judgment, approval gates, and draft creation after explicit approval.
 - `content-hero-image`: `content_generate_hero_image` now owns image generation/reuse, R2 signing, optional Drive save, WordPress upload, and featured-image attach. The skill keeps prompt craft, model/cost judgment, and live-post safety gates.
 - `content-brief`: `content_research_keywords` now owns Ahrefs seed research, competitor gaps, existing-brief dedup, volume/KD filtering, and opportunity ranking. The skill keeps strategy judgment and approved pipeline triggers.
+- `content-tracker`: `content_track_portfolio` now owns published-brief lookup, pipeline status, performance summary, lifecycle classification, and refresh/expand/archive recommendations. The skill keeps interpretation and handoffs.
 
 Recommended order:
 
-1. `content-tracker`: server-side refresh thresholds and recommendations.
-2. `voyager-image-editor`: finish thinning non-hero edit/save paths if needed.
+1. `voyager-image-editor`: finish thinning non-hero edit/save paths if needed.
+2. `onboard-client`: move repeated onboarding joins and validation into MCP.
 
 Portal follow-up:
 

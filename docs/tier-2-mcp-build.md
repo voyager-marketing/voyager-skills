@@ -38,7 +38,7 @@ Build sequence (priority order after the report/content-audit proof points):
 
   1. content_publish_with_gates (net-new, ~6h MCP)
   2. wp_fleet_health (extends existing wp_fleet_status, ~3h MCP)
-  3. content_track_portfolio (net-new, ~4h MCP)
+  3. content_track_portfolio (shipped 2026-05-15)
   4. content_generate_hero_image (net-new, ~4h MCP)
   5. content_research_keywords (net-new, ~5h MCP)
   6. social_create_session (net-new, ~8h MCP)
@@ -210,24 +210,31 @@ Internally orchestrates existing post lookup + sync-filter lookup + WordPress sc
 
 ### 3. `content_track_portfolio`
 
+Status: shipped 2026-05-15 as a new additive content composite in `src/tools-content.ts`. Existing published brief lookup, content pipeline status, and content performance primitives remain unchanged.
+
 ```ts
 content_track_portfolio(
   client_id: string,
-  month?: string  // YYYY-MM, default current month
+  client_name?: string,
+  month?: string,  // YYYY-MM, default current month
+  days?: number
 ) -> {
   pipeline_status: { briefs: number, drafts: number, in_review: number, scheduled: number, published: number },
+  performance_summary: object,
   posts: {
     title: string, published_date: string, days_since: number, lifecycle_stage: string,
     impressions: number, ctr: number, position: number, pageviews: number,
     classification: "fresh" | "performing" | "evergreen" | "needs_refresh" | "archived",
     recommendation?: { action: "refresh" | "expand" | "archive", reason: string }
-  }[]
+  }[],
+  summary: object,
+  recommended_actions: object[]
 }
 ```
 
-Internally calls `content_get_briefs(status="published")` + `content_pipeline_status` and applies the threshold logic server-side (CTR drop 30%+, position slip 5+, < 100 imp/mo after 180d).
+Internally calls published brief lookup, `content_pipeline_status`, and content performance summary, then applies the threshold logic server-side (CTR drop 30%+, position slip 5+, < 100 imp/mo after 180d).
 
-**File:** `src/tools-content.ts`. **Skill to refactor:** `voyager-skills/skills/content-tracker/SKILL.md`.
+**File:** `src/tools-content.ts`. **Skill refactored:** `voyager-skills/skills/content-tracker/SKILL.md`.
 
 ---
 

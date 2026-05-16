@@ -6,6 +6,21 @@ Format: reverse chronological. Date-anchored entries group the work done that da
 
 ---
 
+## 2026-05-15 - Content tracker portfolio composite
+
+Refactored `skills/content-tracker/SKILL.md` around the new `content_track_portfolio` MCP composite.
+
+**What changed:**
+- `content_track_portfolio(client_id, client_name?, month?, days?)` is now the documented performance tracking contract.
+- Published brief lookup, pipeline status, performance summary, lifecycle classification, threshold logic, and refresh/expand/archive recommendations moved into MCP.
+- The skill now handles interpretation, table rendering, and handoff guidance for refresh, expansion, archive, evergreen, and fresh content.
+
+**Eval / validation:**
+- Repo validator, skill tests, and MCP contract check required before merge.
+- Formal skill-creator eval is deferred; this change removes deterministic threshold logic from the skill while preserving analyst judgment.
+
+---
+
 ## 2026-05-15 - Content brief keyword research composite
 
 Refactored `skills/content-brief/SKILL.md` around the new `content_research_keywords` MCP composite.

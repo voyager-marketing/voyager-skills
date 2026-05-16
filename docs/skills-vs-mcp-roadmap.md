@@ -231,30 +231,35 @@ Wraps `content_get_briefs`, Ahrefs-backed seed expansion, optional competitor ga
 
 ---
 
-### #8 — `content-tracker` (HYBRID, ~7h)
+### #8 — `content-tracker` (SHIPPED 2026-05-15)
 
 **Why eighth.** Monthly cadence. Lifecycle classification logic (5 stages with date + metric thresholds), benchmark targets, and refresh/expand/archive recommendation rules are workflow that should be deterministic server-side (numeric threshold logic is exactly what types catch). The output table format and handoff phrases stay in skill.
 
-**a. Composite MCP tool.** Net-new — existing `content_pipeline_status` is stage-totals only, not per-post lifecycle.
+**a. Composite MCP tool.** Shipped as `content_track_portfolio`; existing `content_pipeline_status` remains stage-totals only, not per-post lifecycle.
 ```
 content_track_portfolio(
   client_id: string,
-  month?: string
+  client_name?: string,
+  month?: string,
+  days?: number
 ) -> {
   pipeline_status: { briefs, drafts, in_review, scheduled, published },
+  performance_summary: object,
   posts: {
     title, published_date, days_since, lifecycle_stage,
     impressions, ctr, position, pageviews,
     classification: "fresh" | "performing" | "evergreen" | "needs_refresh" | "archived",
     recommendation?: { action: "refresh" | "expand" | "archive", reason: string }
-  }[]
+  }[],
+  summary: object,
+  recommended_actions: object[]
 }
 ```
-Internally calls `content_get_briefs(status="published")` + `content_pipeline_status` and applies threshold logic (CTR drop 30%+, position slip 5+, < 100 imp/mo after 180d) server-side.
+Internally calls published brief lookup, `content_pipeline_status`, and content performance summary, then applies threshold logic (CTR drop 30%+, position slip 5+, < 100 imp/mo after 180d) server-side.
 
-**b. Skill body shrinks to ~50 lines.** Frontmatter + trigger phrases + one tool call + output table format + handoff phrases ("post needs refresh → /content-production"). Threshold tables move to MCP.
+**b. Skill body shrunk.** Frontmatter + trigger phrases + one tool call + output table format + handoff phrases. Threshold tables moved to MCP.
 
-**c. Effort.** MCP 4h (classification + recommendation logic + JSON parsing) + skill 1h + testing 2h.
+**c. Remaining effort.** None for the current lifecycle classification and recommendation scope. Future work can add richer Portal/Ahrefs joins if those primitives become available.
 
 **d. User-visible improvement.** "Which posts need refreshing for [client]" returns sorted recommendations in one call. Refresh thresholds versioned in code, not drift between Alex's panel copy and Ben's.
 
@@ -480,7 +485,7 @@ These are running parallel with replacements per CLAUDE.md ("two-week verificati
 | #5 fleet-health | HYBRID | Shipped 2026-05-15 |
 | #6 social | REFACTOR | Shipped 2026-05-15 |
 | #7 content-brief | HYBRID | Shipped 2026-05-15 |
-| #8 content-tracker | HYBRID | 7h |
+| #8 content-tracker | HYBRID | Shipped 2026-05-15 |
 | #9 content-hero-image | HYBRID | Shipped 2026-05-15 |
 | #10 voyager-image-editor | HYBRID | 7–8h |
 | #11 onboard-client | HYBRID | 8–10h |
@@ -488,7 +493,7 @@ These are running parallel with replacements per CLAUDE.md ("two-week verificati
 | #13 voyager-build-kickoff | REFACTOR | 20–24h |
 | **Total** | | **~110–130h** |
 
-Quick wins at the top have mostly shipped: `content-audit`, `prospect-audit`, `fleet-health`, `social`, `content-hero-image`, and `content-brief` now validate the thick-MCP/thin-skill architecture across reporting, publishing, sales, operations, social, image, and SEO research workflows.
+Quick wins at the top have mostly shipped: `content-audit`, `prospect-audit`, `fleet-health`, `social`, `content-hero-image`, `content-brief`, and `content-tracker` now validate the thick-MCP/thin-skill architecture across reporting, publishing, sales, operations, social, image, SEO research, and lifecycle optimization workflows.
 
 ---
 
@@ -504,4 +509,4 @@ If the API path doesn't bridge, the audit becomes higher priority because every 
 
 After this roadmap exists, individual refactor PRs follow the ordinary skill-edit flow per CLAUDE.md (edit on branch → eval pass → CHANGELOG entry → merge). Each refactor is its own PR scoped to one skill + its corresponding new/extended MCP tool.
 
-Suggested next PR: `content-tracker` if prioritizing refresh recommendations for existing content, or `voyager-image-editor` if prioritizing cleanup of the remaining non-hero image edit/save routes.
+Suggested next PR: `voyager-image-editor` if prioritizing cleanup of the remaining non-hero image edit/save routes, or `onboard-client` if prioritizing client setup reliability.
