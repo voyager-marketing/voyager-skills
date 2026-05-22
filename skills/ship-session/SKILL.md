@@ -3,7 +3,7 @@ name: ship-session
 description: "Use at the end of a work session to commit changes, sync skill mirrors, verify the build, update Notion tasks, and leave a clean handoff. Triggers on: 'wrap up', 'end session', 'ship this', 'commit and close', 'ready to hand off'."
 user-invocable: true
 owner: Ben
-last_reviewed: 2026-04-21
+last_reviewed: 2026-05-22
 distribution: internal
 origin: voyager
 mcp_requirement: optional
@@ -64,7 +64,18 @@ git push origin <branch>
 
 If pushing new skills to voyager-skills org repo, use the gh API push pattern from AGENTS.md.
 
-## Step 6: Handoff Note
+## Step 6: Notion Task Handoff
+
+If the session is tied to a Notion task, leave the handoff on the task as an ordered discussion/comment when the active Notion tool surface supports it. Include:
+
+- PR URL or commit hash
+- Diff summary
+- Verification commands and results
+- Remaining manual steps
+
+Prefer comments/discussions over appending to `Agent Notes`; comments preserve session order and keep field values from becoming a running log. If comment creation is unavailable, summarize in the conversation and leave `Agent Notes` unchanged unless the user explicitly asks for a property update.
+
+## Step 7: Conversation Handoff
 
 Briefly summarize in the conversation:
 - What was built/changed

@@ -51,6 +51,10 @@ const ORG_SKILLS = [
 ];
 
 const PERSONAL_SKILLS = [
+  'mission',
+  'voyager-mission-write',
+  'voyager-feature-spec',
+  'voyager-new-software-project',
   'voyager-abilities',
   'voyager-ai-integration',
   'voyager-orbit-dev',

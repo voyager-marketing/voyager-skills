@@ -5,7 +5,7 @@ argument-hint: "[feature or project description]"
 allowed-tools: [Bash, Read, Grep, Glob, Agent, TodoWrite]
 user-invocable: true
 owner: Ben
-last_reviewed: 2026-04-21
+last_reviewed: 2026-05-22
 distribution: internal
 origin: voyager
 mcp_requirement: none
@@ -16,6 +16,15 @@ surface: all
 # Mission — Session Framing
 
 Before writing code, define what you're actually trying to accomplish and why. Anchors the session and prevents scope creep.
+
+## Notion context convention
+
+When `/mission` is started from a Notion dispatch task:
+
+- Use Notion MCP as the authoritative source for task and project context.
+- Prefer full-page Markdown reads for task pages, project pages, Discoveries, and Session Notes. Use database/query tools only to find the right page or list candidates.
+- Read enough surrounding context to avoid stale handoffs. The May 2026 Notion MCP path is cheaper than old block-by-block JSON walks, so do not starve the mission brief of relevant project history.
+- Mark "working on this" in the task or relevant block discussion when the active Notion tool surface supports comments. If comment creation is not available, continue without overwriting `Agent Notes` just to make a session marker.
 
 ## Operating principles check (run first)
 

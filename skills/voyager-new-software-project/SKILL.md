@@ -5,7 +5,7 @@ argument-hint: "[project name] [type: portal-feature|orbit-module|theme|worker|t
 allowed-tools: [Bash, Read, Grep, Glob, Agent, TodoWrite]
 user-invocable: true
 owner: Ben
-last_reviewed: 2026-04-21
+last_reviewed: 2026-05-22
 distribution: internal
 origin: voyager
 mcp_requirement: none
@@ -36,6 +36,9 @@ Scaffold a new project with the right structure for its type.
 - [ ] `.agents/context/` — shared context docs
 - [ ] `.gitignore` with secrets patterns
 - [ ] Branch strategy: `main` (prod), `dev` (staging), feature branches
+- [ ] Notion brain references: Projects `collection://76ac613c-1b50-4d2e-a65e-891fac9c0879`, Tasks `collection://dab85f68-382b-49ef-853c-ea5a4e0e4805`, Knowledge Base `collection://77425406-1225-44d2-8bff-51f4b40de6a3`, Delta Log `collection://308117ab66f04e73aa143fbfef8df275`
+- [ ] Meeting Notes convention for kickoff and recurring sync notes
+- [ ] Notion MCP convention: use the Notion MCP tool layer for agent reads/writes, prefer full-page Markdown operations over block-by-block JSON when working with page content
 
 ### Portal feature
 - [ ] Feature directory: `app/(auth)/[feature]/`
@@ -56,6 +59,19 @@ Scaffold a new project with the right structure for its type.
 - [ ] `src/index.ts` with Hono router
 - [ ] Secrets in Cloudflare dashboard (not wrangler.toml)
 - [ ] Deploy: `wrangler deploy`
+
+## Generated AGENTS.md / CLAUDE.md conventions
+
+For new repos, generate `AGENTS.md` as the canonical agent contract and keep `CLAUDE.md` as a short shim that points at it.
+
+`AGENTS.md` must include:
+
+- **Notion as brain.** Plans and dispatch tasks live in Notion first. Code executes from tasks and writes durable session context back to the related task or project.
+- **Canonical Notion DBs.** Projects `collection://76ac613c-1b50-4d2e-a65e-891fac9c0879`, Tasks `collection://dab85f68-382b-49ef-853c-ea5a4e0e4805`, Knowledge Base `collection://77425406-1225-44d2-8bff-51f4b40de6a3`, Delta Log `collection://308117ab66f04e73aa143fbfef8df275`.
+- **Notion MCP first.** Agents should use Notion MCP for Notion context and writes. Do not add direct Notion REST/API client usage to agent workflows unless the project is implementing product code that explicitly owns a Notion integration.
+- **Markdown page operations.** Prefer full-page Markdown reads and writes for page bodies, specs, ADRs, and handoffs. Use database/query tools to locate records and inspect schemas.
+- **Meeting Notes.** Kickoff notes, recurring syncs, and meeting artifacts belong in Meeting Notes or the relevant project/task, not free-floating pages.
+- **Session markers.** Prefer Notion task/page comments or discussions for "working on this" and closeout notes. Use properties for state, not chronological logs.
 
 ## Output
 

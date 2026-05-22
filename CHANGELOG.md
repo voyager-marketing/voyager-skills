@@ -6,6 +6,30 @@ Format: reverse chronological. Date-anchored entries group the work done that da
 
 ---
 
+## 2026-05-22 - Notion DX workflow convention update
+
+Updated repo-owned workflow skills for TK-1921 after the May 2026 Notion platform audit.
+
+**What changed:**
+- `mission` now prefers Notion MCP full-page Markdown reads for task, project, Discoveries, and Session Notes context, with comments/discussions as session markers when available.
+- `ship-session` now writes task handoffs as ordered Notion task/page comments when available instead of using `Agent Notes` as a running log.
+- `voyager-new-software-project` now emits Notion-as-brain conventions for new repo `AGENTS.md` / `CLAUDE.md` scaffolds, including canonical Projects, Tasks, Knowledge Base, and Delta Log IDs.
+- `voyager-feature-spec` now prefers Knowledge Base Markdown writes for internal specs and documents larger Markdown context reads before synthesis.
+- `voyager-mission-write` is now committed to the repo as the canonical Chat-to-Code handoff skill and includes the same Notion Markdown/comment conventions.
+- `scripts/build-zips.mjs` now includes `mission`, `voyager-mission-write`, `voyager-feature-spec`, and `voyager-new-software-project` in the Personal zip set so the changed dev workflow skills have upload artifacts.
+
+**Audit / validation:**
+- KB audit created: https://www.notion.so/36847c03778b812ba0b6f4ae9b2a5aaf
+- ADR created: https://www.notion.so/36847c03778b813f855ffe076d116415
+- `voyager-mcp-server` audit found no direct Notion REST callers in MCP tools, so no follow-up task was created.
+- `npm run validate`: pass, 50 skills validated with 6 pre-existing warnings.
+- `npm test`: pass, 13 tests.
+- `node scripts/validate-agents.mjs`: pass, 39 agent/tool/eval files.
+- `npm run build-zips`: pass, including updated Personal zips for `mission`, `voyager-mission-write`, `ship-session`, `voyager-feature-spec`, and `voyager-new-software-project`.
+- Focused `skill-creator` review: pass. Tested five should-fire prompts across `/mission`, `voyager-mission-write`, `ship-session`, `voyager-new-software-project`, and `voyager-feature-spec`, plus one should-skip client-message prompt; triggering remains unchanged and new instructions are scoped to Notion DX conventions.
+
+---
+
 ## 2026-05-15 - Content tracker portfolio composite
 
 Refactored `skills/content-tracker/SKILL.md` around the new `content_track_portfolio` MCP composite.

@@ -5,7 +5,7 @@ argument-hint: "[feature idea or request]"
 allowed-tools: [Bash, Read, Grep, Glob, Agent, TodoWrite]
 user-invocable: true
 owner: Ben
-last_reviewed: 2026-04-21
+last_reviewed: 2026-05-22
 distribution: internal
 origin: voyager
 mcp_requirement: none
@@ -81,3 +81,13 @@ One paragraph. What does the feature do?
 ## Output
 
 Produce the spec as markdown. Offer to save it to Notion as a child page under the relevant client or project.
+
+## Notion publishing convention
+
+When saving a spec to Notion:
+
+- Prefer the Knowledge Base DB for internal research and architecture specs: `collection://77425406-1225-44d2-8bff-51f4b40de6a3`.
+- Use full-page Markdown writes for the spec body instead of constructing block-by-block JSON.
+- Use Notion MCP as the tool layer for reads and writes.
+- Pull relevant task, project, and KB context as Markdown before synthesis. The May 2026 Notion MCP path makes larger context reads reasonable, but still summarize only the facts that affect the spec.
+- If the spec is tied to a task, leave review/start markers in the task discussion when comments are available. Do not turn `Agent Notes` into a chronological session log.
