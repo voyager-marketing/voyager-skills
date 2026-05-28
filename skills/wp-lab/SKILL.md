@@ -1,15 +1,14 @@
 ---
 name: wp-lab
 description: >
-  Spin up ephemeral or continuous WordPress development environments instantly.
-  Use this skill whenever the user wants to test a WordPress plugin, theme, or
-  codebase without touching production. Triggers on: "spin up WordPress",
-  "test this plugin", "wp-env", "wp-now", "ephemeral WordPress", "dev environment",
-  "poke around this plugin's code", "WordPress playground", or any request to
-  quickly run WordPress locally for development or exploration. Also triggers
-  when the user wants to tear down or clean up WordPress dev environments.
+  Spin up WordPress development environments for ephemeral tests, continuous
+  Docker stacks, or persistent client builds. Use this skill whenever the user
+  wants to test a WordPress plugin, test a theme, start a new client build, do
+  client child theme dev, set up local dev for a client, use Laragon, run
+  wp-env, run wp-now, open an ephemeral WordPress playground, poke around a
+  plugin's code, or tear down local WordPress dev environments.
 owner: Ben
-last_reviewed: 2026-05-07
+last_reviewed: 2026-05-28
 distribution: internal
 origin: voyager
 mcp_requirement: none
@@ -19,34 +18,48 @@ surface: claude-code
 
 # wp-lab
 
-WordPress environment automation for instant local development.
+WordPress environment automation for local development.
 
-## Three usage shapes
+## Mode routing
 
-### Throwaway (wp-now from a temp dir)
+Choose the mode before launching anything:
+
+| Mode | Engine | Use for | Do not use for |
+|---|---|---|---|
+| `ephemeral` | wp-now from a temp or wrapper dir | Fast plugin/theme exploration, throwaway repros, short-lived WordPress playgrounds | Client builds that need MySQL or staging parity |
+| `continuous` | wp-env Docker | Multi-plugin stacks, Gutenberg core dev, Docker-backed persistence | Windows client child-theme work when Laragon is available |
+| `persistent-client` | Laragon, Apache, MySQL | Net-new client child theme builds, staging parity, local dev for a named client | Throwaway plugin checks |
+
+If the user says "new client build", "client child theme dev", "set up local dev for X", "Laragon", or needs real MySQL, route to `persistent-client`. If they only need to see what a plugin or theme does, route to `ephemeral`. If they specifically need Docker, Gutenberg core, or a complex multi-plugin fixture, route to `continuous`.
+
+## Modes
+
+### `ephemeral` (wp-now)
 - Starts in ~5 seconds, no Docker required
 - Uses `@wp-now/wp-now` (native PHP binaries, SQLite)
 - Spawned from `/tmp/wp-lab/...` — DB dies with the dir
+- Can also run from a stable project wrapper when a longer-lived wp-now preview is enough
 - **Use for:** quick code exploration, plugin testing, "what does this do?"
 
-### Project (wp-now from a stable project dir) ← **non-Docker persistent**
-- Same `wp-now` binary, but invoked from a real project directory (e.g. a theme repo)
-- wp-now hashes the project path and persists DB + uploads at `~/.wp-now/wp-content/<hash>/`
-- Re-run from the same dir → state survives. Ctrl+C is pause, not delete.
-- **Use for:** ongoing client theme/plugin development without Docker. The default for
-  Voyager child-theme work (VA Exteriors, Melody Magic, etc.).
-
-### Continuous (wp-env, Docker)
+### `continuous` (wp-env, Docker)
 - Docker-backed, persistent volumes, multi-plugin stacks
 - Config lives in `.wp-env.json` in the project directory
 - **Use for:** complex multi-plugin staging mirrors, Gutenberg core dev, anything
   needing a real MySQL + nginx that wp-now's SQLite/PHP-server can't fake.
+
+### `persistent-client` (Laragon)
+- Windows Laragon setup with Apache + MySQL, matching the SpinupWP staging layout
+- Uses the client child theme from `F:\dev\voyager-clients\<client-slug>`
+- Symlinks the child theme into `F:\laragon\www\<client-slug>\wp-content\themes\<client-slug>`
+- Installs the Voyager parent theme, `voyager-core`, `voyager-blocks`, `voyager-orbit`, and required plugins from the WP Plugins DB
+- **Use for:** net-new Voyager client builds, real client child theme dev, local reproduction of staging-only MySQL issues.
 
 ## Prerequisites
 
 Check before launching:
 - **Ephemeral:** Node.js 18+ (no Docker needed)
 - **Continuous:** Node.js 18+ AND Docker running
+- **Persistent client:** Windows 10/11, Laragon Full, Apache + MySQL running, GitHub CLI authenticated to `voyager-marketing`, and the one-time Voyager stack clones under `F:\dev\voyager\wordpress\`
 
 ## Presets
 
@@ -70,31 +83,62 @@ Each preset defines:
 | Preset | Mode | What's in it |
 |--------|------|-------------|
 | `clean` | ephemeral | Vanilla WordPress, zero plugins |
-| `voyager-stack` | ephemeral (project) | **Standard Voyager build env.** voyager-block-theme parent + voyager-core + voyager-blocks + voyager-orbit plugins. Mounts cwd as active child theme. Use this for client builds. |
+| `voyager-stack` | ephemeral (project) | Fast wp-now Voyager preview. voyager-block-theme parent + voyager-core + voyager-blocks + voyager-orbit plugins. Mounts cwd as active child theme. Use Laragon `persistent-client` mode for net-new client builds that need MySQL and staging parity. |
 | `voyager-base` | continuous | ACF Pro, Rank Math, WP Rocket, Voyager starter theme (legacy 3rd-party stack) |
 | `gutenberg-dev` | continuous | Gutenberg trunk, test utils, Voyager Blocks |
 
-## Voyager standard stack (for client child-theme builds)
+## Persistent client build workflow (Laragon)
 
-The `voyager-stack` preset is the canonical setup for any Voyager child-theme
-project (VA Exteriors, Melody Magic, future client builds).
+Use this for canonical Voyager client child-theme work. Link to the SOP instead of copying every troubleshooting branch into the skill: [[How-To] Infra: Local Development Environment (Laragon)](https://www.notion.so/36e47c03778b81628c26d0b1cc7a3ead).
+
+**One-time machine setup:**
+
+```powershell
+$VOYAGER_DEV_ROOT = "F:\dev\voyager\wordpress"
+git clone https://github.com/voyager-marketing/voyager-block-theme "$VOYAGER_DEV_ROOT\voyager-block-theme"
+git clone https://github.com/voyager-marketing/voyager-core         "$VOYAGER_DEV_ROOT\voyager-core"
+git clone https://github.com/voyager-marketing/voyager-orbit        "$VOYAGER_DEV_ROOT\voyager-orbit"
+git clone https://github.com/voyager-marketing/voyager-blocks       "F:\dev\voyager\voyager-blocks"
+```
+
+**Per-client bootstrap:**
+
+```powershell
+git clone https://github.com/voyager-marketing/voyager-blank-child F:\dev\voyager-clients\<client-slug>
+cd F:\dev\voyager-clients\<client-slug>
+# Edit style.css header, Text Domain, theme.json, and patterns for the client.
+git remote set-url origin git@github.com:voyager-marketing/<client-slug>-theme.git
+powershell -ExecutionPolicy Bypass -File F:\dev\voyager-clients\<client-slug>\scripts\bootstrap-laragon.ps1
+```
+
+**Verify:**
+- Visit `http://<client-slug>.test/`
+- Visit `http://<client-slug>.test/wp-admin` as `admin` / `admin`
+- Run `wp theme list --path=F:\laragon\www\<client-slug>` and confirm the active child theme has `voyager-block-theme` as parent
+- Run `wp plugin list --path=F:\laragon\www\<client-slug>` and confirm the required WP Plugins DB rows for this install profile are active
+
+## Voyager wp-now stack
+
+The `voyager-stack` preset is the fast wp-now setup for Voyager stack previews.
+It is useful when the user needs a short-lived child-theme preview or plugin test,
+but Laragon is the canonical route for persistent client builds.
 
 **What it provides:**
 - Parent theme: `voyager-block-theme` (slug: `voyager`)
 - Plugin suite: `voyager-core` + `voyager-blocks` + `voyager-orbit`
 - The current working directory mounted as the active child theme
-- PHP 8.4, WP latest, SQLite (no Docker)
+- PHP 8.3, WP latest, SQLite (no Docker)
 - Persistent state via wp-now project mode
 
-**One-time setup (per machine) — pick one or both:**
+**One-time setup (per machine) - pick one or both:**
 
-Option A — pull stable release artifacts (recommended for child-theme dev):
+Option A - pull stable release artifacts (recommended for child-theme previews):
 ```bash
 ~/.claude/skills/wp-lab/scripts/voyager-dist-sync.sh sync
 # Populates ~/.voyager-dist/<component>/<version>/ with `latest` symlink
 ```
 
-Option B — clone working trees (only needed if you'll edit core/blocks/orbit source):
+Option B - clone working trees (only needed if you'll edit core/blocks/orbit source):
 ```bash
 export VOYAGER_DEV_ROOT=/f/dev/voyager/wordpress
 git clone https://github.com/voyager-marketing/voyager-block-theme "$VOYAGER_DEV_ROOT/voyager-block-theme"
@@ -182,9 +226,9 @@ this script with appropriate flags. You can also run it directly:
 ## Workflow
 
 1. User invokes a slash command or describes what they want
-2. Determine mode (ephemeral vs continuous) from command, preset, or context
-3. Resolve target (download plugin, clone repo, or validate local path)
-4. Generate config (.wp-env.json for continuous, directory mount for ephemeral)
+2. Determine mode (`ephemeral`, `continuous`, or `persistent-client`) from command, preset, or context
+3. Resolve target (download plugin, clone repo, validate local path, or route to the Laragon bootstrap)
+4. Generate config (.wp-env.json for continuous, directory mount for ephemeral, Laragon site folder for persistent-client)
 5. Launch environment
 6. Report the local URL and admin credentials
 7. On teardown, clean up temp directories and stop containers
@@ -197,7 +241,7 @@ this script with appropriate flags. You can also run it directly:
 
 ## Theme dev workflow (block themes / FSE)
 
-For child theme + pattern work (the VA Exteriors / Melody Magic shape):
+For canonical client child theme + pattern work, use the Laragon `persistent-client` workflow above. If the user chooses wp-now for a fast preview:
 
 1. `cd <theme-repo>` → `npx @wp-now/wp-now start --php=8.3` (project mode, persistent)
 2. Edit visually in WP Site Editor
@@ -228,7 +272,7 @@ For local → SpinupWP sync:
 
 - **Port conflict:** If 8888 is taken, wp-env uses the next available port. Check output.
 - **Docker not running:** wp-env fails silently sometimes. Run `docker info` to verify.
-- **wp-now Windows quirks:** Stick to PHP 8.4 (default). If you hit a native binary
+- **wp-now Windows quirks:** Stick to PHP 8.3 (default). If you hit a native binary
   crash, try `--php=8.3` as a fallback. Older guidance recommended `--php=8.1` —
   do **not** do that; PHP 8.1 has been EOL since Nov 2024.
 - **Plugin not found:** The wordpress.org API slug must match exactly. Check
@@ -236,3 +280,10 @@ For local → SpinupWP sync:
 - **wp-now state seems lost:** Check `~/.wp-now/wp-content/` — the hash is derived
   from the absolute project path. If you moved the project, wp-now sees a new
   install. Move the data dir manually, or re-seed.
+
+## Related
+
+- [[How-To] Infra: Local Development Environment (Laragon)](https://www.notion.so/36e47c03778b81628c26d0b1cc7a3ead)
+- [[How-To] Infra: SpinupWP New Site Provisioning](https://www.notion.so/36e47c03778b819f9a0de7e148e4cd38)
+- [Voyager WordPress Stack - Component Reference](https://www.notion.so/35947c03778b8180be19d6bbdb0e79d1)
+- [WP Plugins DB](https://www.notion.so/2d247c03778b80ddb8addfdf85368c73)

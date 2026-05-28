@@ -6,6 +6,24 @@ Format: reverse chronological. Date-anchored entries group the work done that da
 
 ---
 
+## 2026-05-28 - wp-lab and onboard-client infra SOP alignment
+
+Aligned `wp-lab` and `onboard-client` with the new WordPress infrastructure SOPs from TK-1983. Owner: Ben.
+
+**What changed:**
+- `wp-lab` now routes among `ephemeral`, `continuous`, and `persistent-client` modes. The new `persistent-client` mode points at the Laragon workflow for client child theme builds that need real MySQL and SpinupWP staging parity.
+- `wp-lab` frontmatter now triggers on "new client build", "client child theme dev", "set up local dev for a client", and "Laragon".
+- `onboard-client` now starts with a site-provisioning decision. Missing WordPress sites route through the SpinupWP New Site Provisioning SOP before onboarding records claim the site is active.
+- `onboard-client` Step 3 now verifies required plugins from the WP Plugins DB instead of a hardcoded plugin list, and checks that the active child theme uses `voyager-block-theme` as parent.
+- Both skills link the relevant Laragon, SpinupWP, Cloudflare, WP Plugins DB, and WordPress stack references.
+
+**Eval / validation:**
+- `npm run validate -- wp-lab`: pass.
+- `npm run validate -- onboard-client`: pass.
+- Focused `skill-creator` review: pass. Tested routing prompts for `wp-lab` across Laragon client-build, wp-now plugin-test, and wp-env multi-plugin paths; tested `onboard-client` prompts for missing-site provisioning, verify-only plugin checks, and child-theme parent verification. Triggering and body instructions match the new SOP boundaries without moving SOP bodies into the skills.
+
+---
+
 ## 2026-05-22 - Notion DX workflow convention update
 
 Updated repo-owned workflow skills for TK-1921 after the May 2026 Notion platform audit.

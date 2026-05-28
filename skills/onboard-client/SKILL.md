@@ -1,10 +1,10 @@
 ---
 name: onboard-client
-description: "Use when asked to onboard a new client, set up a new client site, add a client to the system, or verify a client's WordPress setup is correctly configured."
+description: "Use when asked to onboard a new client, provision or set up a new client site, add a client to the system, run the SpinupWP new-site path, or verify a client's WordPress setup is correctly configured."
 argument-hint: "<client-name> [--verify-only] [--site=domain]"
 user-invocable: true
 owner: Ben
-last_reviewed: 2026-04-30
+last_reviewed: 2026-05-28
 distribution: internal
 origin: voyager
 mcp_requirement: required
@@ -18,7 +18,16 @@ Full pipeline: Notion records, WP verification, Tier 1 bindings, sync filter, Pa
 
 **Modes.** Default runs the full pipeline. `--verify-only` runs Step 3 only and skips Notion writes.
 
-## Step 0: Scaffold Claude Config (new servers only)
+## Step 0a: Site Provisioning Decision
+
+First decide whether the WordPress site already exists.
+
+- **Site exists:** continue to Step 0, then resolve Notion records and verify WordPress.
+- **Site does not exist:** run [[How-To] Infra: SpinupWP New Site Provisioning](https://www.notion.so/36e47c03778b819f9a0de7e148e4cd38) before Step 1.
+
+The provisioning SOP must produce a reachable domain, SpinupWP Site ID, Server ID, system user, DB name, WP admin login, active parent + child theme, Cloudflare DNS handoff, and GitHub deploy workflow. Do not create onboarding records that claim the site is active until the provisioned URL returns 200 with HTTPS or the SOP explicitly reports a temporary certificate blocker.
+
+## Step 0: Scaffold Claude Config (after site exists)
 
 Skip if `.claude/` already exists. Otherwise gather server root, WP root, DB prefix (default `wp_`), Portal Site ID, then run:
 
@@ -48,16 +57,22 @@ Search Websites DB (`c6685c2d-de74-48ef-8225-ffdbc63ee1a8`) for the domain.
 
 ## Step 3: Verify WordPress Setup
 
-Call `wp_verify_setup(site)`. Report each item pass/fail:
+Call `wp_verify_setup(site)`. Also query the WP Plugins DB (`2d247c03778b80ddb8addfdf85368c73`) for the site's install profile:
+
+1. Determine the site's `Install On` profile from scope: `New Build`, `MWP-Only`, `SEO-Only`, `Migration`, `Forms Site`, `Custom Field Site`, plus `All Sites`.
+2. Pull WP Plugins rows where `Required = true` and `Install On` includes `All Sites` or the matching site profile.
+3. For each returned row, resolve the expected active plugin slug from `wp.org Slug`; if blank, use the row's internal package key or documented Voyager slug.
+4. Verify each plugin is active with WP-CLI, for example `wp_run_cli(site, "plugin is-active <slug>")`, or by matching the slug in `wp plugin list --status=active --format=json`.
+5. Report the dynamic plugin set by plugin name, expected slug, source row, and active/missing status. Do not replace missing DB rows with a hardcoded fallback list.
+
+Report each item pass/fail:
 
 | Check | Expected |
 |---|---|
-| Orbit | Active, v1.39.0+ |
-| Blocks | Active |
-| RankMath | Active |
+| Required plugins | Every matching WP Plugins DB row is active |
 | Abilities API | Active, count returned |
 | Portal ID | `voyager_portal_site_id` present |
-| Theme | Voyager |
+| Theme | Active theme is a client child theme whose parent/template is `voyager-block-theme` |
 | CPTs | `service_area`, `industry_page`, `neighborhood`, `portfolio`, `team` |
 | Binding sources | `voyager/post-meta-text`, `voyager/site-data`, `voyager/contextual-cta`, `voyager/geo` |
 
@@ -110,10 +125,10 @@ For each item, create a record in Content DB (`cba94900-3a60-4292-ba6b-f8aeea62e
 - Content Items: {N} ({M} with keywords, {K} ideas)
 
 ### WordPress ({domain})
-- Orbit / Blocks / RankMath: {active | ❌}
+- Required plugins from WP Plugins DB: {all active | list missing}
 - Abilities API: {N} abilities
 - Portal ID: {id | ❌}
-- Theme: {name}
+- Theme: {child_name}, parent `voyager-block-theme` {confirmed | ❌}
 - CPTs / Binding Sources: {all present | list missing}
 - Site data provisioned: phone, email, address, hours, social
 - Sync filter: Client = {page-id} (dry-run passed)
@@ -135,3 +150,10 @@ If any step failed, list what succeeded, what failed, and what needs manual atte
 - **Content Cycle Month** must always be the first day of the target month (e.g., `2026-04-01` for April 2026).
 - **Remote sites** — when SSH is not available, note in the summary which WP verification checks could not be run and recommend the user run them manually or via a local session.
 - **NEVER skip Step 3c (Notion sync filter).** An unfiltered sync pulls all client content onto this site. The sync filter must be set and dry-run verified before onboarding is considered complete. This is a hard data-integrity requirement, not optional.
+
+## Related
+
+- [[How-To] Infra: SpinupWP New Site Provisioning](https://www.notion.so/36e47c03778b819f9a0de7e148e4cd38)
+- [[How-To] Infra: Local Development Environment (Laragon)](https://www.notion.so/36e47c03778b81628c26d0b1cc7a3ead)
+- [[Playbook] Infra: Cloudflare Zone Setup & Client Delegation](https://www.notion.so/34c47c03778b81549862e40549d44ae2)
+- [WP Plugins DB](https://www.notion.so/2d247c03778b80ddb8addfdf85368c73)
