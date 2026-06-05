@@ -6,6 +6,30 @@ Format: reverse chronological. Date-anchored entries group the work done that da
 
 ---
 
+## 2026-06-05 - scaffold-client skill (Phase B.1)
+
+New skill: `scaffold-client`. GitHub + Notion bootstrap for a new Voyager client site. Takes `--slug` and `--name` and produces: a private GitHub repo forked from `voyager-blank-child` with CLAUDE.md/style.css placeholders filled, GitHub variables set, a local clone, and three linked Notion records (Client, Project, dispatch Task). Owner: Ben. Notion task: TK-1999.
+
+**What this skill does:**
+- Validates slug format and all preconditions before touching anything
+- Creates a private GitHub repo via `gh repo create --template voyager-marketing/voyager-blank-child`
+- Sets four GitHub repo variables (THEME_SLUG, SPINUPWP_DOMAIN, SPINUPWP_HOST=TBD, SPINUPWP_USER=TBD)
+- Clones the repo locally to `F:\dev\voyager-clients\<slug>`
+- Fills CLAUDE.md placeholders and edits the style.css/functions.php theme header
+- Resolves or creates a Notion Client record in the Clients DB
+- Creates a Notion Project record (`<Client> Website Build`) linked to the Client
+- Creates a Notion dispatch Task (`Initial build for <Client>`) linked to the Project
+- Commits and pushes the placeholder fills, prints a next-steps summary
+- Supports `--dry-run` (no side effects, prints full plan), idempotency (re-run resumes from failure point), and a printed rollback plan on failure
+
+**What it does NOT do:** SpinupWP provisioning (Phase B.2), Cloudflare DNS (Phase B.3), plugin installation, welcome email, Google Drive folder.
+
+**Eval / validation:**
+- Dry-run acceptance test: pending (run `scaffold-client --slug=demo-client --name="Demo Client" --dry-run` to validate).
+- skill-creator eval: pending.
+
+---
+
 ## 2026-05-28 - wp-lab and onboard-client infra SOP alignment
 
 Aligned `wp-lab` and `onboard-client` with the new WordPress infrastructure SOPs from TK-1983. Owner: Ben.
