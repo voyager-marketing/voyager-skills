@@ -25,8 +25,10 @@ New skill: `scaffold-client`. GitHub + Notion bootstrap for a new Voyager client
 **What it does NOT do:** SpinupWP provisioning (Phase B.2), Cloudflare DNS (Phase B.3), plugin installation, welcome email, Google Drive folder.
 
 **Eval / validation:**
-- Dry-run acceptance test: pending (run `scaffold-client --slug=demo-client --name="Demo Client" --dry-run` to validate).
-- skill-creator eval: pending.
+- Dry-run acceptance test: PASSED (2026-06-05, slug=demo-client). Bug caught and fixed: Step 6 originally told agent to replace the entire style.css header block, which would have deleted Template/Author/Requires fields. Fixed to update only 4 fields in-place.
+- Real run acceptance test: PASSED (2026-06-05). All 11 steps executed: repo created, 4 GitHub vars set, local clone, all placeholders filled, 3 Notion records created, commit pushed. Optimization applied: Steps 7-9 (Notion) run before Steps 5-6 (files) to avoid two-pass CLAUDE.md write.
+- skill-creator eval: PASSED (2026-06-05). 4 minor fixes applied post-eval: (1) Step 2 poll loop changed from pseudo-Python to runnable PowerShell; (2) Step 6 functions.php rename now enumerates all 4 identifier forms; (3) Step 3 SPINUPWP_DOMAIN value made explicit; (4) Step 11 SSH key command now includes both PowerShell and Bash variants.
+- Status: **Live**
 
 ---
 

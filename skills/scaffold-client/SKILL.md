@@ -94,13 +94,13 @@ gh repo create voyager-marketing/<REPO_NAME> \
   --description "Custom WordPress child theme for <CLIENT_NAME>. Built on the Voyager block theme."
 ```
 
-GitHub's template fork is async. Poll until the repo has at least one commit:
-```bash
-# Poll up to 30s (6 × 5s)
-for i in 1..6:
-  gh repo view voyager-marketing/<REPO_NAME> --json pushedAt
-  # if pushedAt is set, break
-  sleep 5
+GitHub's template fork is async. Poll until the repo has at least one commit (up to 30s, checking every 5s). In PowerShell:
+```powershell
+$ready = $false
+for ($i = 0; $i -lt 6 -and -not $ready; $i++) {
+    $pushed = gh repo view "voyager-marketing/<REPO_NAME>" --json pushedAt --jq '.pushedAt' 2>$null
+    if ($pushed) { $ready = $true } else { Start-Sleep 5 }
+}
 ```
 
 If still empty after 30s, warn the user and proceed — the clone in Step 4 will catch the failure.
@@ -113,7 +113,7 @@ These are placeholders the deploy workflow reads. Operator fills the TBD values 
 
 ```bash
 gh variable set THEME_SLUG         --body "<SLUG>"                       --repo voyager-marketing/<REPO_NAME>
-gh variable set SPINUPWP_DOMAIN    --body "<STAGING_URL domain only>"    --repo voyager-marketing/<REPO_NAME>
+gh variable set SPINUPWP_DOMAIN    --body "<SLUG>.voyager.website"         --repo voyager-marketing/<REPO_NAME>
 gh variable set SPINUPWP_HOST      --body "TBD"                          --repo voyager-marketing/<REPO_NAME>
 gh variable set SPINUPWP_USER      --body "TBD"                          --repo voyager-marketing/<REPO_NAME>
 ```
@@ -169,7 +169,16 @@ Version:     0.1.0
 
 Leave all other fields (`Theme URI`, `Author`, `Author URI`, `Template`, `Requires at least`, `Tested up to`, `Requires PHP`, `License`, `License URI`, `Tags`) untouched. Preserve everything below the closing `*/`.
 
-Also update `functions.php`: replace the string `voyager-blank-child` with `<SLUG>` everywhere it appears as a text domain, function prefix, or constant name. Do a careful read first — do not rename PHP built-ins.
+Also update `functions.php`. The blank child uses four naming conventions — replace all four:
+
+| Original form | Replace with |
+|---------------|-------------|
+| `'voyager-blank-child'` | `'<SLUG>'` (text domain strings) |
+| `voyager_blank_child` | `<SLUG with dashes → underscores>` (function/hook names) |
+| `VOYAGER_BLANK_CHILD` | `<SLUG uppercase with dashes → underscores>` (constants) |
+| `VoyagerBlankChild` | `<CLIENT_NAME no spaces, PascalCase>` (`@package`, class names) |
+
+Do not rename PHP built-ins (`wp_enqueue_style`, `add_action`, etc.).
 
 ---
 
@@ -313,6 +322,9 @@ Next steps (in order):
   4. After SpinupWP, set the TBD GitHub vars:
        gh variable set SPINUPWP_HOST --body "<value>" --repo voyager-marketing/<REPO_NAME>
        gh variable set SPINUPWP_USER --body "<value>" --repo voyager-marketing/<REPO_NAME>
+       # PowerShell:
+       gh secret set SSH_DEPLOY_KEY --body (Get-Content "~\.ssh\<SLUG>_deploy_key" -Raw) --repo voyager-marketing/<REPO_NAME>
+       # Bash:
        gh secret set SSH_DEPLOY_KEY --body "$(cat ~/.ssh/<SLUG>_deploy_key)" --repo voyager-marketing/<REPO_NAME>
   5. Push a smoke commit; verify deploy workflow runs green.
 ```
