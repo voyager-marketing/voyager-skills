@@ -6,6 +6,24 @@ Format: reverse chronological. Date-anchored entries group the work done that da
 
 ---
 
+## 2026-06-10 - build-gate-check and site-sync-local skills
+
+Two new thin-orchestrator skills for the Client Build Pipeline. Both defer to canonical Notion KB pages and keep workflow logic out of the skill body. Owner: Ben.
+
+**`build-gate-check`**: runs a build pipeline gate's MCP predicates read-only and returns GREEN/RED with evidence. Predicate definitions live in the Notion KB page "[Reference] Infra: Build Gate Verification — MCP Predicate Map"; the skill executes them, never redefines them. Gates: scaffold-complete, baseline-complete, design-approved, pre-publish, live, in-fleet. Hard rules: no partial credit, null performance data reports as manual-check-required, design-approved/live never green without human sign-off.
+
+**`site-sync-local`**: pulls a staging DB into the local Laragon env (code flows up, data flows down). Canonical procedure lives in the Notion KB page "[How-To] Infra: Deploy, Sync & Rollback". Hard rules: data flows down only, no production credentials in local wp-config, abort on cross-client tables.
+
+**Eval / validation:**
+- `npm run validate`: pass on both, 0 warnings. Fixes required: `logic_type: thin-orchestrator` is not in the governance enum, changed to `workflow` on both; `surface: code` → `claude-code` on site-sync-local.
+- `npm run check:mcp-contracts`: pass (70 skills checked, 200 MCP tools available).
+- skill-creator eval: PASSED both (2026-06-10). Blind trigger testing via independent judge against a 7-skill competing catalog: build-gate-check 4/4 should-fire, 3/3 should-not-fire (ambiguous "verify WordPress setup" correctly routes to onboard-client, which owns that phrasing verbatim); site-sync-local 3/3 should-fire, 3/3 should-not-fire (including "push local DB to staging" → no skill fires, matching the down-only rule).
+- Defect caught and fixed by eval: build-gate-check's procedure requires Notion access (step 1 Projects DB lookup, step 4 gate-report comment, gate inference) but `allowed-tools` listed no Notion tools. Added `notion-search`, `notion-fetch`, `notion-create-comment`. Also added `wp_site_performance`, referenced in the hard rules but absent from `allowed-tools`.
+- `npm test`: pass, 13 tests.
+- Status: **Live**
+
+---
+
 ## 2026-06-05 - scaffold-client skill (Phase B.1)
 
 New skill: `scaffold-client`. GitHub + Notion bootstrap for a new Voyager client site. Takes `--slug` and `--name` and produces: a private GitHub repo forked from `voyager-blank-child` with CLAUDE.md/style.css placeholders filled, GitHub variables set, a local clone, and three linked Notion records (Client, Project, dispatch Task). Owner: Ben. Notion task: TK-1999.
